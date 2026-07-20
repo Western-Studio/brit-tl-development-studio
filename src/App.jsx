@@ -1936,16 +1936,17 @@ export default function App() {
           flexWrap: narrow ? "wrap" : "nowrap",
           gap: 12, alignItems: narrow ? "center" : "stretch",
         }}>
-          <div style={{ padding: narrow ? "0 4px" : "4px 2px 12px", marginRight: narrow ? 8 : 0 }}>
-            <div style={{ fontWeight: 900, fontSize: narrow ? 22 : 30, letterSpacing: "-.03em", lineHeight: 1, color: BRAND.magenta }}>
-              BRIT
-            </div>
-            <div style={{ fontWeight: 900, fontSize: narrow ? 22 : 30, letterSpacing: "-.03em", lineHeight: 1.05, color: BRAND.ink }}>
-              T&amp;L
-            </div>
-            <div style={{ fontWeight: 900, fontSize: narrow ? 22 : 30, letterSpacing: "-.04em", lineHeight: 1.05, color: BRAND.ink }}>
-              Studio<span style={{ color: BRAND.magenta }}>.</span>
-            </div>
+          <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", marginRight: narrow ? 10 : 0 }}>
+            <svg width={narrow ? 108 : 142} viewBox="0 0 142 76" role="img" aria-label="BRIT T&L Studio" style={{ display: "block", overflow: "visible" }}>
+              <text x="0" y="50" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 54, letterSpacing: "-1px", fill: BRAND.magenta }}>
+                BRIT
+              </text>
+              <text x="0" y="72" textLength="142" lengthAdjust="spacing"
+                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 800, fontSize: 16.5, fill: BRAND.ink }}>
+                T&amp;L STUDIO<tspan style={{ fill: BRAND.magenta }}>.</tspan>
+              </text>
+            </svg>
           </div>
           {nav.map((n) => (
             <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
