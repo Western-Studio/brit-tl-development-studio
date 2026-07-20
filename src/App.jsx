@@ -23,7 +23,7 @@ const BRAND = {
   transformational: "#46B749", // brand green
 };
 
-// The BRIT Check — the four strands of the BRIT lesson framework.
+// The BRIT framework — the four strands of the BRIT lesson framework.
 // "What can you see, hear, and how does it feel?"
 const STRANDS = [
   {
@@ -178,7 +178,7 @@ const FORMS = [
   },
 ];
 
-// v2: reseeded after the BRIT Check redesign (spotlight, noticed look-fors,
+// v2: reseeded after the BRIT framework redesign (spotlight, noticed look-fors,
 // shout-outs). The key bump makes browsers holding the old seed pick this up.
 const STORAGE_KEY = "brit-tl-studio-submissions-v2";
 
@@ -396,7 +396,7 @@ function OutlinePill({ children, colour = "#fff" }) {
 function FormSelector({ onSelect }) {
   return (
     <div>
-      {/* statement panel + BRIT Check tiles */}
+      {/* statement panel + BRIT framework tiles */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18, marginBottom: 30 }}>
         <div style={{
           background: BRAND.magenta, borderRadius: 28, padding: "28px 30px 32px", color: "#fff",
@@ -408,7 +408,7 @@ function FormSelector({ onSelect }) {
             More than a framework.<br />A shared language.
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, opacity: 0.94 }}>
-            <strong>The BRIT Check asks three questions of every room: what can you see,
+            <strong>The BRIT framework asks three questions of every room: what can you see,
             what can you hear — and how does it feel?</strong> Reviews here grow practice
             through conversation between colleagues, and it unfolds, lesson by lesson.
           </p>
@@ -992,9 +992,9 @@ function SLTDashboard({ submissions }) {
 /* ------------------------------------------------------------------ *
  *  HELP BOT (wired to Claude API)
  * ------------------------------------------------------------------ */
-const BOT_SYSTEM = `You are the BRIT T&L Development Studio assistant for an arts and performing-arts specialist institution. You help staff understand and complete the BRIT lesson framework ("the BRIT Check") and its peer review process.
+const BOT_SYSTEM = `You are the BRIT T&L Development Studio assistant for an arts and performing-arts specialist institution. You help staff understand and complete the BRIT lesson framework and its peer review process.
 
-The BRIT Check is the shared, non-judgmental professional language for reviews, learning walks and quality assurance. It answers "what does excellent teaching and learning look like here?" through three lenses: what can you see, what can you hear, and how does it feel? It has four strands:
+The BRIT framework is the shared, non-judgmental professional language for reviews, learning walks and quality assurance. It answers "what does excellent teaching and learning look like here?" through three lenses: what can you see, what can you hear, and how does it feel? It has four strands:
 
 - Belonging (inclusion and culture; teaching standards 1 and 5): every student is known and greeted — nobody is invisible at the back. Access is proactively planned for neurodiversity and quiet learners. The room reflects who is in it: identities, voices, and a range of work on show. It is safe to take creative risks and fail. Grounded in psychological safety (Amy Edmondson) and attachment and trauma-informed pedagogy.
 - Room (the physical and digital environment and how it is used; standards 5 and 7): the spatial layout actively fits the technical and creative tasks. Sightlines work so everyone can see the board, screen, device or demonstration. Resources, cables, floor space and kit are safe, accessible and ready before learning starts. Grounded in the Reggio Emilia idea of the environment as "third teacher" and vocational studio ergonomics.
