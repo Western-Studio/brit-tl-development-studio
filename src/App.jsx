@@ -8,6 +8,13 @@ import {
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
 } from "recharts";
+import "@fontsource/archivo/400.css";
+import "@fontsource/archivo/500.css";
+import "@fontsource/archivo/600.css";
+import "@fontsource/archivo/700.css";
+import "@fontsource/archivo/800.css";
+import "@fontsource/archivo/900.css";
+import "@fontsource/anton/400.css";
 
 /* ------------------------------------------------------------------ *
  *  BRAND + FRAMEWORK CONSTANTS
@@ -1887,10 +1894,6 @@ export default function App() {
   const narrow = useNarrow();
 
   useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap";
-    document.head.appendChild(link);
     const style = document.createElement("style");
     style.textContent =
       "@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}" +
@@ -1937,12 +1940,16 @@ export default function App() {
           gap: 12, alignItems: narrow ? "center" : "stretch",
         }}>
           <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", marginRight: narrow ? 10 : 0 }}>
-            <div>
-              <div style={{ fontWeight: 900, fontSize: narrow ? 30 : 40, letterSpacing: "-.03em", lineHeight: 1, color: BRAND.magenta }}>BRIT</div>
-              <div style={{ fontWeight: 700, fontSize: narrow ? 13 : 15.5, letterSpacing: "-.01em", lineHeight: 1.3, color: BRAND.ink, marginTop: 7 }}>
-                T&amp;L Development<br />Studio<span style={{ color: BRAND.magenta }}>.</span>
-              </div>
-            </div>
+            <svg width={narrow ? 100 : 136} viewBox="0 0 142 202" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
+              <text x="0" y="54" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Anton',sans-serif", fontSize: 74, fill: BRAND.magenta }}>BRIT</text>
+              <text x="0" y="127" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Anton',sans-serif", fontSize: 84, fill: "none", stroke: BRAND.ink, strokeWidth: 2 }}>T&amp;L</text>
+              <text x="0" y="157" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Anton',sans-serif", fontSize: 24, fill: BRAND.ink }}>DEVELOPMENT</text>
+              <text x="0" y="198" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Anton',sans-serif", fontSize: 38, fill: "none", stroke: BRAND.magenta, strokeWidth: 1.7 }}>STUDIO<tspan style={{ fill: BRAND.magenta, stroke: "none" }}>.</tspan></text>
+            </svg>
           </div>
           {nav.map((n) => (
             <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
