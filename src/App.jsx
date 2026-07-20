@@ -371,7 +371,7 @@ const SEED = [
 ];
 
 /* ------------------------------------------------------------------ *
- *  REFLECTIONS NOTICEBOARD SEED
+ *  REFLECTIONS SHARE BOARD SEED
  * ------------------------------------------------------------------ */
 const REFLECTIONS_KEY = "brit-tl-studio-reflections-v1";
 
@@ -490,7 +490,7 @@ const inputStyle = {
  *  STAFF: FORM SELECTOR
  * ------------------------------------------------------------------ */
 /* ------------------------------------------------------------------ *
- *  REFLECTIONS NOTICEBOARD - staff share practice & development posts
+ *  REFLECTIONS SHARE BOARD - staff share practice & development posts
  * ------------------------------------------------------------------ */
 function ReflectionsBoard() {
   const [posts, setPosts] = useState([]);
@@ -541,7 +541,7 @@ function ReflectionsBoard() {
 
   return (
     <div>
-      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>The noticeboard</h2>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>The share board</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 24px", fontSize: 14 }}>
         Micro-insights, wins and works-in-progress - share anything about your practice or development, with a photo if you have one.
       </p>
@@ -1447,7 +1447,7 @@ function SLTDashboard({ submissions }) {
 }
 
 /* ------------------------------------------------------------------ *
- *  MY DASHBOARD - your forms, drafts and noticeboard posts
+ *  MY DASHBOARD - your forms, drafts and share board posts
  * ------------------------------------------------------------------ */
 function SubmissionDetail({ s }) {
   return (
@@ -1537,7 +1537,7 @@ function MyDashboard({ submissions, onResumeDraft }) {
           { label: "In progress", value: myDrafts.length, bg: "#C2651A" },
           { label: "Reviews of my practice", value: aboutMe.length, bg: BRAND.magenta },
           { label: "Reviews I've written", value: byMe.length, bg: "#8447B0" },
-          { label: "Noticeboard posts", value: myPosts.length, bg: BRAND.green },
+          { label: "Share board posts", value: myPosts.length, bg: BRAND.green },
         ].map((stat) => (
           <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "26px 28px", color: "#fff" }}>
             <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1 }}>{stat.value}</div>
@@ -1607,9 +1607,9 @@ function MyDashboard({ submissions, onResumeDraft }) {
 
       {/* my posts */}
       <Card style={{ padding: 28 }}>
-        <h3 style={sectionH}>My noticeboard posts</h3>
+        <h3 style={sectionH}>My share board posts</h3>
         {myPosts.length === 0 ? (
-          <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>Nothing shared yet - pin something to the Noticeboard.</p>
+          <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>Nothing shared yet - pin something to the Share board.</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
             {myPosts.map((post) => (
@@ -1760,7 +1760,7 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area - never a mark or judgement of the person.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard - the noticeboard lives on the Studio's All Staff page, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their noticeboard posts.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts.
 
 Important terminology: at this school "strands" means the vocational departments, so never call the four framework areas "strands" - call them areas. Answer in British English, warmly and concisely. If asked about something you do not have - a specific policy detail, a calendar date, a named person's data - say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
@@ -1999,7 +1999,7 @@ export default function App() {
   const nav = [
     { key: "staff", num: "01", label: "All Staff", colour: BRAND.magenta },
     { key: "me", num: "02", label: "My Dashboard", colour: "#46B749" },
-    { key: "board", num: "03", label: "Noticeboard", colour: "#C2651A" },
+    { key: "board", num: "03", label: "Share board", colour: "#C2651A" },
     { key: "slt", num: "04", label: "SLT", colour: "#8447B0" },
     { key: "manager", num: "05", label: "Line Manager", colour: BRAND.ink },
   ];
