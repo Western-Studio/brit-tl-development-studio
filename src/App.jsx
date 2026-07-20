@@ -144,12 +144,33 @@ const RATING_TAGLINE = {
   Transformational: "lifts the whole room",
 };
 
-const TERMS = ["Autumn 1", "Autumn 2", "Spring 1", "Spring 2", "Summer 1", "Summer 2"];
-const FACULTIES = [
-  "Theatre", "Musical Theatre", "Music", "Dance",
-  "Film & Media Production", "Games Design & VFX",
-  "Visual Arts & Design", "Production Arts", "Interactive Digital Design",
+const TERMS = ["Term 1", "Term 2", "Term 3", "Term 4", "Term 5"];
+const DEPARTMENTS = [
+  "English", "Maths", "Science", "Humanities",
+  "Theatre", "Applied Theatre", "Musical Theatre", "Music", "Dance",
+  "Music Technology", "Visual Art & Design", "Fashion, Styling & Textiles",
+  "Production Arts", "Film & Media Production", "Digital Arts",
 ];
+
+// Simulated staff directory. In production this syncs from BromCom — names,
+// levels and line management — and the app sits behind staff login.
+const STAFF = [
+  { name: "Kerry Western", role: "Director of Teaching & Learning", level: "Leadership", department: "Teaching & Learning", manager: null },
+  { name: "Daniel Price", role: "Head of Performing Arts", level: "Leadership", department: "Theatre", manager: "Kerry Western" },
+  { name: "Sofia Andrews", role: "Head of Creative Industries", level: "Leadership", department: "Visual Art & Design", manager: "Kerry Western" },
+  { name: "Nicola Grant", role: "Head of National Curriculum", level: "Leadership", department: "English", manager: "Kerry Western" },
+  { name: "Priya Nair", role: "Lead Teacher", level: "UPS", department: "Dance", manager: "Daniel Price" },
+  { name: "Amara Okafor", role: "Teacher", level: "Main scale", department: "Theatre", manager: "Daniel Price" },
+  { name: "Grace Adeyemi", role: "Teacher", level: "ECT Year 2", department: "Musical Theatre", manager: "Daniel Price" },
+  { name: "Marcus Bell", role: "Teacher", level: "UPS", department: "Music", manager: "Daniel Price" },
+  { name: "Jordan Mackey", role: "Teacher", level: "Main scale", department: "Music Technology", manager: "Daniel Price" },
+  { name: "Leah Sturrock", role: "Teacher", level: "Main scale", department: "Digital Arts", manager: "Sofia Andrews" },
+  { name: "Yusuf Rahman", role: "Teacher", level: "ECT Year 1", department: "Film & Media Production", manager: "Sofia Andrews" },
+  { name: "Elena Petrova", role: "Teacher", level: "Main scale", department: "Production Arts", manager: "Sofia Andrews" },
+  { name: "Tom Whitfield", role: "Teacher", level: "Main scale", department: "Maths", manager: "Nicola Grant" },
+  { name: "Rachel Okon", role: "Teacher", level: "UPS", department: "Science", manager: "Nicola Grant" },
+];
+const staffByName = (name) => STAFF.find((s) => s.name === name);
 
 const FORMS = [
   {
@@ -178,9 +199,9 @@ const FORMS = [
   },
 ];
 
-// v2: reseeded after the BRIT framework redesign (spotlight, noticed look-fors,
-// shout-outs). The key bump makes browsers holding the old seed pick this up.
-const STORAGE_KEY = "brit-tl-studio-submissions-v2";
+// v3: reseeded for the BromCom-style directory, Terms 1-5 and the real
+// department list. The key bump makes browsers holding an old seed reseed.
+const STORAGE_KEY = "brit-tl-studio-submissions-v3";
 
 /* ------------------------------------------------------------------ *
  *  SEED DATA (so the SLT view is alive on first open)
@@ -207,12 +228,13 @@ function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comm
     focus: extra.focus || "",
     celebrate: extra.celebrate || "",
     nextStep: extra.nextStep || "",
+    links: extra.links || [],
     overall: formType === "learning-walk" ? (comments[4] || "") : "",
   };
 }
 
 const SEED = [
-  mk("s1", "peer-review", "2026-09-18", "Autumn 1", "Theatre", "Amara Okafor", "Daniel Price",
+  mk("s1", "peer-review", "2026-09-18", "Term 1", "Theatre", "Amara Okafor", "Daniel Price",
     ["Embedded", "Embedded", "Embedded", "Developing"],
     ["Every student greeted by name at the door, and the register doubled as a check-in. Two quieter students had planned entry points into the devising task — nobody was invisible at the back.",
      "",
@@ -224,7 +246,7 @@ const SEED = [
       celebrate: "The check-in ritual at the door — students visibly arrived ready because someone expected them.",
       nextStep: "Try handing the warm-down reflection to a student to lead, once a fortnight.",
     }),
-  mk("s2", "peer-review", "2026-09-22", "Autumn 1", "Games Design & VFX", "Leah Sturrock", "Priya Nair",
+  mk("s2", "peer-review", "2026-09-22", "Term 1", "Digital Arts", "Leah Sturrock", "Priya Nair",
     ["Developing", "Embedded", "Transformational", "Developing"],
     ["A few students on the edges, less drawn in during the brief.",
      "Dual-screen setup worked well for the pipeline demo.",
@@ -235,8 +257,9 @@ const SEED = [
       noticed: { Intent: pick("Intent", 0, 1), Room: pick("Room", 1) },
       celebrate: "The client framing — the room believed the work was real, because it was.",
       nextStep: "A two-minute scan for who's drifting at the back during briefings.",
+      links: ["https://docs.google.com/document/d/demo-sprint-brief"],
     }),
-  mk("s3", "peer-review", "2026-10-02", "Autumn 2", "Music", "Marcus Bell", "Sofia Andrews",
+  mk("s3", "peer-review", "2026-10-02", "Term 2", "Music", "Marcus Bell", "Sofia Andrews",
     ["Transformational", "Transformational", "Embedded", "Embedded"],
     ["Genuine ensemble culture — every student contributed, and risk-taking in the improvisation felt completely safe. The wall of work-in-progress made the room feel owned by the people in it.",
      "Configured for both rehearsal and feedback without a reset — seamless.",
@@ -247,7 +270,7 @@ const SEED = [
       noticed: { Belonging: pick("Belonging", 0, 2, 3), Room: pick("Room", 2), Travel: pick("Travel", 3) },
       celebrate: "An ensemble where it is visibly safe to fail — that culture takes years to build, and it shows.",
     }),
-  mk("s4", "peer-review", "2026-10-09", "Autumn 2", "Film & Media Production", "Yusuf Rahman", "Daniel Price",
+  mk("s4", "peer-review", "2026-10-09", "Term 2", "Film & Media Production", "Yusuf Rahman", "Daniel Price",
     ["Embedded", "Developing", "Transformational", "Embedded"],
     ["Strong rapport, inclusive questioning.",
      "Kit distribution ate the first ten minutes and the space felt tight for the group size. Once running, sightlines to the edit demo worked well — set-up before the lesson would buy that time back.",
@@ -259,7 +282,7 @@ const SEED = [
       celebrate: "The edit demo itself was superb — clear, well paced, and students leaned in.",
       nextStep: "Stage the kit trolleys before the lesson, so the environment is set before learning starts.",
     }),
-  mk("s5", "peer-review", "2026-10-14", "Autumn 2", "Dance", "Priya Nair", "Amara Okafor",
+  mk("s5", "peer-review", "2026-10-14", "Term 2", "Dance", "Priya Nair", "Amara Okafor",
     ["Embedded", "Embedded", "Embedded", "Transformational"],
     ["Inclusive — quieter students given planned space.",
      "",
@@ -270,7 +293,7 @@ const SEED = [
       noticed: { Travel: pick("Travel", 0, 2, 3), Belonging: pick("Belonging", 1) },
       celebrate: "The moment the dancers self-corrected after the showing without being told — that is Travel.",
     }),
-  mk("s6", "peer-review", "2026-11-05", "Spring 1", "Visual Arts & Design", "Sofia Andrews", "Leah Sturrock",
+  mk("s6", "peer-review", "2026-11-05", "Term 2", "Visual Art & Design", "Sofia Andrews", "Leah Sturrock",
     ["Developing", "Embedded", "Transformational", "Developing"],
     ["Belonging building; a couple of students disengaged early.",
      "",
@@ -282,13 +305,13 @@ const SEED = [
       celebrate: "The critique culture — generous, rigorous, and completely student-led by the end.",
       nextStep: "Name the learning (not just the task) at the top of the session, so the why is as visible as the what.",
     }),
-  mk("s7", "learning-walk", "2026-09-25", "Autumn 1", "Musical Theatre", "Daniel Price", "Kerry Western",
+  mk("s7", "learning-walk", "2026-09-25", "Term 1", "Musical Theatre", "Grace Adeyemi", "Kerry Western",
     ["Embedded", "Embedded", "Transformational", "Embedded"],
     ["", "", "", "", "Mobile-phones check-in walk across three rooms: policy landing well. Intent strong everywhere; belonging solid; travel visible in the vocal work."]),
-  mk("s8", "learning-walk", "2026-10-08", "Autumn 2", "Production Arts", "Marcus Bell", "Kerry Western",
+  mk("s8", "learning-walk", "2026-10-08", "Term 2", "Production Arts", "Elena Petrova", "Kerry Western",
     ["Developing", "Developing", "Embedded", "Developing"],
     ["", "", "", "", "Belonging-focus walk: students arrived to an unset space and a quiet welcome — environment and greeting both need attention. Intent clear; travel hard to read on a walk."]),
-  mk("s9", "peer-review", "2026-11-12", "Spring 1", "Interactive Digital Design", "Amara Okafor", "Yusuf Rahman",
+  mk("s9", "peer-review", "2026-11-12", "Term 2", "Music Technology", "Jordan Mackey", "Yusuf Rahman",
     ["Transformational", "Embedded", "Transformational", "Embedded"],
     ["Genuinely inclusive pair programming — rotations planned so quieter students took the driving seat, and every voice mattered in the stand-up.",
      "Lab set up for pairing before students arrived.",
@@ -299,7 +322,7 @@ const SEED = [
       noticed: { Belonging: pick("Belonging", 0, 1), Intent: pick("Intent", 0), Travel: pick("Travel", 1) },
       celebrate: "Quieter students literally in the driving seat — inclusion by design, not by luck.",
     }),
-  mk("s10", "peer-review", "2026-11-18", "Spring 1", "Theatre", "Leah Sturrock", "Sofia Andrews",
+  mk("s10", "peer-review", "2026-11-18", "Term 2", "Musical Theatre", "Grace Adeyemi", "Sofia Andrews",
     ["Embedded", "Transformational", "Embedded", "Developing"],
     ["Strong belonging, clear rituals.",
      "The studio transformed for the promenade piece — zones, sightlines and safety all considered, and students reset the space themselves like a working company.",
@@ -311,7 +334,7 @@ const SEED = [
       celebrate: "A room run like a professional company — the students owned the space.",
       nextStep: "Capture the reset routine as a one-page company call sheet other groups could borrow.",
     }),
-  mk("s11", "learning-walk", "2026-11-20", "Spring 1", "Music", "Priya Nair", "Kerry Western",
+  mk("s11", "learning-walk", "2026-11-20", "Term 2", "Music", "Marcus Bell", "Kerry Western",
     ["Embedded", "Transformational", "Transformational", "Embedded"],
     ["", "", "", "", "Rooms-focus walk: both studios set before learning started, kit ready, sightlines clean. Intent excellent; travel evident in the composition task."]),
 ];
@@ -483,33 +506,129 @@ function FormSelector({ onSelect }) {
  *  SHARED SPINE FIELDS
  * ------------------------------------------------------------------ */
 function SpineFields({ v, set }) {
+  const reviewee = staffByName(v.reviewee);
+  const pickReviewee = (name) => {
+    set("reviewee", name);
+    const s = staffByName(name);
+    if (s && DEPARTMENTS.includes(s.department)) set("faculty", s.department);
+  };
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 14 }}>
-      <Field label="Date">
-        <input type="date" style={inputStyle} value={v.date} onChange={(e) => set("date", e.target.value)} />
-      </Field>
-      <Field label="Term">
-        <select style={inputStyle} value={v.term} onChange={(e) => set("term", e.target.value)}>
-          <option value="">Select…</option>
-          {TERMS.map((t) => <option key={t}>{t}</option>)}
-        </select>
-      </Field>
-      <Field label="Academic year">
-        <input style={inputStyle} value={v.academicYear} onChange={(e) => set("academicYear", e.target.value)} />
-      </Field>
-      <Field label="Faculty / subject">
-        <select style={inputStyle} value={v.faculty} onChange={(e) => set("faculty", e.target.value)}>
-          <option value="">Select…</option>
-          {FACULTIES.map((f) => <option key={f}>{f}</option>)}
-        </select>
-      </Field>
-      <Field label="Staff member reviewed">
-        <input style={inputStyle} value={v.reviewee} placeholder="Full name" onChange={(e) => set("reviewee", e.target.value)} />
-      </Field>
-      <Field label="Reviewer">
-        <input style={inputStyle} value={v.reviewer} placeholder="Full name" onChange={(e) => set("reviewer", e.target.value)} />
-      </Field>
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 14 }}>
+        <Field label="Date">
+          <input type="date" style={inputStyle} value={v.date} onChange={(e) => set("date", e.target.value)} />
+        </Field>
+        <Field label="Term">
+          <select style={inputStyle} value={v.term} onChange={(e) => set("term", e.target.value)}>
+            <option value="">Select…</option>
+            {TERMS.map((t) => <option key={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Academic year">
+          <input style={inputStyle} value={v.academicYear} onChange={(e) => set("academicYear", e.target.value)} />
+        </Field>
+        <Field label="Staff member reviewed">
+          <select style={inputStyle} value={v.reviewee} onChange={(e) => pickReviewee(e.target.value)}>
+            <option value="">Select…</option>
+            {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
+          </select>
+        </Field>
+        <Field label="Department">
+          <select style={inputStyle} value={v.faculty} onChange={(e) => set("faculty", e.target.value)}>
+            <option value="">Select…</option>
+            {DEPARTMENTS.map((f) => <option key={f}>{f}</option>)}
+          </select>
+        </Field>
+        <Field label="Reviewer">
+          <select style={inputStyle} value={v.reviewer} onChange={(e) => set("reviewer", e.target.value)}>
+            <option value="">Select…</option>
+            {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
+          </select>
+        </Field>
+      </div>
+      {reviewee && (
+        <div style={{
+          marginTop: 14, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+          background: BRAND.pink, borderRadius: 10, padding: "10px 14px", fontSize: 12.5, color: BRAND.grey,
+        }}>
+          <span style={{ fontWeight: 700, color: BRAND.ink }}>{reviewee.name}</span>
+          <span>{reviewee.role}</span>·<span>{reviewee.level}</span>
+          {reviewee.manager && <><span>·</span><span>Line manager: {reviewee.manager}</span></>}
+          <span style={{
+            marginLeft: "auto", fontSize: 10, fontWeight: 700, letterSpacing: ".08em",
+            border: `1px solid ${BRAND.line}`, borderRadius: 999, padding: "3px 9px",
+          }}>BROMCOM · DEMO SYNC</span>
+        </div>
+      )}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ *  PDF EXPORT — opens a clean print view; the browser's print dialog
+ *  offers "Save as PDF" on every platform.
+ * ------------------------------------------------------------------ */
+function printRecord(rec) {
+  const esc = (t) => String(t ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const person = staffByName(rec.reviewee);
+  const formName = FORMS.find((f) => f.id === rec.formType)?.name || "Review";
+  const row = (k, val) => (val ? `<tr><td>${k}</td><td>${esc(val)}</td></tr>` : "");
+  const areas = STRANDS.map((a) => {
+    const cell = rec.strands?.[a.key] || {};
+    return `<div class="area" style="border-left:6px solid ${a.accent}">
+      <h3>${a.letter} · ${a.key}
+        ${cell.rating ? `<span class="tag" style="background:${RATING_COLOUR[cell.rating]}">${esc(cell.rating)}</span>` : ""}
+        ${rec.focus === a.key ? `<span class="spot">Spotlight</span>` : ""}</h3>
+      ${cell.noticed?.length ? `<p class="noticed">Noticed: ${cell.noticed.map(esc).join(" · ")}</p>` : ""}
+      ${cell.comment ? `<p>${esc(cell.comment)}</p>` : ""}
+    </div>`;
+  }).join("");
+  const html = `<title>${esc(formName)} — ${esc(rec.reviewee)} — ${esc(rec.date)}</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;color:#2A1E27;margin:36px auto;max-width:700px;padding:0 16px}
+    h1{margin:0;letter-spacing:-.02em} .sub{color:#6B5E66;margin:4px 0 22px;font-size:14px}
+    table{border-collapse:collapse;width:100%;margin-bottom:22px;font-size:13.5px}
+    td{border:1px solid #EADCE6;padding:7px 10px} td:first-child{font-weight:bold;width:36%;background:#F8F1F6}
+    .area{margin:0 0 14px;padding:10px 14px;background:#FAF7F9;border-radius:6px}
+    .area h3{margin:0 0 6px;font-size:15px}
+    .tag{color:#fff;border-radius:99px;padding:2px 10px;font-size:11px;margin-left:8px;font-weight:normal}
+    .spot{border:1px solid #2A1E27;border-radius:99px;padding:2px 10px;font-size:11px;margin-left:6px;font-weight:normal}
+    .noticed{font-size:12px;color:#6B5E66} p{font-size:13.5px;line-height:1.55;margin:4px 0}
+    .box{background:#FDFBF6;border:1px solid #EFE3C8;border-radius:6px;padding:10px 14px;margin-bottom:10px;font-size:13.5px}
+    a{color:#AD227E} .foot{margin-top:26px;font-size:11px;color:#6B5E66}
+  </style>
+  <h1>${esc(formName)}</h1>
+  <div class="sub">BRIT T&amp;L Development Studio · BRIT framework · ${esc(rec.academicYear)}</div>
+  <table>
+    ${row("Staff member reviewed", rec.reviewee)}
+    ${person ? row("Role", `${person.role} · ${person.level}`) : ""}
+    ${person?.manager ? row("Line manager", person.manager) : ""}
+    ${row("Department", rec.faculty)}
+    ${row("Reviewer", rec.reviewer)}
+    ${row("Date", rec.date)}${row("Term", rec.term)}
+    ${row("Spotlight area", rec.focus)}
+  </table>
+  ${areas}
+  ${rec.overall ? `<div class="box"><strong>Overall observation:</strong> ${esc(rec.overall)}</div>` : ""}
+  ${rec.celebrate ? `<div class="box"><strong>Shout-out:</strong> ${esc(rec.celebrate)}</div>` : ""}
+  ${rec.nextStep ? `<div class="box"><strong>One idea worth trying:</strong> ${esc(rec.nextStep)}</div>` : ""}
+  ${rec.links?.length ? `<p><strong>Linked documents</strong><br>${rec.links.map((l) => `<a href="${esc(l)}">${esc(l)}</a>`).join("<br>")}</p>` : ""}
+  <div class="foot">Generated by the BRIT T&amp;L Development Studio</div>`;
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 400);
+}
+
+function PdfButton({ rec, subtle }) {
+  return (
+    <button onClick={(e) => { e.stopPropagation(); printRecord(rec); }} style={{
+      padding: subtle ? "5px 12px" : "10px 20px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+      border: `1.5px solid ${BRAND.ink}`, background: "#fff", color: BRAND.ink,
+      fontWeight: 700, fontSize: subtle ? 12 : 14, width: "fit-content",
+    }}>Save as PDF</button>
   );
 }
 
@@ -624,8 +743,9 @@ function ReviewForm({ formId, onBack, onSubmit }) {
   const [focusStrand, setFocusStrand] = useState("");
   const [celebrate, setCelebrate] = useState("");
   const [nextStep, setNextStep] = useState("");
+  const [links, setLinks] = useState([""]);
   const [overall, setOverall] = useState("");
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState(null);
 
   const setSpineField = (k, val) => setSpine((s) => ({ ...s, [k]: val }));
   const setRating = (k, r) => setStrands((s) => ({ ...s, [k]: { ...s[k], rating: r } }));
@@ -650,10 +770,11 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       focus: isWalk ? "" : focusStrand,
       celebrate: isWalk ? "" : celebrate,
       nextStep: isWalk ? "" : nextStep,
+      links: isWalk ? [] : links.map((l) => l.trim()).filter(Boolean),
       overall: isWalk ? overall : "",
     };
     onSubmit(record);
-    setDone(true);
+    setDone(record);
   };
 
   if (done) {
@@ -666,10 +787,13 @@ function ReviewForm({ formId, onBack, onSubmit }) {
         <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 20px" }}>
           It has been added to the {meta.name.toLowerCase()} record and is visible on the SLT dashboard.
         </p>
-        <button onClick={onBack} style={{
-          padding: "10px 20px", borderRadius: 999, border: "none", background: BRAND.magenta,
-          color: "#fff", fontWeight: 600, cursor: "pointer", fontSize: 14,
-        }}>Back to forms</button>
+        <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+          <button onClick={onBack} style={{
+            padding: "10px 20px", borderRadius: 999, border: "none", background: BRAND.magenta,
+            color: "#fff", fontWeight: 600, cursor: "pointer", fontSize: 14, fontFamily: "inherit",
+          }}>Back to forms</button>
+          <PdfButton rec={done} />
+        </div>
       </Card>
     );
   }
@@ -753,6 +877,29 @@ function ReviewForm({ formId, onBack, onSubmit }) {
             <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} value={overall}
               placeholder="One reflection across the walk" onChange={(e) => setOverall(e.target.value)} />
           </Field>
+        </Card>
+      )}
+
+      {!isWalk && (
+        <Card style={{ padding: 22, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <ClipboardList size={16} color={BRAND.magenta} />
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Linked documents</h3>
+          </div>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 12px", lineHeight: 1.5 }}>
+            Paste links to anything that supports the review — lesson plans, slides, the brief, photos of the work. Optional.
+          </p>
+          <div style={{ display: "grid", gap: 10 }}>
+            {links.map((l, i) => (
+              <input key={i} style={inputStyle} type="url" placeholder="https://…" value={l}
+                onChange={(e) => setLinks((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))} />
+            ))}
+          </div>
+          <button onClick={() => setLinks((prev) => [...prev, ""])} style={{
+            marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px",
+            borderRadius: 999, border: `1.5px solid ${BRAND.line}`, background: "#fff", cursor: "pointer",
+            fontFamily: "inherit", fontSize: 12.5, fontWeight: 650, color: BRAND.magenta,
+          }}><Plus size={14} /> Add another link</button>
         </Card>
       )}
 
@@ -873,8 +1020,8 @@ function SLTDashboard({ submissions }) {
             {FORMS.filter((f) => f.active).map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
           </select>
           <select style={{ ...inputStyle, width: "auto" }} value={facultyFilter} onChange={(e) => setFacultyFilter(e.target.value)}>
-            <option value="all">All faculties</option>
-            {FACULTIES.map((f) => <option key={f}>{f}</option>)}
+            <option value="all">All departments</option>
+            {DEPARTMENTS.map((f) => <option key={f}>{f}</option>)}
           </select>
         </div>
       </div>
@@ -884,7 +1031,7 @@ function SLTDashboard({ submissions }) {
         {[
           { label: "Reviews in view", value: filtered.length, bg: BRAND.magenta },
           { label: "Transformational ratings", value: totalT, bg: BRAND.green },
-          { label: "Faculties covered", value: new Set(filtered.map((s) => s.faculty)).size, bg: "#8447B0" },
+          { label: "Departments covered", value: new Set(filtered.map((s) => s.faculty)).size, bg: "#8447B0" },
         ].map((stat) => (
           <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "18px 20px", color: "#fff" }}>
             <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1 }}>{stat.value}</div>
@@ -977,14 +1124,140 @@ function SLTDashboard({ submissions }) {
                 {s.overall && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><em>{s.overall}</em></div>}
                 {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, marginTop: 4, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                 {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Worth trying:</strong> {s.nextStep}</div>}
-                <div style={{ fontSize: 12, color: BRAND.grey, marginTop: 4 }}>
-                  Reviewer: {s.reviewer}{s.focus ? ` · Spotlight: ${s.focus}` : ""}
+                {s.links?.length > 0 && (
+                  <div style={{ fontSize: 13, marginTop: 4 }}>
+                    <strong style={{ color: BRAND.grey }}>Linked documents:</strong>{" "}
+                    {s.links.map((l, i) => (
+                      <a key={i} href={l} target="_blank" rel="noreferrer" style={{ color: BRAND.magenta, marginRight: 10, wordBreak: "break-all" }}>{l}</a>
+                    ))}
+                  </div>
+                )}
+                <div style={{ fontSize: 12, color: BRAND.grey, marginTop: 4, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <span>Reviewer: {s.reviewer}{s.focus ? ` · Spotlight: ${s.focus}` : ""}</span>
+                  <PdfButton rec={s} subtle />
                 </div>
               </div>
             </details>
           ))}
         </div>
       </Card>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ *  LINE MANAGER DASHBOARD
+ * ------------------------------------------------------------------ */
+function ManagerDashboard({ submissions }) {
+  const managers = STAFF.filter((s) => STAFF.some((x) => x.manager === s.name));
+  const [who, setWho] = useState("Daniel Price");
+  const reports = STAFF.filter((s) => s.manager === who);
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
+        <div>
+          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>My team</h2>
+          <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>
+            Reviews and walks for the colleagues you line-manage.
+          </p>
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BRAND.grey }}>
+          Viewing as
+          <select style={{ ...inputStyle, width: "auto" }} value={who} onChange={(e) => setWho(e.target.value)}>
+            {managers.map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
+          </select>
+        </label>
+      </div>
+      <div style={{
+        fontSize: 12, color: BRAND.grey, background: "#fff", border: `1px dashed ${BRAND.line}`,
+        borderRadius: 10, padding: "8px 14px", marginBottom: 20,
+      }}>
+        Demo view — in production this page sits behind staff login, and names, levels and line management sync from BromCom.
+      </div>
+
+      {reports.length === 0 ? (
+        <p style={{ color: BRAND.grey, fontSize: 14 }}>No direct reports found for {who}.</p>
+      ) : (
+        <div style={{ display: "grid", gap: 16 }}>
+          {reports.map((r) => {
+            const subs = submissions
+              .filter((x) => x.reviewee === r.name)
+              .slice()
+              .sort((a, b) => (a.date < b.date ? 1 : -1));
+            const latest = subs[0];
+            return (
+              <Card key={r.name} style={{ padding: 20 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{
+                    width: 42, height: 42, borderRadius: 12, background: BRAND.magenta, color: "#fff",
+                    display: "grid", placeItems: "center", fontWeight: 800, fontSize: 15,
+                  }}>{r.name.split(" ").map((w) => w[0]).join("")}</div>
+                  <div style={{ flex: 1, minWidth: 160 }}>
+                    <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.ink }}>{r.name}</div>
+                    <div style={{ fontSize: 12.5, color: BRAND.grey }}>{r.role} · {r.level} · {r.department}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    {latest && STRANDS.map((a) => {
+                      const rating = latest.strands?.[a.key]?.rating;
+                      return (
+                        <span key={a.key} title={`${a.key}: ${rating || "—"}`} style={{
+                          width: 22, height: 22, borderRadius: 7, display: "grid", placeItems: "center",
+                          background: rating ? RATING_COLOUR[rating] : BRAND.line, color: "#fff",
+                          fontSize: 11, fontWeight: 800,
+                        }}>{a.letter}</span>
+                      );
+                    })}
+                    <span style={{
+                      fontSize: 12, fontWeight: 700, color: subs.length ? BRAND.ink : "#C0392B",
+                      border: `1.5px solid ${subs.length ? BRAND.line : "#E7C9C9"}`, borderRadius: 999, padding: "4px 12px",
+                    }}>
+                      {subs.length ? `${subs.length} review${subs.length !== 1 ? "s" : ""}` : "No reviews yet"}
+                    </span>
+                  </div>
+                </div>
+
+                {subs.length > 0 && (
+                  <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
+                    {subs.map((s) => (
+                      <details key={s.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "10px 14px" }}>
+                        <summary style={{ cursor: "pointer", fontSize: 13.5, color: BRAND.ink, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+                          <span style={{ fontWeight: 650 }}>{FORMS.find((f) => f.id === s.formType)?.name}{s.focus ? ` · Spotlight: ${s.focus}` : ""}</span>
+                          <span style={{ color: BRAND.grey, fontSize: 12.5 }}>{s.date} · {s.term} · by {s.reviewer}</span>
+                        </summary>
+                        <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
+                          {STRANDS.map((a) => {
+                            const cell = s.strands?.[a.key] || {};
+                            return (
+                              <div key={a.key} style={{ fontSize: 13 }}>
+                                <span style={{ display: "inline-block", width: 86, fontWeight: 700, color: a.accent }}>{a.key}</span>
+                                <span style={{ display: "inline-block", padding: "1px 8px", borderRadius: 999, fontSize: 11, fontWeight: 700, color: "#fff", background: RATING_COLOUR[cell.rating] || BRAND.grey, marginRight: 8 }}>{cell.rating}</span>
+                                <span style={{ color: BRAND.grey }}>{cell.comment}</span>
+                              </div>
+                            );
+                          })}
+                          {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
+                          {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
+                          {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Worth trying:</strong> {s.nextStep}</div>}
+                          {s.links?.length > 0 && (
+                            <div style={{ fontSize: 13 }}>
+                              <strong style={{ color: BRAND.grey }}>Linked documents:</strong>{" "}
+                              {s.links.map((l, i) => (
+                                <a key={i} href={l} target="_blank" rel="noreferrer" style={{ color: BRAND.magenta, marginRight: 10, wordBreak: "break-all" }}>{l}</a>
+                              ))}
+                            </div>
+                          )}
+                          <div><PdfButton rec={s} subtle /></div>
+                        </div>
+                      </details>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -1245,6 +1518,7 @@ export default function App() {
   const nav = [
     { key: "staff", num: "01", label: "All Staff", colour: BRAND.magenta },
     { key: "slt", num: "02", label: "SLT", colour: "#46B749" },
+    { key: "manager", num: "03", label: "Line Manager", colour: "#8447B0" },
   ];
 
   return (
@@ -1276,7 +1550,7 @@ export default function App() {
             <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
               onClick={() => { setRole(n.key); setSelectedForm(null); }} />
           ))}
-          <NavTile num="03" label="Ask the assistant" colour="#C2651A" narrow={narrow}
+          <NavTile num="04" label="Ask the assistant" colour="#C2651A" narrow={narrow}
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && (
             <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
@@ -1293,6 +1567,8 @@ export default function App() {
             selectedForm
               ? <ReviewForm formId={selectedForm} onBack={() => setSelectedForm(null)} onSubmit={addSubmission} />
               : <FormSelector onSelect={setSelectedForm} />
+          ) : role === "manager" ? (
+            <ManagerDashboard submissions={submissions} />
           ) : (
             <SLTDashboard submissions={submissions} />
           )}

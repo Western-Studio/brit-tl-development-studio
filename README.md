@@ -22,11 +22,12 @@ wired to call a backend proxy at the URL in `VITE_CHAT_PROXY_URL`. If that
 variable is not set, everything else in the Studio works and the bot shows a
 short message explaining it is not switched on. See "Wiring up the bot" below.
 
-**Placeholder content.** The four strand descriptions, and the sample
-submissions on the SLT dashboard, are placeholders. Replace the strand text
-in `src/App.jsx` (the `STRANDS` array, and the `BOT_SYSTEM` prompt) with the
-real BRIT framework strand definitions. The seed data in the `SEED` array is invented and
-can be deleted once real submissions exist.
+**Demo content.** The sample submissions on the SLT and line-manager
+dashboards are invented (`SEED` in `src/App.jsx`), and the staff directory
+(`STAFF`) is a simulation of a BromCom sync — in production, names, levels
+and line management would come from the BromCom API and the app would sit
+behind staff login. The framework text itself (the `STRANDS` array and the
+bot's knowledge) reflects the real BRIT framework.
 
 ## Running it locally
 
