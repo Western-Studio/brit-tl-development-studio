@@ -30,6 +30,7 @@ const STRANDS = [
     key: "Belonging",
     letter: "B",
     accent: "#AD227E",
+    pastel: "#F8E9F2",
     focus: "Inclusion and culture",
     ts: "TS 1 · 5",
     desc: "Inclusion and culture — every student is known, expected, and safe enough to take creative risks.",
@@ -38,6 +39,8 @@ const STRANDS = [
       "Access is proactively planned for neurodiversity and quiet learners",
       "The room reflects who is in it: identities, voices, a range of work on show",
       "It is safe to take creative risks — and to fail",
+      "Names are used — in greetings, questions and feedback",
+      "Every voice is drawn in, not just the confident ones",
     ],
     research: [
       { name: "Psychological safety — Amy Edmondson", note: "An environment free from interpersonal fear, so students will experiment creatively." },
@@ -53,6 +56,7 @@ const STRANDS = [
     key: "Room",
     letter: "R",
     accent: "#8447B0",
+    pastel: "#F2ECF8",
     focus: "The physical and digital environment, and how it is used",
     ts: "TS 5 · 7",
     desc: "The physical and digital environment — the space works for the task before learning starts.",
@@ -61,6 +65,8 @@ const STRANDS = [
       "Sightlines work — everyone can see the board, screen, device or demonstration",
       "Resources, cables, floor space and kit are safe, accessible and ready",
       "The environment is set before learning starts, not during it",
+      "Digital tools genuinely support the task, not distract from it",
+      "Transitions are quick — no learning time lost to the space",
     ],
     research: [
       { name: "Reggio Emilia — the “third teacher”", note: "The physical environment as a teacher in its own right. Rooted in Early Years, highly relevant to 14–19 studio pedagogy." },
@@ -76,6 +82,7 @@ const STRANDS = [
     key: "Intent",
     letter: "I",
     accent: "#C2651A",
+    pastel: "#FAF0E4",
     focus: "Rigour and standards",
     ts: "TS 3 · 4",
     desc: "Rigour and standards — it is transparent what is being learned and why, and excellence is visible in the room.",
@@ -84,6 +91,8 @@ const STRANDS = [
       "Living models of excellence are visible in the room",
       "Professional, vocational and academic standards stay aspirational and rigorous",
       "Pitch stretches the strongest without losing anyone",
+      "Success criteria are concrete, not vague",
+      "The why connects to industry, audience or assessment",
     ],
     research: [
       { name: "Visible Learning — John Hattie", note: "Clear learning intentions so students can explicitly monitor their own progress." },
@@ -99,6 +108,7 @@ const STRANDS = [
     key: "Travel",
     letter: "T",
     accent: "#46B749",
+    pastel: "#EAF6EB",
     focus: "Cognitive processing",
     ts: "TS 2 · 4 · 6",
     desc: "Cognitive processing — students do the heavy thinking, feedback lands in the lesson, and progress is visible in the work.",
@@ -107,6 +117,8 @@ const STRANDS = [
       "Direct, purposeful dialogue and targeted questioning dig past surface answers",
       "Formative feedback lands and is acted on within the lesson",
       "Progress is visible in the work — all have moved forward",
+      "Students can say how their work has improved",
+      "Misconceptions are caught and unpicked in the moment",
     ],
     research: [
       { name: "Principles of Instruction — Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
@@ -393,13 +405,12 @@ function FormSelector({ onSelect }) {
           <OutlinePill>How we see teaching</OutlinePill>
           <div style={{ flex: 1, minHeight: 40 }} />
           <h2 style={{ fontSize: "clamp(28px, 3.4vw, 40px)", fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1.05, margin: "0 0 14px" }}>
-            More than a checklist.<br />A shared language.
+            More than a framework.<br />A shared language.
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, opacity: 0.94 }}>
             <strong>The BRIT Check asks three questions of every room: what can you see,
             what can you hear — and how does it feel?</strong> Reviews here grow practice
-            through conversation between colleagues. Nothing is a grade, and nothing is a verdict.
-            It unfolds, lesson by lesson.
+            through conversation between colleagues, and it unfolds, lesson by lesson.
           </p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12 }}>
@@ -523,8 +534,8 @@ function DescriptorPicker({ s, value, onPick }) {
         return (
           <button key={r} onClick={() => onPick(r)} style={{
             textAlign: "left", padding: "12px 14px", borderRadius: 12, cursor: "pointer",
-            border: `2px solid ${active ? RATING_COLOUR[r] : BRAND.line}`,
-            background: active ? `${RATING_COLOUR[r]}14` : "#fff",
+            border: `2px solid ${active ? RATING_COLOUR[r] : "#fff"}`,
+            background: "#fff",
             transition: "all .15s", fontFamily: "inherit",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
@@ -541,10 +552,9 @@ function DescriptorPicker({ s, value, onPick }) {
 }
 
 function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
-  const [showWhy, setShowWhy] = useState(false);
   return (
     <Card style={{
-      padding: 22, marginBottom: 16,
+      padding: 22, marginBottom: 16, background: s.pastel,
       border: `${isFocus ? 2 : 1}px solid ${isFocus ? s.accent : BRAND.line}`,
       boxShadow: isFocus ? `0 4px 20px ${s.accent}22` : "none",
     }}>
@@ -574,9 +584,9 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
             <button key={p} onClick={() => onToggleNoticed(s.key, p)} style={{
               display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px",
               borderRadius: 999, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit",
-              border: `1.5px solid ${on ? s.accent : BRAND.line}`,
-              background: on ? `${s.accent}12` : "#fff",
-              color: on ? s.accent : BRAND.grey, fontWeight: on ? 650 : 500,
+              border: `1.5px solid ${on ? s.accent : "#fff"}`,
+              background: on ? s.accent : "#fff",
+              color: on ? "#fff" : BRAND.grey, fontWeight: on ? 650 : 500,
               transition: "all .15s", textAlign: "left",
             }}>
               {on && <CheckCircle size={13} />}{p}
@@ -591,31 +601,13 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
       <DescriptorPicker s={s} value={data.rating} onPick={(r) => onRate(s.key, r)} />
 
       <textarea
-        style={{ ...inputStyle, minHeight: 70, resize: "vertical", marginTop: 14 }}
+        style={{ ...inputStyle, minHeight: 70, resize: "vertical", marginTop: 14, border: "1px solid #fff" }}
         placeholder={isFocus
           ? `This is the spotlight strand — what did you see and hear, and how did it feel? Be generous with detail.`
           : `Anything you noticed for ${s.key} (optional)`}
         value={data.comment}
         onChange={(e) => onComment(s.key, e.target.value)}
       />
-
-      <button onClick={() => setShowWhy((w) => !w)} style={{
-        display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12, padding: 0,
-        background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-        fontSize: 12.5, fontWeight: 650, color: s.accent,
-      }}>
-        <GraduationCap size={14} /> The research behind this strand
-        <ChevronDown size={14} style={{ transform: showWhy ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
-      </button>
-      {showWhy && (
-        <div style={{ background: BRAND.pink, borderRadius: 10, padding: "12px 14px", marginTop: 10, display: "grid", gap: 8 }}>
-          {s.research.map((r) => (
-            <div key={r.name} style={{ fontSize: 12.5, color: BRAND.grey, lineHeight: 1.55 }}>
-              <strong style={{ color: BRAND.ink }}>{r.name}.</strong> {r.note}
-            </div>
-          ))}
-        </div>
-      )}
     </Card>
   );
 }
@@ -646,7 +638,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
   const complete =
     Object.values(spine).every((x) => x.trim()) &&
     STRANDS.every((s) => strands[s.key].rating) &&
-    (isWalk || (focusStrand && celebrate.trim()));
+    (isWalk || (focusStrand && celebrate.trim() && nextStep.trim()));
 
   const submit = () => {
     const record = {
@@ -689,7 +681,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       </button>
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>{meta.name}</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 22px", fontSize: 14 }}>
-        What can you see, hear — and how does it feel? The descriptors are developmental, never grades.
+        What can you see, hear — and how does it feel?
       </p>
 
       <Card style={{ padding: 22, marginBottom: 20 }}>
@@ -726,7 +718,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       )}
 
       {STRANDS.map((s) => isWalk ? (
-        <Card key={s.key} style={{ padding: 22, marginBottom: 16 }}>
+        <Card key={s.key} style={{ padding: 22, marginBottom: 16, background: s.pastel }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 6 }}>
             <StrandBadge s={s} size={34} />
             <div>
@@ -778,9 +770,9 @@ function ReviewForm({ formId, onBack, onSubmit }) {
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={celebrate}
                 placeholder="The moment worth celebrating from this lesson…" onChange={(e) => setCelebrate(e.target.value)} />
             </Field>
-            <Field label="One idea worth trying — small, concrete, kind (optional)">
+            <Field label="One idea worth trying — small, concrete, kind">
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={nextStep}
-                placeholder="A single practical suggestion, if one occurred to you…" onChange={(e) => setNextStep(e.target.value)} />
+                placeholder="A single practical suggestion for your colleague to take away…" onChange={(e) => setNextStep(e.target.value)} />
             </Field>
           </div>
         </Card>
@@ -797,7 +789,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
           <span style={{ fontSize: 13, color: BRAND.grey }}>
             {isWalk
               ? "Complete all details and a descriptor for each strand."
-              : "Complete the details, pick a spotlight, choose a descriptor for each strand, and add a shout-out."}
+              : "Complete the details, pick a spotlight, choose a descriptor for each strand, and add a shout-out and an idea worth trying."}
           </span>
         )}
       </div>
@@ -1189,7 +1181,6 @@ function NavTile({ num, label, colour, active, onClick, narrow }) {
 const TICKER_ITEMS = [
   "Belonging", "Room", "Intent", "Travel",
   "What can you see?", "What can you hear?", "How does it feel?",
-  "Developmental — never grades",
 ];
 
 function Ticker() {
