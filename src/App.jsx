@@ -25,7 +25,7 @@ const BRAND = {
   green: "#46B749",
   ink: "#2A1E27",
   grey: "#6B5E66",
-  line: "#EADCE6",
+  line: "#DCC7D4",
   developing: "#B9A7B4",   // soft, neutral — not a "fail" red
   embedded: "#AD227E",     // brand magenta
   transformational: "#46B749", // brand green
@@ -453,7 +453,7 @@ function loadReflections() {
  *  SMALL UI PRIMITIVES
  * ------------------------------------------------------------------ */
 const Card = ({ children, style, ...p }) => (
-  <div style={{ background: "#fff", border: `1px solid ${BRAND.line}`, borderRadius: 16, ...style }} {...p}>
+  <div style={{ background: "#fff", border: `1.5px solid ${BRAND.line}`, borderRadius: 16, ...style }} {...p}>
     {children}
   </div>
 );
@@ -925,7 +925,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
   return (
     <Card style={{
       padding: 28, marginBottom: 22, background: s.pastel,
-      border: `${isFocus ? 2 : 1}px solid ${isFocus ? s.accent : BRAND.line}`,
+      border: `${isFocus ? 2 : 1.5}px solid ${isFocus ? s.accent : BRAND.line}`,
       boxShadow: isFocus ? `0 4px 20px ${s.accent}22` : "none",
     }}>
       <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
