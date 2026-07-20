@@ -23,7 +23,7 @@ const BRAND = {
   transformational: "#46B749", // brand green
 };
 
-// The BRIT framework — the four strands of the BRIT lesson framework.
+// The BRIT framework — its four areas ("strands" is reserved for departments).
 // "What can you see, hear, and how does it feel?"
 const STRANDS = [
   {
@@ -155,7 +155,7 @@ const FORMS = [
   {
     id: "peer-review",
     name: "Peer Review",
-    blurb: "Developmental review against the four BRIT framework strands, with comments per strand.",
+    blurb: "Developmental review against the four BRIT framework areas, with comments per area.",
     icon: ClipboardCheck,
     profile: "staff",
     active: true,
@@ -163,7 +163,7 @@ const FORMS = [
   {
     id: "learning-walk",
     name: "Learning Walk",
-    blurb: "Lighter-touch walk rated against the strands, with a single overall observation.",
+    blurb: "Lighter-touch walk rated against the four areas, with a single overall observation.",
     icon: Users,
     profile: "staff",
     active: true,
@@ -603,7 +603,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
       <textarea
         style={{ ...inputStyle, minHeight: 70, resize: "vertical", marginTop: 14, border: "1px solid #fff" }}
         placeholder={isFocus
-          ? `This is the spotlight strand — what did you see and hear, and how did it feel? Be generous with detail.`
+          ? `This is the spotlight area — what did you see and hear, and how did it feel? Be generous with detail.`
           : `Anything you noticed for ${s.key} (optional)`}
         value={data.comment}
         onChange={(e) => onComment(s.key, e.target.value)}
@@ -696,7 +696,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
           </div>
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
             Peer reviews work best with one narrow focus, agreed together before the lesson.
-            Pick the strand under the spotlight — you'll still glance across all four.
+            Pick the area under the spotlight — you'll still glance across all four.
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {STRANDS.map((s) => {
@@ -788,8 +788,8 @@ function ReviewForm({ formId, onBack, onSubmit }) {
         {!complete && (
           <span style={{ fontSize: 13, color: BRAND.grey }}>
             {isWalk
-              ? "Complete all details and a descriptor for each strand."
-              : "Complete the details, pick a spotlight, choose a descriptor for each strand, and add a shout-out and an idea worth trying."}
+              ? "Complete all details and a descriptor for each area."
+              : "Complete the details, pick a spotlight, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
           </span>
         )}
       </div>
@@ -895,7 +895,7 @@ function SLTDashboard({ submissions }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px,1fr))", gap: 18, marginBottom: 22 }}>
         <Card style={{ padding: 22 }}>
-          <h3 style={{ margin: "0 0 16px", fontSize: 15, color: BRAND.ink }}>Where each strand sits</h3>
+          <h3 style={{ margin: "0 0 16px", fontSize: 15, color: BRAND.ink }}>Where each area sits</h3>
           {STRANDS.map((s) => <StrandBar key={s.key} strand={s.key} counts={strandCounts[s.key]} />)}
           <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
             {RATINGS.map((r) => (
@@ -994,22 +994,22 @@ function SLTDashboard({ submissions }) {
  * ------------------------------------------------------------------ */
 const BOT_SYSTEM = `You are the BRIT T&L Development Studio assistant for an arts and performing-arts specialist institution. You help staff understand and complete the BRIT lesson framework and its peer review process.
 
-The BRIT framework is the shared, non-judgmental professional language for reviews, learning walks and quality assurance. It answers "what does excellent teaching and learning look like here?" through three lenses: what can you see, what can you hear, and how does it feel? It has four strands:
+The BRIT framework is the shared, non-judgmental professional language for reviews, learning walks and quality assurance. It answers "what does excellent teaching and learning look like here?" through three lenses: what can you see, what can you hear, and how does it feel? It has four areas:
 
 - Belonging (inclusion and culture; teaching standards 1 and 5): every student is known and greeted — nobody is invisible at the back. Access is proactively planned for neurodiversity and quiet learners. The room reflects who is in it: identities, voices, and a range of work on show. It is safe to take creative risks and fail. Grounded in psychological safety (Amy Edmondson) and attachment and trauma-informed pedagogy.
 - Room (the physical and digital environment and how it is used; standards 5 and 7): the spatial layout actively fits the technical and creative tasks. Sightlines work so everyone can see the board, screen, device or demonstration. Resources, cables, floor space and kit are safe, accessible and ready before learning starts. Grounded in the Reggio Emilia idea of the environment as "third teacher" and vocational studio ergonomics.
 - Intent (rigour and standards; standards 3 and 4): it is transparent what is being learned and why, not just what is being "done". Living models of excellence are visible, keeping professional, vocational and academic standards aspirational and rigorous. Pitch stretches the strongest without losing anyone. Grounded in Visible Learning (John Hattie) and expert modelling.
 - Travel (cognitive processing; standards 2, 4 and 6): students do the heavy cognitive thinking and creative work rather than watching it happen. Direct, purposeful dialogue and targeted questioning dig past surface answers. Formative feedback lands and is acted on in the lesson. Progress is visible in the work — all have moved forward. Grounded in Rosenshine's Principles of Instruction and Dylan Wiliam's formative assessment.
 
-Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on a strand — never a mark or judgement of the person.
+Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area — never a mark or judgement of the person.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus strand — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each strand, comments in depth on the spotlight strand, and closes with a shout-out (something to feel proud of) and optionally one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard. Learning Walks are lighter: descriptors per strand plus one overall observation.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of) and optionally one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard. Learning Walks are lighter: descriptors per area plus one overall observation.
 
-Answer in British English, warmly and concisely. If asked about something you do not have — a specific policy detail, a calendar date, a named person's data — say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
+Important terminology: at this school "strands" means the vocational departments, so never call the four framework areas "strands" — call them areas. Answer in British English, warmly and concisely. If asked about something you do not have — a specific policy detail, a calendar date, a named person's data — say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
 function HelpBot({ open, setOpen }) {
   const [messages, setMessages] = useState([
-    { role: "assistant", content: "Hi — I can help with anything about the BRIT framework and the review process. What do the strands mean, how do the descriptors work, how to complete a review. What would you like to know?" },
+    { role: "assistant", content: "Hi — I can help with anything about the BRIT framework and the review process. What do the four areas mean, how do the descriptors work, how to complete a review. What would you like to know?" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1018,7 +1018,7 @@ function HelpBot({ open, setOpen }) {
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
 
   const starters = [
-    "What does the Intent strand mean?",
+    "What does the Intent area mean?",
     "What's the difference between Embedded and Transformational?",
     "How do I complete a peer review?",
   ];
