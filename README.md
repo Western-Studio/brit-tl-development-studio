@@ -24,7 +24,7 @@ short message explaining it is not switched on. See "Wiring up the bot" below.
 
 **Demo content.** The sample submissions on the SLT and line-manager
 dashboards are invented (`SEED` in `src/App.jsx`), and the staff directory
-(`STAFF`) is a simulation of a BromCom sync — in production, names, levels
+(`STAFF`) is a simulation of a BromCom sync - in production, names, levels
 and line management would come from the BromCom API and the app would sit
 behind staff login. The framework text itself (the `STRANDS` array and the
 bot's knowledge) reflects the real BRIT framework.
@@ -69,7 +69,7 @@ To switch the bot on:
 1. Import this repo into Vercel and set `ANTHROPIC_API_KEY` as an environment
    variable there (get a key from console.anthropic.com).
 2. Set `VITE_CHAT_PROXY_URL` to the deployed function URL
-   (`https://<project>.vercel.app/api/chat`) — as a GitHub Actions repository
+   (`https://<project>.vercel.app/api/chat`) - as a GitHub Actions repository
    variable for the Pages build, or in a `.env.local` file for local testing.
 
 A note that connects to the wider plan: standing this up properly, with staff

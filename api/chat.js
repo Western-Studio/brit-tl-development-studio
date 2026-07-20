@@ -9,7 +9,7 @@ const ALLOWED_ORIGINS = [
   "http://localhost:4173",
 ];
 
-// The endpoint is public, so the server decides the model and limits —
+// The endpoint is public, so the server decides the model and limits -
 // whatever the browser sends cannot raise them.
 const MODEL = "claude-sonnet-4-6";
 const MAX_TOKENS = 1000;
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "messages array required" });
   }
   if (messages.length > MAX_MESSAGES) {
-    return res.status(400).json({ error: "Conversation too long — please start a fresh chat." });
+    return res.status(400).json({ error: "Conversation too long - please start a fresh chat." });
   }
   const clean = messages.map((m) => ({
     role: m.role === "assistant" ? "assistant" : "user",
