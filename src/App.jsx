@@ -1814,7 +1814,7 @@ function HelpBot({ open, setOpen }) {
 /* ------------------------------------------------------------------ *
  *  ROOT
  * ------------------------------------------------------------------ */
-function useNarrow(query = "(max-width: 940px)") {
+function useNarrow(query = "(max-width: 700px)") {
   const [narrow, setNarrow] = useState(() => window.matchMedia(query).matches);
   useEffect(() => {
     const mq = window.matchMedia(query);
@@ -1937,24 +1937,12 @@ export default function App() {
           gap: 12, alignItems: narrow ? "center" : "stretch",
         }}>
           <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", marginRight: narrow ? 10 : 0 }}>
-            <svg width={narrow ? 104 : 142} viewBox="0 0 142 124" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
-              <text x="0" y="38" textLength="142" lengthAdjust="spacingAndGlyphs"
-                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 52, letterSpacing: "-1px", fill: BRAND.magenta }}>
-                BRIT
-              </text>
-              <text x="0" y="68" textLength="142" lengthAdjust="spacing"
-                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 34, fill: BRAND.ink }}>
-                T&amp;L
-              </text>
-              <text x="0" y="88" textLength="142" lengthAdjust="spacing"
-                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 700, fontSize: 14.5, fill: BRAND.ink }}>
-                DEVELOPMENT
-              </text>
-              <text x="0" y="118" textLength="142" lengthAdjust="spacingAndGlyphs"
-                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 33, fill: BRAND.ink }}>
-                STUDIO<tspan style={{ fill: BRAND.magenta }}>.</tspan>
-              </text>
-            </svg>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: narrow ? 30 : 40, letterSpacing: "-.03em", lineHeight: 1, color: BRAND.magenta }}>BRIT</div>
+              <div style={{ fontWeight: 700, fontSize: narrow ? 13 : 15.5, letterSpacing: "-.01em", lineHeight: 1.3, color: BRAND.ink, marginTop: 7 }}>
+                T&amp;L Development<br />Studio<span style={{ color: BRAND.magenta }}>.</span>
+              </div>
+            </div>
           </div>
           {nav.map((n) => (
             <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
