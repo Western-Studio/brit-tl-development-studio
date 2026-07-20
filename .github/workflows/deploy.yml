@@ -25,6 +25,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Set in repo Settings → Secrets and variables → Actions → Variables.
+          # Empty (unset) leaves the help bot switched off on the live site.
+          VITE_CHAT_PROXY_URL: ${{ vars.VITE_CHAT_PROXY_URL }}
       - uses: actions/configure-pages@v5
         with:
           enablement: true

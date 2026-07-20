@@ -57,29 +57,19 @@ does the create and push in one step.
 
 ## Wiring up the bot
 
-The browser sends the conversation to your proxy; the proxy adds the API key
-and calls Claude. A minimal serverless function (for example on Vercel, as
-`api/chat.js`) looks like this:
+The browser sends the conversation to a proxy; the proxy adds the API key and
+calls Claude. The proxy lives in this repo at `api/chat.js` and deploys
+automatically when the repo is imported into Vercel. It restricts requests to
+known origins (GitHub Pages and localhost), pins the model and token limits
+server-side, and never exposes the API key to the browser.
 
-```js
-export default async function handler(req, res) {
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": process.env.ANTHROPIC_API_KEY,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify(req.body),
-  });
-  const data = await r.json();
-  res.status(r.status).json(data);
-}
-```
+To switch the bot on:
 
-Set `ANTHROPIC_API_KEY` as a secret on the host, and set
-`VITE_CHAT_PROXY_URL` to the deployed function URL (for local testing, put it
-in a `.env.local` file).
+1. Import this repo into Vercel and set `ANTHROPIC_API_KEY` as an environment
+   variable there (get a key from console.anthropic.com).
+2. Set `VITE_CHAT_PROXY_URL` to the deployed function URL
+   (`https://<project>.vercel.app/api/chat`) — as a GitHub Actions repository
+   variable for the Pages build, or in a `.env.local` file for local testing.
 
 A note that connects to the wider plan: standing this up properly, with staff
 data and an AI layer, is the point where hosting, a data processing agreement,
