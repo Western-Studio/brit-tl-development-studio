@@ -380,9 +380,7 @@ const seedArt = (a, b) => `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='340'>` +
   `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>` +
   `<stop offset='0' stop-color='${a}'/><stop offset='1' stop-color='${b}'/></linearGradient></defs>` +
-  `<rect width='600' height='340' fill='url(#g)'/>` +
-  `<circle cx='500' cy='60' r='90' fill='rgba(255,255,255,.18)'/>` +
-  `<circle cx='90' cy='280' r='120' fill='rgba(255,255,255,.12)'/></svg>`
+  `<rect width='600' height='340' fill='url(#g)'/></svg>`
 )}`;
 
 const REFLECTION_SEED = [
