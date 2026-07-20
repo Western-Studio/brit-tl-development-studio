@@ -439,10 +439,18 @@ function saveDrafts(list) {
 function removeDraft(id) {
   if (id) saveDrafts(loadDrafts().filter((d) => d.id !== id));
 }
+// Stored copies of the seed posts keep whatever placeholder art they were
+// saved with; swap in the current artwork so design changes reach them.
+function refreshSeedArt(list) {
+  return list.map((p) => {
+    const seed = REFLECTION_SEED.find((s) => s.id === p.id);
+    return seed ? { ...p, photo: seed.photo } : p;
+  });
+}
 function loadReflections() {
   try {
     const r = JSON.parse(localStorage.getItem(REFLECTIONS_KEY));
-    if (r) return r;
+    if (r) return refreshSeedArt(r);
   } catch (e) { /* fall through */ }
   return REFLECTION_SEED;
 }
@@ -502,7 +510,7 @@ function ReflectionsBoard() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(REFLECTIONS_KEY);
-      if (raw) { setPosts(JSON.parse(raw)); return; }
+      if (raw) { setPosts(refreshSeedArt(JSON.parse(raw))); return; }
     } catch (e) { /* fall through to seed */ }
     setPosts(REFLECTION_SEED);
     try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(REFLECTION_SEED)); } catch (e) { /* ignore */ }
