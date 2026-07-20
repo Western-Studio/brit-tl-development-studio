@@ -816,7 +816,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", background: BRAND.pink, borderRadius: 999, padding: 4 }}>
-            {[["staff", "Staff", ClipboardList], ["slt", "SLT", BarChart3]].map(([key, label, Icon]) => (
+            {[["staff", "All Staff", ClipboardList], ["slt", "SLT", BarChart3]].map(([key, label, Icon]) => (
               <button key={key} onClick={() => { setRole(key); setSelectedForm(null); }} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 999, border: "none",
                 cursor: "pointer", fontWeight: 600, fontSize: 13, fontFamily: "inherit",
