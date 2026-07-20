@@ -171,7 +171,7 @@ const FORMS = [
   {
     id: "aen-review",
     name: "AEN Review",
-    blurb: "Captures pupil additional-needs information — different data profile, held separately.",
+    blurb: "",
     icon: ShieldAlert,
     profile: "pupil",
     active: false,
