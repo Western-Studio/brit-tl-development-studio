@@ -398,6 +398,29 @@ async function saveSubmissions(list) {
 }
 
 /* ------------------------------------------------------------------ *
+ *  DRAFTS + "WHO AM I" (per-browser, like everything else in the demo)
+ * ------------------------------------------------------------------ */
+const DRAFTS_KEY = "brit-tl-studio-drafts-v1";
+const ME_KEY = "brit-tl-studio-me";
+
+function loadDrafts() {
+  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY)) || []; } catch (e) { return []; }
+}
+function saveDrafts(list) {
+  try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(list)); } catch (e) { /* ignore */ }
+}
+function removeDraft(id) {
+  if (id) saveDrafts(loadDrafts().filter((d) => d.id !== id));
+}
+function loadReflections() {
+  try {
+    const r = JSON.parse(localStorage.getItem(REFLECTIONS_KEY));
+    if (r) return r;
+  } catch (e) { /* fall through */ }
+  return REFLECTION_SEED;
+}
+
+/* ------------------------------------------------------------------ *
  *  SMALL UI PRIMITIVES
  * ------------------------------------------------------------------ */
 const Card = ({ children, style, ...p }) => (
@@ -893,22 +916,36 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
   );
 }
 
-function ReviewForm({ formId, onBack, onSubmit }) {
+function ReviewForm({ formId, onBack, onSubmit, draft }) {
   const isWalk = formId === "learning-walk";
   const meta = FORMS.find((f) => f.id === formId);
-  const [spine, setSpine] = useState({
+  const [draftId, setDraftId] = useState(draft?.id || null);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [spine, setSpine] = useState(draft?.spine || {
     date: "", term: "", academicYear: "2026/27", faculty: "", reviewee: "", reviewer: "",
   });
-  const [strands, setStrands] = useState(
+  const [strands, setStrands] = useState(draft?.strands ||
     STRANDS.reduce((a, s) => ({ ...a, [s.key]: { rating: "", comment: "", noticed: [] } }), {})
   );
-  const [focusStrand, setFocusStrand] = useState("");
-  const [celebrate, setCelebrate] = useState("");
-  const [evenBetterIf, setEvenBetterIf] = useState("");
-  const [nextStep, setNextStep] = useState("");
-  const [links, setLinks] = useState([""]);
-  const [overall, setOverall] = useState("");
+  const [focusStrand, setFocusStrand] = useState(draft?.focusStrand || "");
+  const [celebrate, setCelebrate] = useState(draft?.celebrate || "");
+  const [evenBetterIf, setEvenBetterIf] = useState(draft?.evenBetterIf || "");
+  const [nextStep, setNextStep] = useState(draft?.nextStep || "");
+  const [links, setLinks] = useState(draft?.links?.length ? draft.links : [""]);
+  const [overall, setOverall] = useState(draft?.overall || "");
   const [done, setDone] = useState(null);
+
+  const saveDraft = () => {
+    const id = draftId || "d" + Date.now();
+    const record = {
+      id, formId, savedAt: new Date().toISOString().slice(0, 10),
+      spine, strands, focusStrand, celebrate, evenBetterIf, nextStep, links, overall,
+    };
+    saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
+    setDraftId(id);
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 2500);
+  };
 
   const setSpineField = (k, val) => setSpine((s) => ({ ...s, [k]: val }));
   const setRating = (k, r) => setStrands((s) => ({ ...s, [k]: { ...s[k], rating: r } }));
@@ -938,6 +975,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       overall: isWalk ? overall : "",
     };
     onSubmit(record);
+    removeDraft(draftId);
     setDone(record);
   };
 
@@ -1093,13 +1131,19 @@ function ReviewForm({ formId, onBack, onSubmit }) {
         </Card>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8, flexWrap: "wrap" }}>
         <button disabled={!complete} onClick={submit} style={{
           padding: "12px 24px", borderRadius: 999, border: "none",
           background: complete ? BRAND.magenta : BRAND.line,
           color: complete ? "#fff" : BRAND.grey, fontWeight: 700, fontSize: 14,
-          cursor: complete ? "pointer" : "not-allowed",
+          cursor: complete ? "pointer" : "not-allowed", fontFamily: "inherit",
         }}>Submit review</button>
+        <button onClick={saveDraft} style={{
+          padding: "12px 24px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+          border: `1.5px solid ${BRAND.ink}`, background: "#fff", color: BRAND.ink,
+          fontWeight: 700, fontSize: 14,
+        }}>Save draft</button>
+        {draftSaved && <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.green }}>Draft saved — find it on My Dashboard</span>}
         {!complete && (
           <span style={{ fontSize: 13, color: BRAND.grey }}>
             {isWalk
@@ -1315,6 +1359,187 @@ function SLTDashboard({ submissions }) {
 }
 
 /* ------------------------------------------------------------------ *
+ *  MY DASHBOARD — your forms, drafts and noticeboard posts
+ * ------------------------------------------------------------------ */
+function SubmissionDetail({ s }) {
+  return (
+    <details style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "14px 16px" }}>
+      <summary style={{ cursor: "pointer", fontSize: 13.5, color: BRAND.ink, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+        <span style={{ fontWeight: 650 }}>
+          {FORMS.find((f) => f.id === s.formType)?.name} · {s.reviewee}{s.focus ? ` · Spotlight: ${s.focus}` : ""}
+        </span>
+        <span style={{ color: BRAND.grey, fontSize: 12.5 }}>{s.date} · {s.term} · by {s.reviewer}</span>
+      </summary>
+      <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
+        {STRANDS.map((a) => {
+          const cell = s.strands?.[a.key] || {};
+          return (
+            <div key={a.key} style={{ fontSize: 13 }}>
+              <span style={{ display: "inline-block", width: 86, fontWeight: 700, color: a.accent }}>{a.key}</span>
+              <span style={{ display: "inline-block", padding: "1px 8px", borderRadius: 999, fontSize: 11, fontWeight: 700, color: "#fff", background: RATING_COLOUR[cell.rating] || BRAND.grey, marginRight: 8 }}>{cell.rating}</span>
+              <span style={{ color: BRAND.grey }}>{cell.comment}</span>
+            </div>
+          );
+        })}
+        {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
+        {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
+        {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
+        {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Worth trying:</strong> {s.nextStep}</div>}
+        {s.links?.length > 0 && (
+          <div style={{ fontSize: 13 }}>
+            <strong style={{ color: BRAND.grey }}>Linked documents:</strong>{" "}
+            {s.links.map((l, i) => (
+              <a key={i} href={l} target="_blank" rel="noreferrer" style={{ color: BRAND.magenta, marginRight: 10, wordBreak: "break-all" }}>{l}</a>
+            ))}
+          </div>
+        )}
+        <div><PdfButton rec={s} subtle /></div>
+      </div>
+    </details>
+  );
+}
+
+function MyDashboard({ submissions, onResumeDraft }) {
+  const [me, setMe] = useState(() => {
+    try { return localStorage.getItem(ME_KEY) || "Amara Okafor"; } catch (e) { return "Amara Okafor"; }
+  });
+  const [drafts, setDrafts] = useState(loadDrafts());
+  const person = staffByName(me);
+  const pickMe = (n) => {
+    setMe(n);
+    try { localStorage.setItem(ME_KEY, n); } catch (e) { /* ignore */ }
+  };
+
+  const byDate = (a, b) => (a.date < b.date ? 1 : -1);
+  const myDrafts = drafts.filter((d) => !d.spine?.reviewer || d.spine.reviewer === me);
+  const aboutMe = submissions.filter((s) => s.reviewee === me).slice().sort(byDate);
+  const byMe = submissions.filter((s) => s.reviewer === me).slice().sort(byDate);
+  const myPosts = loadReflections().filter((x) => x.name === me);
+  const discard = (id) => { removeDraft(id); setDrafts(loadDrafts()); };
+
+  const sectionH = { margin: "0 0 14px", fontSize: 15, color: BRAND.ink };
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
+        <div>
+          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 8px" }}>My dashboard</h2>
+          <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>
+            {person ? `${person.role} · ${person.level} · ${person.department}` : "Your forms, drafts and posts in one place."}
+          </p>
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BRAND.grey }}>
+          This is you
+          <select style={{ ...inputStyle, width: "auto" }} value={me} onChange={(e) => pickMe(e.target.value)}>
+            {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
+          </select>
+        </label>
+      </div>
+      <div style={{
+        fontSize: 12, color: BRAND.grey, background: "#fff", border: `1px dashed ${BRAND.line}`,
+        borderRadius: 10, padding: "8px 14px", marginBottom: 26,
+      }}>
+        Demo view — with staff login, this page would simply know who you are.
+      </div>
+
+      {/* stat tiles */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))", gap: 18, marginBottom: 30 }}>
+        {[
+          { label: "In progress", value: myDrafts.length, bg: "#C2651A" },
+          { label: "Reviews of my practice", value: aboutMe.length, bg: BRAND.magenta },
+          { label: "Reviews I've written", value: byMe.length, bg: "#8447B0" },
+          { label: "Noticeboard posts", value: myPosts.length, bg: BRAND.green },
+        ].map((stat) => (
+          <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "26px 28px", color: "#fff" }}>
+            <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1 }}>{stat.value}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.88, marginTop: 8 }}>{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* drafts */}
+      <Card style={{ padding: 28, marginBottom: 22 }}>
+        <h3 style={sectionH}>In progress</h3>
+        {myDrafts.length === 0 ? (
+          <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>
+            Nothing in progress. Start a form from All Staff and use “Save draft” to park it here.
+          </p>
+        ) : (
+          <div style={{ display: "grid", gap: 10 }}>
+            {myDrafts.map((d) => (
+              <div key={d.id} style={{
+                display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+                border: `1px solid ${BRAND.line}`, borderRadius: 12, padding: "12px 16px",
+              }}>
+                <span style={{
+                  fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", color: "#C2651A",
+                  border: "1.5px solid #C2651A", borderRadius: 999, padding: "3px 10px",
+                }}>DRAFT</span>
+                <div style={{ flex: 1, minWidth: 160 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.ink }}>
+                    {FORMS.find((f) => f.id === d.formId)?.name}
+                    {d.spine?.reviewee ? ` — reviewing ${d.spine.reviewee}` : ""}
+                  </div>
+                  <div style={{ fontSize: 12, color: BRAND.grey }}>Saved {d.savedAt}{d.spine?.term ? ` · ${d.spine.term}` : ""}</div>
+                </div>
+                <button onClick={() => onResumeDraft(d)} style={{
+                  padding: "8px 18px", borderRadius: 999, border: "none", background: BRAND.magenta,
+                  color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+                }}>Continue</button>
+                <button onClick={() => discard(d.id)} style={{
+                  padding: "8px 14px", borderRadius: 999, border: `1.5px solid ${BRAND.line}`, background: "#fff",
+                  color: BRAND.grey, fontWeight: 650, fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+                }}>Discard</button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* reviews about me */}
+      <Card style={{ padding: 28, marginBottom: 22 }}>
+        <h3 style={sectionH}>Reviews of my practice</h3>
+        {aboutMe.length === 0 ? (
+          <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>No reviews yet this year.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>{aboutMe.map((s) => <SubmissionDetail key={s.id} s={s} />)}</div>
+        )}
+      </Card>
+
+      {/* reviews I wrote */}
+      <Card style={{ padding: 28, marginBottom: 22 }}>
+        <h3 style={sectionH}>Reviews I've written</h3>
+        {byMe.length === 0 ? (
+          <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>None yet — your turn will come around.</p>
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>{byMe.map((s) => <SubmissionDetail key={s.id} s={s} />)}</div>
+        )}
+      </Card>
+
+      {/* my posts */}
+      <Card style={{ padding: 28 }}>
+        <h3 style={sectionH}>My noticeboard posts</h3>
+        {myPosts.length === 0 ? (
+          <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>Nothing shared yet — pin something to the Noticeboard.</p>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
+            {myPosts.map((post) => (
+              <div key={post.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 14, overflow: "hidden" }}>
+                {post.photo && <img src={post.photo} alt="" style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }} />}
+                <div style={{ padding: "12px 14px" }}>
+                  <p style={{ fontSize: 13, color: BRAND.ink, lineHeight: 1.5, margin: 0 }}>{post.text}</p>
+                  <div style={{ fontSize: 11.5, color: BRAND.grey, marginTop: 8 }}>{post.date}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
  *  LINE MANAGER DASHBOARD
  * ------------------------------------------------------------------ */
 function ManagerDashboard({ submissions }) {
@@ -1446,7 +1671,7 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area — never a mark or judgement of the person.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard — the noticeboard lives on the Studio's All Staff page, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard — the noticeboard lives on the Studio's All Staff page, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their noticeboard posts.
 
 Important terminology: at this school "strands" means the vocational departments, so never call the four framework areas "strands" — call them areas. Answer in British English, warmly and concisely. If asked about something you do not have — a specific policy detail, a calendar date, a named person's data — say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
@@ -1657,6 +1882,7 @@ export default function App() {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState(null);
+  const [resumeDraft, setResumeDraft] = useState(null);
   const [botOpen, setBotOpen] = useState(false);
   const narrow = useNarrow();
 
@@ -1687,9 +1913,10 @@ export default function App() {
   const font = "'Archivo','Helvetica Neue',Arial,sans-serif";
   const nav = [
     { key: "staff", num: "01", label: "All Staff", colour: BRAND.magenta },
-    { key: "board", num: "02", label: "Noticeboard", colour: "#C2651A" },
-    { key: "slt", num: "03", label: "SLT", colour: "#46B749" },
-    { key: "manager", num: "04", label: "Line Manager", colour: "#8447B0" },
+    { key: "me", num: "02", label: "My Dashboard", colour: "#46B749" },
+    { key: "board", num: "03", label: "Noticeboard", colour: "#C2651A" },
+    { key: "slt", num: "04", label: "SLT", colour: "#8447B0" },
+    { key: "manager", num: "05", label: "Line Manager", colour: BRAND.ink },
   ];
 
   return (
@@ -1722,9 +1949,9 @@ export default function App() {
           </div>
           {nav.map((n) => (
             <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
-              onClick={() => { setRole(n.key); setSelectedForm(null); }} />
+              onClick={() => { setRole(n.key); setSelectedForm(null); setResumeDraft(null); }} />
           ))}
-          <NavTile num="05" label="Ask the assistant" colour={BRAND.ink} narrow={narrow}
+          <NavTile num="06" label="Ask the assistant" colour={BRAND.magenta} narrow={narrow}
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && (
             <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
@@ -1739,8 +1966,12 @@ export default function App() {
             <p style={{ color: BRAND.grey }}>Loading…</p>
           ) : role === "staff" ? (
             selectedForm
-              ? <ReviewForm formId={selectedForm} onBack={() => setSelectedForm(null)} onSubmit={addSubmission} />
+              ? <ReviewForm key={resumeDraft ? resumeDraft.id : selectedForm} formId={selectedForm} draft={resumeDraft}
+                  onBack={() => { setSelectedForm(null); setResumeDraft(null); }} onSubmit={addSubmission} />
               : <FormSelector onSelect={setSelectedForm} />
+          ) : role === "me" ? (
+            <MyDashboard submissions={submissions}
+              onResumeDraft={(d) => { setResumeDraft(d); setSelectedForm(d.formId); setRole("staff"); }} />
           ) : role === "board" ? (
             <ReflectionsBoard />
           ) : role === "manager" ? (
