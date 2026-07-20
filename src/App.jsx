@@ -198,6 +198,14 @@ const FORMS = [
     active: true,
   },
   {
+    id: "dept-review",
+    name: "Departmental Review",
+    blurb: "Termly department-level review by the head of department, across the four areas.",
+    icon: Home,
+    profile: "staff",
+    active: true,
+  },
+  {
     id: "aen-review",
     name: "AEN Review",
     blurb: "",
@@ -238,6 +246,7 @@ function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comm
     evenBetterIf: extra.evenBetterIf || "",
     nextStep: extra.nextStep || "",
     links: extra.links || [],
+    supportNeeded: extra.supportNeeded || "",
     overall: formType === "learning-walk" ? (comments[4] || "") : "",
   };
 }
@@ -342,6 +351,19 @@ const SEED = [
       noticed: { Room: pick("Room", 0, 1, 3), Belonging: pick("Belonging", 3) },
       celebrate: "A room run like a professional company — the students owned the space.",
       nextStep: "Capture the reset routine as a one-page company call sheet other groups could borrow.",
+    }),
+  mk("d1", "dept-review", "2026-11-27", "Term 1", "Theatre", "Theatre — department", "Daniel Price",
+    ["Embedded", "Embedded", "Transformational", "Embedded"],
+    ["New Year 12s are settling faster than last year; the buddy system is doing quiet, good work.",
+     "Studio timetabling still squeezes changeover time between groups.",
+     "The autumn showcase brief has given every class a living model of excellence — ambition is visibly up across the department.",
+     "Feedback culture strong in rehearsal; we want it just as strong in written work."],
+    {
+      focus: "Intent",
+      noticed: { Intent: pick("Intent", 1, 2, 5), Belonging: pick("Belonging", 0), Travel: pick("Travel", 2) },
+      celebrate: "The showcase brief landing in every classroom — shared ambition you can feel in the corridor.",
+      nextStep: "Bring the rehearsal feedback culture into written coursework — one modelled redraft per group before Christmas.",
+      supportNeeded: "Ten minutes of changeover time between studio groups — needs a timetable tweak we can't make ourselves.",
     }),
   mk("s11", "learning-walk", "2026-11-20", "Term 2", "Music", "Marcus Bell", "Kerry Western",
     ["Embedded", "Transformational", "Transformational", "Embedded"],
@@ -594,7 +616,7 @@ function ReflectionsBoard() {
   );
 }
 
-const FORM_ACCENT = { "peer-review": "#AD227E", "learning-walk": "#8447B0", "aen-review": "#C0392B" };
+const FORM_ACCENT = { "peer-review": "#AD227E", "learning-walk": "#8447B0", "dept-review": "#46B749", "aen-review": "#C0392B" };
 
 function OutlinePill({ children, colour = "#fff" }) {
   return (
@@ -701,8 +723,39 @@ function FormSelector({ onSelect }) {
 /* ------------------------------------------------------------------ *
  *  SHARED SPINE FIELDS
  * ------------------------------------------------------------------ */
-function SpineFields({ v, set }) {
+function SpineFields({ v, set, dept }) {
   const reviewee = staffByName(v.reviewee);
+  const HEADS = STAFF.filter((s) => s.role.startsWith("Head") || s.role.startsWith("Director"));
+  if (dept) {
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 18 }}>
+        <Field label="Date">
+          <input type="date" style={inputStyle} value={v.date} onChange={(e) => set("date", e.target.value)} />
+        </Field>
+        <Field label="Term">
+          <select style={inputStyle} value={v.term} onChange={(e) => set("term", e.target.value)}>
+            <option value="">Select…</option>
+            {TERMS.map((t) => <option key={t}>{t}</option>)}
+          </select>
+        </Field>
+        <Field label="Academic year">
+          <input style={inputStyle} value={v.academicYear} onChange={(e) => set("academicYear", e.target.value)} />
+        </Field>
+        <Field label="Department">
+          <select style={inputStyle} value={v.faculty} onChange={(e) => set("faculty", e.target.value)}>
+            <option value="">Select…</option>
+            {DEPARTMENTS.map((f) => <option key={f}>{f}</option>)}
+          </select>
+        </Field>
+        <Field label="Completed by (Head of Department)">
+          <select style={inputStyle} value={v.reviewer} onChange={(e) => set("reviewer", e.target.value)}>
+            <option value="">Select…</option>
+            {HEADS.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
+          </select>
+        </Field>
+      </div>
+    );
+  }
   const pickReviewee = (name) => {
     set("reviewee", name);
     const s = staffByName(name);
@@ -808,7 +861,8 @@ function printRecord(rec) {
   ${rec.overall ? `<div class="box"><strong>Overall observation:</strong> ${esc(rec.overall)}</div>` : ""}
   ${rec.celebrate ? `<div class="box"><strong>Shout-out:</strong> ${esc(rec.celebrate)}</div>` : ""}
   ${rec.evenBetterIf ? `<div class="box"><strong>Even better if:</strong> ${esc(rec.evenBetterIf)}</div>` : ""}
-  ${rec.nextStep ? `<div class="box"><strong>One idea worth trying:</strong> ${esc(rec.nextStep)}</div>` : ""}
+  ${rec.nextStep ? `<div class="box"><strong>${rec.formType === "dept-review" ? "Priority for next term" : "One idea worth trying"}:</strong> ${esc(rec.nextStep)}</div>` : ""}
+  ${rec.supportNeeded ? `<div class="box"><strong>Support needed from SLT / T&amp;L:</strong> ${esc(rec.supportNeeded)}</div>` : ""}
   ${rec.links?.length ? `<p><strong>Linked documents</strong><br>${rec.links.map((l) => `<a href="${esc(l)}">${esc(l)}</a>`).join("<br>")}</p>` : ""}
   <div class="foot">Generated by the BRIT T&amp;L Studio</div>`;
   const w = window.open("", "_blank");
@@ -867,7 +921,7 @@ function DescriptorPicker({ s, value, onPick }) {
   );
 }
 
-function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
+function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noticePrompt }) {
   return (
     <Card style={{
       padding: 28, marginBottom: 22, background: s.pastel,
@@ -891,7 +945,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
       </div>
 
       <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "20px 0 10px" }}>
-        In the room you might notice… <span style={{ textTransform: "none", fontWeight: 500, letterSpacing: 0 }}>(tap what you saw)</span>
+        {noticePrompt || "In the room you might notice…"} <span style={{ textTransform: "none", fontWeight: 500, letterSpacing: 0 }}>(tap what you saw)</span>
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
         {s.practice.map((p) => {
@@ -930,6 +984,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
 
 function ReviewForm({ formId, onBack, onSubmit, draft }) {
   const isWalk = formId === "learning-walk";
+  const isDept = formId === "dept-review";
   const meta = FORMS.find((f) => f.id === formId);
   const [draftId, setDraftId] = useState(draft?.id || null);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -943,6 +998,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
   const [celebrate, setCelebrate] = useState(draft?.celebrate || "");
   const [evenBetterIf, setEvenBetterIf] = useState(draft?.evenBetterIf || "");
   const [nextStep, setNextStep] = useState(draft?.nextStep || "");
+  const [supportNeeded, setSupportNeeded] = useState(draft?.supportNeeded || "");
   const [links, setLinks] = useState(draft?.links?.length ? draft.links : [""]);
   const [overall, setOverall] = useState(draft?.overall || "");
   const [done, setDone] = useState(null);
@@ -951,7 +1007,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
     const id = draftId || "d" + Date.now();
     const record = {
       id, formId, savedAt: new Date().toISOString().slice(0, 10),
-      spine, strands, focusStrand, celebrate, evenBetterIf, nextStep, links, overall,
+      spine, strands, focusStrand, celebrate, evenBetterIf, nextStep, supportNeeded, links, overall,
     };
     saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
     setDraftId(id);
@@ -967,8 +1023,11 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
     return { ...s, [k]: { ...s[k], noticed: cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p] } };
   });
 
+  const spineComplete = isDept
+    ? [spine.date, spine.term, spine.academicYear, spine.faculty, spine.reviewer].every((x) => x.trim())
+    : Object.values(spine).every((x) => x.trim());
   const complete =
-    Object.values(spine).every((x) => x.trim()) &&
+    spineComplete &&
     STRANDS.every((s) => strands[s.key].rating) &&
     (isWalk || (focusStrand && celebrate.trim() && nextStep.trim()));
 
@@ -978,12 +1037,14 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
       formType: formId,
       submittedAt: new Date().toISOString().slice(0, 10),
       ...spine,
+      reviewee: isDept ? `${spine.faculty} — department` : spine.reviewee,
       strands,
       focus: isWalk ? "" : focusStrand,
       celebrate: isWalk ? "" : celebrate,
       evenBetterIf: isWalk ? "" : evenBetterIf,
       nextStep: isWalk ? "" : nextStep,
       links: isWalk ? [] : links.map((l) => l.trim()).filter(Boolean),
+      supportNeeded: isDept ? supportNeeded : "",
       overall: isWalk ? overall : "",
     };
     onSubmit(record);
@@ -1023,18 +1084,19 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
       </p>
 
       <Card style={{ padding: 28, marginBottom: 26 }}>
-        <SpineFields v={spine} set={setSpineField} />
+        <SpineFields v={spine} set={setSpineField} dept={isDept} />
       </Card>
 
       {!isWalk && (
         <Card style={{ padding: 28, marginBottom: 26 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <Sparkles size={16} color={BRAND.magenta} />
-            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Today's spotlight</h3>
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>{isDept ? "This term's focus" : "Today's spotlight"}</h3>
           </div>
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
-            Peer reviews work best with one narrow focus, agreed together before the lesson.
-            Pick the area under the spotlight — you'll still glance across all four.
+            {isDept
+              ? "Each term the department puts one area under the spotlight. Pick this term's focus — you'll still take stock of all four."
+              : "Peer reviews work best with one narrow focus, agreed together before the lesson. Pick the area under the spotlight — you'll still glance across all four."}
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {STRANDS.map((s) => {
@@ -1082,6 +1144,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
           onRate={setRating}
           onComment={setComment}
           onToggleNoticed={toggleNoticed}
+          noticePrompt={isDept ? "Across the department you might notice…" : undefined}
         />
       ))}
 
@@ -1124,21 +1187,33 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
             <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Close with care</h3>
           </div>
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
-            Reviews end as conversations between colleagues, not verdicts. Send your colleague away with something to feel good about.
+            {isDept
+              ? "Close the review looking forward — celebrate what's working, and name what would move the department on."
+              : "Reviews end as conversations between colleagues, not verdicts. Send your colleague away with something to feel good about."}
           </p>
           <div style={{ display: "grid", gap: 18 }}>
-            <Field label="Shout-out — something your colleague should feel proud of">
+            <Field label={isDept ? "Proudest practice — what should the department feel proud of?" : "Shout-out — something your colleague should feel proud of"}>
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={celebrate}
-                placeholder="The moment worth celebrating from this lesson…" onChange={(e) => setCelebrate(e.target.value)} />
+                placeholder={isDept ? "The practice worth celebrating across the department…" : "The moment worth celebrating from this lesson…"}
+                onChange={(e) => setCelebrate(e.target.value)} />
             </Field>
             <Field label="Even better if… (optional)">
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={evenBetterIf}
-                placeholder="One tweak that would lift this lesson even further…" onChange={(e) => setEvenBetterIf(e.target.value)} />
+                placeholder={isDept ? "One shift that would lift the whole department…" : "One tweak that would lift this lesson even further…"}
+                onChange={(e) => setEvenBetterIf(e.target.value)} />
             </Field>
-            <Field label="One idea worth trying — small, concrete, kind">
+            <Field label={isDept ? "One priority for next term — small, concrete, shared" : "One idea worth trying — small, concrete, kind"}>
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={nextStep}
-                placeholder="A single practical suggestion for your colleague to take away…" onChange={(e) => setNextStep(e.target.value)} />
+                placeholder={isDept ? "The single priority the department will carry into next term…" : "A single practical suggestion for your colleague to take away…"}
+                onChange={(e) => setNextStep(e.target.value)} />
             </Field>
+            {isDept && (
+              <Field label="Support needed from SLT / T&L (optional)">
+                <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={supportNeeded}
+                  placeholder="Anything the department needs that it can't fix alone — time, kit, training, a decision…"
+                  onChange={(e) => setSupportNeeded(e.target.value)} />
+              </Field>
+            )}
           </div>
         </Card>
       )}
@@ -1160,7 +1235,9 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
           <span style={{ fontSize: 13, color: BRAND.grey }}>
             {isWalk
               ? "Complete all details and a descriptor for each area."
-              : "Complete the details, pick a spotlight, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
+              : isDept
+                ? "Complete the details, pick this term's focus, choose a descriptor for each area, and add the proudest practice and a priority."
+                : "Complete the details, pick a spotlight, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
           </span>
         )}
       </div>
@@ -1348,7 +1425,8 @@ function SLTDashboard({ submissions }) {
                 {s.overall && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><em>{s.overall}</em></div>}
                 {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, marginTop: 4, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                 {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
-                {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Worth trying:</strong> {s.nextStep}</div>}
+                {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>{s.formType === "dept-review" ? "Priority for next term" : "Worth trying"}:</strong> {s.nextStep}</div>}
+                {s.supportNeeded && <div style={{ fontSize: 13, color: "#C0392B", marginTop: 4 }}><strong>Support needed:</strong> {s.supportNeeded}</div>}
                 {s.links?.length > 0 && (
                   <div style={{ fontSize: 13, marginTop: 4 }}>
                     <strong style={{ color: BRAND.grey }}>Linked documents:</strong>{" "}
@@ -1396,7 +1474,8 @@ function SubmissionDetail({ s }) {
         {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
         {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
-        {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Worth trying:</strong> {s.nextStep}</div>}
+        {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>{s.formType === "dept-review" ? "Priority for next term" : "Worth trying"}:</strong> {s.nextStep}</div>}
+        {s.supportNeeded && <div style={{ fontSize: 13, color: "#C0392B" }}><strong>Support needed:</strong> {s.supportNeeded}</div>}
         {s.links?.length > 0 && (
           <div style={{ fontSize: 13 }}>
             <strong style={{ color: BRAND.grey }}>Linked documents:</strong>{" "}
@@ -1683,7 +1762,7 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area — never a mark or judgement of the person.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard — the noticeboard lives on the Studio's All Staff page, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their noticeboard posts.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard — the noticeboard lives on the Studio's All Staff page, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their noticeboard posts.
 
 Important terminology: at this school "strands" means the vocational departments, so never call the four framework areas "strands" — call them areas. Answer in British English, warmly and concisely. If asked about something you do not have — a specific policy detail, a calendar date, a named person's data — say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
