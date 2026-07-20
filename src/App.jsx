@@ -1937,14 +1937,22 @@ export default function App() {
           gap: 12, alignItems: narrow ? "center" : "stretch",
         }}>
           <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", marginRight: narrow ? 10 : 0 }}>
-            <svg width={narrow ? 108 : 142} viewBox="0 0 142 76" role="img" aria-label="BRIT T&L Studio" style={{ display: "block", overflow: "visible" }}>
-              <text x="0" y="50" textLength="142" lengthAdjust="spacingAndGlyphs"
-                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 54, letterSpacing: "-1px", fill: BRAND.magenta }}>
+            <svg width={narrow ? 104 : 142} viewBox="0 0 142 124" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
+              <text x="0" y="38" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 52, letterSpacing: "-1px", fill: BRAND.magenta }}>
                 BRIT
               </text>
-              <text x="0" y="72" textLength="142" lengthAdjust="spacing"
-                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 800, fontSize: 16.5, fill: BRAND.ink }}>
-                T&amp;L STUDIO<tspan style={{ fill: BRAND.magenta }}>.</tspan>
+              <text x="0" y="68" textLength="142" lengthAdjust="spacing"
+                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 34, fill: BRAND.ink }}>
+                T&amp;L
+              </text>
+              <text x="0" y="88" textLength="142" lengthAdjust="spacing"
+                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 700, fontSize: 14.5, fill: BRAND.ink }}>
+                DEVELOPMENT
+              </text>
+              <text x="0" y="118" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Archivo',sans-serif", fontWeight: 900, fontSize: 33, fill: BRAND.ink }}>
+                STUDIO<tspan style={{ fill: BRAND.magenta }}>.</tspan>
               </text>
             </svg>
           </div>
