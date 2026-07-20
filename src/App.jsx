@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
-  ArrowLeft, Plus, ShieldAlert, CheckCircle, ChevronDown, Sparkles,
-  Search, Bot, Lock, GraduationCap, ClipboardCheck
+  ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
+  ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -369,49 +369,100 @@ const inputStyle = {
 /* ------------------------------------------------------------------ *
  *  STAFF: FORM SELECTOR
  * ------------------------------------------------------------------ */
+const FORM_ACCENT = { "peer-review": "#AD227E", "learning-walk": "#8447B0", "aen-review": "#C0392B" };
+
+function OutlinePill({ children, colour = "#fff" }) {
+  return (
+    <span style={{
+      display: "inline-block", padding: "7px 16px", borderRadius: 999,
+      border: `1.5px solid ${colour}`, color: colour, fontSize: 13, fontWeight: 600,
+      width: "fit-content",
+    }}>{children}</span>
+  );
+}
+
 function FormSelector({ onSelect }) {
   return (
     <div>
-      <h2 style={{ fontSize: 22, fontWeight: 700, color: BRAND.ink, margin: "0 0 4px" }}>Choose a form</h2>
+      {/* statement panel + BRIT Check tiles */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18, marginBottom: 30 }}>
+        <div style={{
+          background: BRAND.magenta, borderRadius: 28, padding: "28px 30px 32px", color: "#fff",
+          display: "flex", flexDirection: "column", minHeight: 340,
+        }}>
+          <OutlinePill>How we see teaching</OutlinePill>
+          <div style={{ flex: 1, minHeight: 40 }} />
+          <h2 style={{ fontSize: "clamp(28px, 3.4vw, 40px)", fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1.05, margin: "0 0 14px" }}>
+            More than a checklist.<br />A shared language.
+          </h2>
+          <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, opacity: 0.94 }}>
+            <strong>The BRIT Check asks three questions of every room: what can you see,
+            what can you hear — and how does it feel?</strong> Reviews here grow practice
+            through conversation between colleagues. Nothing is a grade, and nothing is a verdict.
+            It unfolds, lesson by lesson.
+          </p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12 }}>
+          {STRANDS.map((s) => (
+            <div key={s.key} style={{
+              background: s.accent, borderRadius: 20, padding: "16px 18px", color: "#fff",
+              display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 130,
+            }}>
+              <div style={{ fontSize: "clamp(34px, 4vw, 52px)", fontWeight: 900, lineHeight: 1, letterSpacing: "-.02em" }}>{s.letter}</div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
+                <div style={{ fontSize: 11.5, opacity: 0.9, marginTop: 2, lineHeight: 1.35 }}>{s.focus}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>Choose a form</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 24px", fontSize: 14 }}>
         Every form opens with the same core details, so the data lines up across forms and across years.
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 16 }}>
-        {FORMS.map((f) => {
-          const Icon = f.icon;
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 18 }}>
+        {FORMS.map((f, i) => {
           const disabled = !f.active;
+          const accent = FORM_ACCENT[f.id] || BRAND.magenta;
           return (
-            <Card
+            <div
               key={f.id}
               onClick={() => f.active && onSelect(f.id)}
               style={{
-                padding: 20, cursor: f.active ? "pointer" : "default",
-                opacity: disabled ? 0.72 : 1, position: "relative",
-                borderColor: f.profile === "pupil" ? "#E7C9C9" : BRAND.line,
+                background: "#fff", borderRadius: 20, padding: 20,
+                border: `1.5px solid ${disabled ? BRAND.line : BRAND.ink}`,
+                boxShadow: disabled ? "none" : `6px 6px 0 ${accent}`,
+                cursor: f.active ? "pointer" : "default",
+                opacity: disabled ? 0.7 : 1,
+                display: "flex", flexDirection: "column", minHeight: 170,
               }}
             >
-              <div style={{
-                width: 44, height: 44, borderRadius: 12, display: "grid", placeItems: "center",
-                background: f.profile === "pupil" ? "#FBEDED" : BRAND.pink, marginBottom: 14,
-              }}>
-                <Icon size={22} color={f.profile === "pupil" ? "#C0392B" : BRAND.magenta} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 800, fontSize: 14, color: BRAND.ink }}>{String(i + 1).padStart(2, "0")}</span>
+                {f.active ? <ArrowUpRight size={19} color={BRAND.ink} /> : <Lock size={15} color="#C0392B" />}
               </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: BRAND.ink }}>{f.name}</div>
+              <div style={{ flex: 1, minHeight: 26 }} />
+              <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em", color: BRAND.ink }}>{f.name}</div>
               <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 6, lineHeight: 1.5 }}>{f.blurb}</div>
               {f.profile === "pupil" && (
                 <div style={{ marginTop: 12, fontSize: 11, fontWeight: 600, color: "#C0392B", display: "flex", alignItems: "center", gap: 6 }}>
                   <Lock size={13} /> Held under separate governance
                 </div>
               )}
-            </Card>
+            </div>
           );
         })}
-        <Card style={{ padding: 20, display: "grid", placeItems: "center", borderStyle: "dashed", color: BRAND.grey }}>
+        <div style={{
+          borderRadius: 20, padding: 20, display: "grid", placeItems: "center",
+          border: `1.5px dashed ${BRAND.grey}`, color: BRAND.grey, minHeight: 170,
+        }}>
           <div style={{ textAlign: "center" }}>
             <Plus size={22} color={BRAND.grey} />
-            <div style={{ fontSize: 13, marginTop: 8 }}>Add a form<br />(future years)</div>
+            <div style={{ fontSize: 13, marginTop: 8, fontWeight: 600 }}>Add a form<br />(future years)</div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
@@ -636,7 +687,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: BRAND.magenta, cursor: "pointer", fontSize: 14, fontWeight: 600, marginBottom: 16, padding: 0 }}>
         <ArrowLeft size={16} /> All forms
       </button>
-      <h2 style={{ fontSize: 22, fontWeight: 700, color: BRAND.ink, margin: "0 0 4px" }}>{meta.name}</h2>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>{meta.name}</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 22px", fontSize: 14 }}>
         What can you see, hear — and how does it feel? The descriptors are developmental, never grades.
       </p>
@@ -821,7 +872,7 @@ function SLTDashboard({ submissions }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, color: BRAND.ink, margin: "0 0 4px" }}>Analytics</h2>
+          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>Analytics</h2>
           <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>Thematic and developmental — no scores, no league tables.</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -839,14 +890,14 @@ function SLTDashboard({ submissions }) {
       {/* stat row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))", gap: 14, marginBottom: 22 }}>
         {[
-          { label: "Reviews in view", value: filtered.length },
-          { label: "Transformational ratings", value: totalT, colour: BRAND.green },
-          { label: "Faculties covered", value: new Set(filtered.map((s) => s.faculty)).size },
+          { label: "Reviews in view", value: filtered.length, bg: BRAND.magenta },
+          { label: "Transformational ratings", value: totalT, bg: BRAND.green },
+          { label: "Faculties covered", value: new Set(filtered.map((s) => s.faculty)).size, bg: "#8447B0" },
         ].map((stat) => (
-          <Card key={stat.label} style={{ padding: 18 }}>
-            <div style={{ fontSize: 30, fontWeight: 800, color: stat.colour || BRAND.magenta }}>{stat.value}</div>
-            <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 2 }}>{stat.label}</div>
-          </Card>
+          <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "18px 20px", color: "#fff" }}>
+            <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1 }}>{stat.value}</div>
+            <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.88, marginTop: 8 }}>{stat.label}</div>
+          </div>
         ))}
       </div>
 
@@ -1025,7 +1076,7 @@ function HelpBot({ open, setOpen }) {
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} style={{
-        position: "fixed", bottom: 24, right: 24, width: 58, height: 58, borderRadius: "50%",
+        position: "fixed", bottom: 66, right: 24, width: 58, height: 58, borderRadius: "50%",
         background: BRAND.magenta, border: "none", cursor: "pointer", boxShadow: "0 6px 20px rgba(173,34,126,.35)",
         display: "grid", placeItems: "center", zIndex: 50,
       }}>
@@ -1036,7 +1087,7 @@ function HelpBot({ open, setOpen }) {
 
   return (
     <div style={{
-      position: "fixed", bottom: 24, right: 24, width: 380, maxWidth: "calc(100vw - 32px)", height: 540, maxHeight: "calc(100vh - 48px)",
+      position: "fixed", bottom: 66, right: 24, width: 380, maxWidth: "calc(100vw - 32px)", height: 540, maxHeight: "calc(100vh - 110px)",
       background: "#fff", borderRadius: 18, boxShadow: "0 12px 40px rgba(42,30,39,.25)", display: "flex", flexDirection: "column", zIndex: 50,
       border: `1px solid ${BRAND.line}`, overflow: "hidden",
     }}>
@@ -1103,20 +1154,87 @@ function HelpBot({ open, setOpen }) {
 /* ------------------------------------------------------------------ *
  *  ROOT
  * ------------------------------------------------------------------ */
+function useNarrow(query = "(max-width: 940px)") {
+  const [narrow, setNarrow] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const fn = (e) => setNarrow(e.matches);
+    mq.addEventListener("change", fn);
+    return () => mq.removeEventListener("change", fn);
+  }, [query]);
+  return narrow;
+}
+
+function NavTile({ num, label, colour, active, onClick, narrow }) {
+  const base = active
+    ? { background: BRAND.pink, color: BRAND.ink, border: `1.5px solid ${BRAND.ink}` }
+    : { background: colour, color: "#fff", border: `1.5px solid ${colour}` };
+  return (
+    <button onClick={onClick} style={{
+      ...base, borderRadius: 16, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+      padding: narrow ? "10px 14px" : "14px 14px 16px",
+      display: "flex", flexDirection: narrow ? "row" : "column",
+      alignItems: narrow ? "center" : "stretch", gap: narrow ? 8 : 0,
+      flex: narrow ? "1 1 auto" : undefined,
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+        <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span>
+        {!narrow && (active ? <ArrowRight size={16} /> : <ArrowUpRight size={16} />)}
+      </div>
+      <span style={{ fontWeight: 750, fontSize: narrow ? 13 : 14.5, marginTop: narrow ? 0 : 40, lineHeight: 1.25 }}>{label}</span>
+    </button>
+  );
+}
+
+const TICKER_ITEMS = [
+  "Belonging", "Room", "Intent", "Travel",
+  "What can you see?", "What can you hear?", "How does it feel?",
+  "Developmental — never grades",
+];
+
+function Ticker() {
+  const half = (dup) => (
+    <div aria-hidden={dup} style={{ display: "flex", alignItems: "center", gap: 28, paddingRight: 28, flexShrink: 0 }}>
+      {TICKER_ITEMS.map((t, i) => (
+        <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 28, whiteSpace: "nowrap" }}>
+          <span>{t}</span>
+          <span style={{ fontSize: 9, opacity: 0.8 }}>{i % 2 ? "✦" : "◆"}</span>
+        </span>
+      ))}
+    </div>
+  );
+  return (
+    <div style={{
+      position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 40, overflow: "hidden",
+      background: "#8447B0", color: BRAND.pink, padding: "10px 0",
+    }}>
+      <div style={{
+        display: "flex", width: "max-content", animation: "marquee 32s linear infinite",
+        fontWeight: 800, fontSize: 13, textTransform: "uppercase", letterSpacing: ".08em",
+      }}>
+        {half(false)}{half(true)}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState("staff");
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedForm, setSelectedForm] = useState(null);
   const [botOpen, setBotOpen] = useState(false);
+  const narrow = useNarrow();
 
   useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700;800&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap";
     document.head.appendChild(link);
     const style = document.createElement("style");
-    style.textContent = "@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}";
+    style.textContent =
+      "@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}" +
+      "@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}";
     document.head.appendChild(style);
   }, []);
 
@@ -1132,51 +1250,65 @@ export default function App() {
     });
   };
 
-  const font = "'Jost','Century Gothic','Futura',sans-serif";
+  const font = "'Archivo','Helvetica Neue',Arial,sans-serif";
+  const nav = [
+    { key: "staff", num: "01", label: "All Staff", colour: BRAND.magenta },
+    { key: "slt", num: "02", label: "SLT", colour: "#46B749" },
+  ];
 
   return (
     <div style={{ minHeight: "100vh", background: BRAND.pink, fontFamily: font, color: BRAND.ink }}>
-      {/* header */}
-      <div style={{ background: "#fff", borderBottom: `1px solid ${BRAND.line}` }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 11, background: BRAND.magenta, display: "grid", placeItems: "center" }}>
-              <GraduationCap size={22} color="#fff" />
+      <div style={{
+        maxWidth: 1280, margin: "0 auto",
+        padding: narrow ? "16px 16px 90px" : "26px 28px 100px",
+        display: "flex", gap: narrow ? 16 : 28,
+        flexDirection: narrow ? "column" : "row",
+        alignItems: "flex-start",
+      }}>
+        {/* rail */}
+        <aside style={{
+          width: narrow ? "100%" : 176, flexShrink: 0,
+          position: narrow ? "static" : "sticky", top: 26,
+          display: "flex", flexDirection: narrow ? "row" : "column",
+          flexWrap: narrow ? "wrap" : "nowrap",
+          gap: 12, alignItems: narrow ? "center" : "stretch",
+        }}>
+          <div style={{ padding: narrow ? "0 4px" : "4px 2px 12px", marginRight: narrow ? 8 : 0 }}>
+            <div style={{ fontWeight: 900, fontSize: narrow ? 26 : 34, letterSpacing: "-.04em", lineHeight: 1 }}>
+              studio<span style={{ color: BRAND.magenta }}>.</span>
             </div>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>BRIT T&amp;L Development Studio</div>
-              <div style={{ fontSize: 12, color: BRAND.grey }}>BRIT framework · prototype</div>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".16em", color: BRAND.grey, marginTop: 5 }}>
+              BRIT T&amp;L DEVELOPMENT
             </div>
           </div>
-          <div style={{ display: "flex", background: BRAND.pink, borderRadius: 999, padding: 4 }}>
-            {[["staff", "All Staff", ClipboardList], ["slt", "SLT", BarChart3]].map(([key, label, Icon]) => (
-              <button key={key} onClick={() => { setRole(key); setSelectedForm(null); }} style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 999, border: "none",
-                cursor: "pointer", fontWeight: 600, fontSize: 13, fontFamily: "inherit",
-                background: role === key ? "#fff" : "transparent",
-                color: role === key ? BRAND.magenta : BRAND.grey,
-                boxShadow: role === key ? "0 1px 4px rgba(0,0,0,.08)" : "none",
-              }}>
-                <Icon size={15} /> {label}
-              </button>
-            ))}
-          </div>
-        </div>
+          {nav.map((n) => (
+            <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
+              onClick={() => { setRole(n.key); setSelectedForm(null); }} />
+          ))}
+          <NavTile num="03" label="Ask the assistant" colour="#C2651A" narrow={narrow}
+            active={false} onClick={() => setBotOpen(true)} />
+          {!narrow && (
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
+              BRIT FRAMEWORK · PROTOTYPE
+            </div>
+          )}
+        </aside>
+
+        {/* body */}
+        <main style={{ flex: 1, minWidth: 0 }}>
+          {loading ? (
+            <p style={{ color: BRAND.grey }}>Loading…</p>
+          ) : role === "staff" ? (
+            selectedForm
+              ? <ReviewForm formId={selectedForm} onBack={() => setSelectedForm(null)} onSubmit={addSubmission} />
+              : <FormSelector onSelect={setSelectedForm} />
+          ) : (
+            <SLTDashboard submissions={submissions} />
+          )}
+        </main>
       </div>
 
-      {/* body */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "28px 24px 80px" }}>
-        {loading ? (
-          <p style={{ color: BRAND.grey }}>Loading…</p>
-        ) : role === "staff" ? (
-          selectedForm
-            ? <ReviewForm formId={selectedForm} onBack={() => setSelectedForm(null)} onSubmit={addSubmission} />
-            : <FormSelector onSelect={setSelectedForm} />
-        ) : (
-          <SLTDashboard submissions={submissions} />
-        )}
-      </div>
-
+      <Ticker />
       <HelpBot open={botOpen} setOpen={setBotOpen} />
     </div>
   );
