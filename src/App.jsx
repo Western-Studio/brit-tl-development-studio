@@ -632,7 +632,12 @@ function FormSelector({ onSelect }) {
               background: s.accent, borderRadius: 20, padding: "20px 22px", color: "#fff",
               display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 130,
             }}>
-              <div style={{ fontSize: "clamp(34px, 4vw, 52px)", fontWeight: 900, lineHeight: 1, letterSpacing: "-.02em" }}>{s.letter}</div>
+              <div style={{
+                fontFamily: "'Anton',sans-serif", fontWeight: 400, lineHeight: 1,
+                fontSize: "clamp(44px, 5vw, 66px)",
+                color: ["B", "I"].includes(s.letter) ? "#fff" : "transparent",
+                WebkitTextStroke: ["B", "I"].includes(s.letter) ? "0" : "2px #fff",
+              }}>{s.letter}</div>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
                 <div style={{ fontSize: 11.5, opacity: 0.9, marginTop: 2, lineHeight: 1.35 }}>{s.focus}</div>
@@ -832,7 +837,7 @@ function StrandBadge({ s, size = 40 }) {
     <div style={{
       width: size, height: size, borderRadius: Math.round(size * 0.3), background: s.accent,
       color: "#fff", display: "grid", placeItems: "center", flexShrink: 0,
-      fontWeight: 800, fontSize: Math.round(size * 0.45),
+      fontFamily: "'Anton',sans-serif", fontWeight: 400, fontSize: Math.round(size * 0.52),
     }}>{s.letter}</div>
   );
 }
