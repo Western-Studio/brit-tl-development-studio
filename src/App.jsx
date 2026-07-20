@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
-  ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck
+  ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
+  Camera
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -341,6 +342,39 @@ const SEED = [
 ];
 
 /* ------------------------------------------------------------------ *
+ *  REFLECTIONS NOTICEBOARD SEED
+ * ------------------------------------------------------------------ */
+const REFLECTIONS_KEY = "brit-tl-studio-reflections-v1";
+
+// Abstract placeholder images for the seed posts (real posts carry photos).
+const seedArt = (a, b) => `data:image/svg+xml,${encodeURIComponent(
+  `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='340'>` +
+  `<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>` +
+  `<stop offset='0' stop-color='${a}'/><stop offset='1' stop-color='${b}'/></linearGradient></defs>` +
+  `<rect width='600' height='340' fill='url(#g)'/>` +
+  `<circle cx='500' cy='60' r='90' fill='rgba(255,255,255,.18)'/>` +
+  `<circle cx='90' cy='280' r='120' fill='rgba(255,255,255,.12)'/></svg>`
+)}`;
+
+const REFLECTION_SEED = [
+  {
+    id: "n1", name: "Priya Nair", date: "2026-11-14",
+    text: "Tried the silent showing protocol from the EduCoach session — dancers wrote feedback on sticky notes before anyone spoke. The quietest student in the room gave the sharpest note.",
+    photo: seedArt("#AD227E", "#8447B0"),
+  },
+  {
+    id: "n2", name: "Yusuf Rahman", date: "2026-11-06",
+    text: "Week 9 of my ECT year. My mentor's tip about narrating edit decisions out loud has changed my demos — students now ask about the why, not just the how.",
+    photo: seedArt("#C2651A", "#AD227E"),
+  },
+  {
+    id: "n3", name: "Jordan Mackey", date: "2026-10-21",
+    text: "Rebuilt the studio patch bay with student engineers on a rota — the Room area of the framework in action. Set-up time has halved and the kit gets treated like it's theirs, because it is.",
+    photo: seedArt("#46B749", "#8447B0"),
+  },
+];
+
+/* ------------------------------------------------------------------ *
  *  STORAGE HELPERS
  * ------------------------------------------------------------------ */
 // Standalone build uses localStorage. (The artifact version used window.storage,
@@ -405,6 +439,131 @@ const inputStyle = {
 /* ------------------------------------------------------------------ *
  *  STAFF: FORM SELECTOR
  * ------------------------------------------------------------------ */
+/* ------------------------------------------------------------------ *
+ *  REFLECTIONS NOTICEBOARD — staff share practice & development posts
+ * ------------------------------------------------------------------ */
+function ReflectionsBoard() {
+  const [posts, setPosts] = useState([]);
+  const [who, setWho] = useState("");
+  const [text, setText] = useState("");
+  const [photo, setPhoto] = useState("");
+  const fileRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(REFLECTIONS_KEY);
+      if (raw) { setPosts(JSON.parse(raw)); return; }
+    } catch (e) { /* fall through to seed */ }
+    setPosts(REFLECTION_SEED);
+    try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(REFLECTION_SEED)); } catch (e) { /* ignore */ }
+  }, []);
+
+  const onPhoto = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 900 / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        setPhoto(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  };
+
+  const share = () => {
+    if (!who || !text.trim()) return;
+    const post = { id: "n" + Date.now(), name: who, date: new Date().toISOString().slice(0, 10), text: text.trim(), photo };
+    const next = [post, ...posts];
+    setPosts(next);
+    try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(next)); } catch (e) { /* photo too large for storage — post stays in memory */ }
+    setText(""); setPhoto("");
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const canShare = who && text.trim();
+
+  return (
+    <div style={{ marginTop: 40 }}>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>The noticeboard</h2>
+      <p style={{ color: BRAND.grey, margin: "0 0 20px", fontSize: 14 }}>
+        Micro-insights, wins and works-in-progress — share anything about your practice or development, with a photo if you have one.
+      </p>
+
+      <Card style={{ padding: 22, marginBottom: 20 }}>
+        <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
+            <Field label="Who's sharing?">
+              <select style={inputStyle} value={who} onChange={(e) => setWho(e.target.value)}>
+                <option value="">Select…</option>
+                {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
+              </select>
+            </Field>
+          </div>
+          <Field label="Your reflection">
+            <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={text}
+              placeholder="Something you tried, noticed, learned — or are still wrestling with…"
+              onChange={(e) => setText(e.target.value)} />
+          </Field>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <label style={{
+              display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999,
+              border: `1.5px solid ${BRAND.line}`, cursor: "pointer", fontSize: 13, fontWeight: 650, color: BRAND.magenta,
+            }}>
+              <Camera size={15} /> {photo ? "Change photo" : "Add a photo"}
+              <input ref={fileRef} type="file" accept="image/*" onChange={onPhoto} style={{ display: "none" }} />
+            </label>
+            {photo && (
+              <span style={{ position: "relative", display: "inline-block" }}>
+                <img src={photo} alt="preview" style={{ height: 52, borderRadius: 8, display: "block" }} />
+                <button onClick={() => { setPhoto(""); if (fileRef.current) fileRef.current.value = ""; }} style={{
+                  position: "absolute", top: -8, right: -8, width: 20, height: 20, borderRadius: "50%",
+                  border: "none", background: BRAND.ink, color: "#fff", cursor: "pointer",
+                  display: "grid", placeItems: "center", padding: 0,
+                }}><X size={12} /></button>
+              </span>
+            )}
+            <button disabled={!canShare} onClick={share} style={{
+              marginLeft: "auto", padding: "10px 22px", borderRadius: 999, border: "none",
+              background: canShare ? BRAND.magenta : BRAND.line,
+              color: canShare ? "#fff" : BRAND.grey, fontWeight: 700, fontSize: 14,
+              cursor: canShare ? "pointer" : "not-allowed", fontFamily: "inherit",
+            }}>Pin it to the board</button>
+          </div>
+        </div>
+      </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 18 }}>
+        {posts.map((post) => {
+          const author = staffByName(post.name);
+          return (
+            <div key={post.id} style={{
+              background: "#fff", borderRadius: 20, overflow: "hidden",
+              border: `1.5px solid ${BRAND.ink}`, boxShadow: `5px 5px 0 ${BRAND.line}`,
+              display: "flex", flexDirection: "column",
+            }}>
+              {post.photo && <img src={post.photo} alt="" style={{ width: "100%", height: 150, objectFit: "cover", display: "block" }} />}
+              <div style={{ padding: "14px 16px 16px", display: "flex", flexDirection: "column", flex: 1 }}>
+                <p style={{ fontSize: 13.5, color: BRAND.ink, lineHeight: 1.55, margin: 0, flex: 1 }}>{post.text}</p>
+                <div style={{ marginTop: 12, fontSize: 12, color: BRAND.grey }}>
+                  <strong style={{ color: BRAND.magenta }}>{post.name}</strong>
+                  {author && <> · {author.department}</>} · {post.date}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 const FORM_ACCENT = { "peer-review": "#AD227E", "learning-walk": "#8447B0", "aen-review": "#C0392B" };
 
 function OutlinePill({ children, colour = "#fff" }) {
@@ -499,6 +658,8 @@ function FormSelector({ onSelect }) {
           </div>
         </div>
       </div>
+
+      <ReflectionsBoard />
     </div>
   );
 }
@@ -1286,7 +1447,7 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area — never a mark or judgement of the person.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard. Learning Walks are lighter: descriptors per area plus one overall observation.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard — the noticeboard lives on the Studio's All Staff page, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation.
 
 Important terminology: at this school "strands" means the vocational departments, so never call the four framework areas "strands" — call them areas. Answer in British English, warmly and concisely. If asked about something you do not have — a specific policy detail, a calendar date, a named person's data — say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
