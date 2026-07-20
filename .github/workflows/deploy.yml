@@ -26,9 +26,8 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          # Set in repo Settings → Secrets and variables → Actions → Variables.
-          # Empty (unset) leaves the help bot switched off on the live site.
-          VITE_CHAT_PROXY_URL: ${{ vars.VITE_CHAT_PROXY_URL }}
+          # The help bot's backend proxy (api/chat.js deployed on Vercel).
+          VITE_CHAT_PROXY_URL: https://brit-tl-development-studio.vercel.app/api/chat
       - uses: actions/configure-pages@v5
         with:
           enablement: true
