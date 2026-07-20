@@ -431,7 +431,7 @@ const Field = ({ label, children }) => (
 );
 
 const inputStyle = {
-  width: "100%", padding: "10px 12px", borderRadius: 10,
+  width: "100%", padding: "12px 14px", borderRadius: 10,
   border: `1px solid ${BRAND.line}`, fontSize: 14, fontFamily: "inherit",
   color: BRAND.ink, background: "#fff", boxSizing: "border-box",
 };
@@ -491,14 +491,14 @@ function ReflectionsBoard() {
 
   return (
     <div>
-      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>The noticeboard</h2>
-      <p style={{ color: BRAND.grey, margin: "0 0 20px", fontSize: 14 }}>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>The noticeboard</h2>
+      <p style={{ color: BRAND.grey, margin: "0 0 24px", fontSize: 14 }}>
         Micro-insights, wins and works-in-progress — share anything about your practice or development, with a photo if you have one.
       </p>
 
-      <Card style={{ padding: 22, marginBottom: 20 }}>
-        <div style={{ display: "grid", gap: 14 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14 }}>
+      <Card style={{ padding: 28, marginBottom: 26 }}>
+        <div style={{ display: "grid", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 18 }}>
             <Field label="Who's sharing?">
               <select style={inputStyle} value={who} onChange={(e) => setWho(e.target.value)}>
                 <option value="">Select…</option>
@@ -539,7 +539,7 @@ function ReflectionsBoard() {
         </div>
       </Card>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 22 }}>
         {posts.map((post) => {
           const author = staffByName(post.name);
           return (
@@ -580,9 +580,9 @@ function FormSelector({ onSelect }) {
   return (
     <div>
       {/* statement panel + BRIT framework tiles */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 18, marginBottom: 30 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 22, marginBottom: 30 }}>
         <div style={{
-          background: BRAND.magenta, borderRadius: 28, padding: "28px 30px 32px", color: "#fff",
+          background: BRAND.magenta, borderRadius: 28, padding: "36px 38px 42px", color: "#fff",
           display: "flex", flexDirection: "column", minHeight: 340,
         }}>
           <OutlinePill>How we see teaching</OutlinePill>
@@ -599,7 +599,7 @@ function FormSelector({ onSelect }) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12 }}>
           {STRANDS.map((s) => (
             <div key={s.key} style={{
-              background: s.accent, borderRadius: 20, padding: "16px 18px", color: "#fff",
+              background: s.accent, borderRadius: 20, padding: "20px 22px", color: "#fff",
               display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 130,
             }}>
               <div style={{ fontSize: "clamp(34px, 4vw, 52px)", fontWeight: 900, lineHeight: 1, letterSpacing: "-.02em" }}>{s.letter}</div>
@@ -612,11 +612,11 @@ function FormSelector({ onSelect }) {
         </div>
       </div>
 
-      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>Choose a form</h2>
-      <p style={{ color: BRAND.grey, margin: "0 0 24px", fontSize: 14 }}>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>Choose a form</h2>
+      <p style={{ color: BRAND.grey, margin: "0 0 28px", fontSize: 14 }}>
         Every form opens with the same core details, so the data lines up across forms and across years.
       </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 18 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 22 }}>
         {FORMS.map((f, i) => {
           const disabled = !f.active;
           const accent = FORM_ACCENT[f.id] || BRAND.magenta;
@@ -625,7 +625,7 @@ function FormSelector({ onSelect }) {
               key={f.id}
               onClick={() => f.active && onSelect(f.id)}
               style={{
-                background: "#fff", borderRadius: 20, padding: 20,
+                background: "#fff", borderRadius: 20, padding: 26,
                 border: `1.5px solid ${disabled ? BRAND.line : BRAND.ink}`,
                 boxShadow: disabled ? "none" : `6px 6px 0 ${accent}`,
                 cursor: f.active ? "pointer" : "default",
@@ -649,7 +649,7 @@ function FormSelector({ onSelect }) {
           );
         })}
         <div style={{
-          borderRadius: 20, padding: 20, display: "grid", placeItems: "center",
+          borderRadius: 20, padding: 26, display: "grid", placeItems: "center",
           border: `1.5px dashed ${BRAND.grey}`, color: BRAND.grey, minHeight: 170,
         }}>
           <div style={{ textAlign: "center" }}>
@@ -675,7 +675,7 @@ function SpineFields({ v, set }) {
   };
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 18 }}>
         <Field label="Date">
           <input type="date" style={inputStyle} value={v.date} onChange={(e) => set("date", e.target.value)} />
         </Field>
@@ -710,7 +710,7 @@ function SpineFields({ v, set }) {
       {reviewee && (
         <div style={{
           marginTop: 14, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
-          background: BRAND.pink, borderRadius: 10, padding: "10px 14px", fontSize: 12.5, color: BRAND.grey,
+          background: BRAND.pink, borderRadius: 10, padding: "14px 16px", fontSize: 12.5, color: BRAND.grey,
         }}>
           <span style={{ fontWeight: 700, color: BRAND.ink }}>{reviewee.name}</span>
           <span>{reviewee.role}</span>·<span>{reviewee.level}</span>
@@ -814,7 +814,7 @@ function DescriptorPicker({ s, value, onPick }) {
         const active = value === r;
         return (
           <button key={r} onClick={() => onPick(r)} style={{
-            textAlign: "left", padding: "12px 14px", borderRadius: 12, cursor: "pointer",
+            textAlign: "left", padding: "14px 16px", borderRadius: 12, cursor: "pointer",
             border: `2px solid ${active ? RATING_COLOUR[r] : "#fff"}`,
             background: "#fff",
             transition: "all .15s", fontFamily: "inherit",
@@ -835,11 +835,11 @@ function DescriptorPicker({ s, value, onPick }) {
 function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
   return (
     <Card style={{
-      padding: 22, marginBottom: 16, background: s.pastel,
+      padding: 28, marginBottom: 22, background: s.pastel,
       border: `${isFocus ? 2 : 1}px solid ${isFocus ? s.accent : BRAND.line}`,
       boxShadow: isFocus ? `0 4px 20px ${s.accent}22` : "none",
     }}>
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+      <div style={{ display: "flex", gap: 18, alignItems: "flex-start" }}>
         <StrandBadge s={s} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -855,15 +855,15 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
         </div>
       </div>
 
-      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "16px 0 8px" }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "20px 0 10px" }}>
         In the room you might notice… <span style={{ textTransform: "none", fontWeight: 500, letterSpacing: 0 }}>(tap what you saw)</span>
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
         {s.practice.map((p) => {
           const on = data.noticed?.includes(p);
           return (
             <button key={p} onClick={() => onToggleNoticed(s.key, p)} style={{
-              display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px",
+              display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px",
               borderRadius: 999, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit",
               border: `1.5px solid ${on ? s.accent : "#fff"}`,
               background: on ? s.accent : "#fff",
@@ -876,7 +876,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
         })}
       </div>
 
-      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "0 0 8px" }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "0 0 10px" }}>
         Where does practice sit today?
       </div>
       <DescriptorPicker s={s} value={data.rating} onPick={(r) => onRate(s.key, r)} />
@@ -947,8 +947,8 @@ function ReviewForm({ formId, onBack, onSubmit }) {
         <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EAF7EC", display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
           <CheckCircle size={30} color={BRAND.green} />
         </div>
-        <h3 style={{ margin: "0 0 8px", color: BRAND.ink }}>Review submitted</h3>
-        <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 20px" }}>
+        <h3 style={{ margin: "0 0 10px", color: BRAND.ink }}>Review submitted</h3>
+        <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 24px" }}>
           It has been added to the {meta.name.toLowerCase()} record and is visible on the SLT dashboard.
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
@@ -964,20 +964,20 @@ function ReviewForm({ formId, onBack, onSubmit }) {
 
   return (
     <div>
-      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: BRAND.magenta, cursor: "pointer", fontSize: 14, fontWeight: 600, marginBottom: 16, padding: 0 }}>
+      <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: BRAND.magenta, cursor: "pointer", fontSize: 14, fontWeight: 600, marginBottom: 22, padding: 0 }}>
         <ArrowLeft size={16} /> All forms
       </button>
-      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>{meta.name}</h2>
-      <p style={{ color: BRAND.grey, margin: "0 0 22px", fontSize: 14 }}>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>{meta.name}</h2>
+      <p style={{ color: BRAND.grey, margin: "0 0 26px", fontSize: 14 }}>
         What can you see, hear — and how does it feel?
       </p>
 
-      <Card style={{ padding: 22, marginBottom: 20 }}>
+      <Card style={{ padding: 28, marginBottom: 26 }}>
         <SpineFields v={spine} set={setSpineField} />
       </Card>
 
       {!isWalk && (
-        <Card style={{ padding: 22, marginBottom: 20 }}>
+        <Card style={{ padding: 28, marginBottom: 26 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <Sparkles size={16} color={BRAND.magenta} />
             <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Today's spotlight</h3>
@@ -1006,7 +1006,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       )}
 
       {STRANDS.map((s) => isWalk ? (
-        <Card key={s.key} style={{ padding: 22, marginBottom: 16, background: s.pastel }}>
+        <Card key={s.key} style={{ padding: 28, marginBottom: 22, background: s.pastel }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 6 }}>
             <StrandBadge s={s} size={34} />
             <div>
@@ -1036,7 +1036,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       ))}
 
       {isWalk && (
-        <Card style={{ padding: 22, marginBottom: 16 }}>
+        <Card style={{ padding: 28, marginBottom: 22 }}>
           <Field label="Overall observation">
             <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} value={overall}
               placeholder="One reflection across the walk" onChange={(e) => setOverall(e.target.value)} />
@@ -1045,7 +1045,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       )}
 
       {!isWalk && (
-        <Card style={{ padding: 22, marginBottom: 16 }}>
+        <Card style={{ padding: 28, marginBottom: 22 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <ClipboardList size={16} color={BRAND.magenta} />
             <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Linked documents</h3>
@@ -1068,7 +1068,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       )}
 
       {!isWalk && (
-        <Card style={{ padding: 22, marginBottom: 16, background: "#FDFBF6", borderColor: "#EFE3C8" }}>
+        <Card style={{ padding: 28, marginBottom: 22, background: "#FDFBF6", borderColor: "#EFE3C8" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <MessageCircle size={16} color="#B8860B" />
             <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Close with care</h3>
@@ -1076,7 +1076,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
             Reviews end as conversations between colleagues, not verdicts. Send your colleague away with something to feel good about.
           </p>
-          <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ display: "grid", gap: 18 }}>
             <Field label="Shout-out — something your colleague should feel proud of">
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={celebrate}
                 placeholder="The moment worth celebrating from this lesson…" onChange={(e) => setCelebrate(e.target.value)} />
@@ -1093,7 +1093,7 @@ function ReviewForm({ formId, onBack, onSubmit }) {
         </Card>
       )}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8 }}>
         <button disabled={!complete} onClick={submit} style={{
           padding: "12px 24px", borderRadius: 999, border: "none",
           background: complete ? BRAND.magenta : BRAND.line,
@@ -1177,9 +1177,9 @@ function SLTDashboard({ submissions }) {
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 26 }}>
         <div>
-          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>Analytics</h2>
+          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>Analytics</h2>
           <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>Thematic and developmental — no scores, no league tables.</p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -1195,24 +1195,24 @@ function SLTDashboard({ submissions }) {
       </div>
 
       {/* stat row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))", gap: 14, marginBottom: 22 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))", gap: 18, marginBottom: 30 }}>
         {[
           { label: "Reviews in view", value: filtered.length, bg: BRAND.magenta },
           { label: "Transformational ratings", value: totalT, bg: BRAND.green },
           { label: "Departments covered", value: new Set(filtered.map((s) => s.faculty)).size, bg: "#8447B0" },
         ].map((stat) => (
-          <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "18px 20px", color: "#fff" }}>
+          <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "26px 28px", color: "#fff" }}>
             <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1 }}>{stat.value}</div>
             <div style={{ fontSize: 13, fontWeight: 600, opacity: 0.88, marginTop: 8 }}>{stat.label}</div>
           </div>
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px,1fr))", gap: 18, marginBottom: 22 }}>
-        <Card style={{ padding: 22 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px,1fr))", gap: 22, marginBottom: 30 }}>
+        <Card style={{ padding: 28 }}>
           <h3 style={{ margin: "0 0 16px", fontSize: 15, color: BRAND.ink }}>Where each area sits</h3>
           {STRANDS.map((s) => <StrandBar key={s.key} strand={s.key} counts={strandCounts[s.key]} />)}
-          <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+          <div style={{ display: "flex", gap: 20, marginTop: 8 }}>
             {RATINGS.map((r) => (
               <span key={r} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: BRAND.grey }}>
                 <span style={{ width: 12, height: 12, borderRadius: 3, background: RATING_COLOUR[r] }} /> {r}
@@ -1221,7 +1221,7 @@ function SLTDashboard({ submissions }) {
           </div>
         </Card>
 
-        <Card style={{ padding: 22 }}>
+        <Card style={{ padding: 28 }}>
           <h3 style={{ margin: "0 0 16px", fontSize: 15, color: BRAND.ink }}>Distribution</h3>
           <ResponsiveContainer width="100%" height={230}>
             <BarChart data={chartData} margin={{ left: -20 }}>
@@ -1238,12 +1238,12 @@ function SLTDashboard({ submissions }) {
       </div>
 
       {/* comment explorer */}
-      <Card style={{ padding: 22, marginBottom: 22 }}>
+      <Card style={{ padding: 28, marginBottom: 30 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
           <Search size={16} color={BRAND.magenta} />
           <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Comment explorer</h3>
         </div>
-        <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 12, marginBottom: 22, flexWrap: "wrap", alignItems: "center" }}>
           <span style={{ fontSize: 14, color: BRAND.grey }}>Show every comment where</span>
           <select style={{ ...inputStyle, width: "auto" }} value={exStrand} onChange={(e) => setExStrand(e.target.value)}>
             {STRANDS.map((s) => <option key={s.key}>{s.key}</option>)}
@@ -1270,11 +1270,11 @@ function SLTDashboard({ submissions }) {
       </Card>
 
       {/* submissions list */}
-      <Card style={{ padding: 22 }}>
+      <Card style={{ padding: 28 }}>
         <h3 style={{ margin: "0 0 14px", fontSize: 15, color: BRAND.ink }}>Submissions ({filtered.length})</h3>
         <div style={{ display: "grid", gap: 8 }}>
           {filtered.slice().reverse().map((s) => (
-            <details key={s.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "10px 14px" }}>
+            <details key={s.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "14px 16px" }}>
               <summary style={{ cursor: "pointer", fontSize: 14, color: BRAND.ink, display: "flex", justifyContent: "space-between", gap: 10 }}>
                 <span><strong>{s.reviewee}</strong> · {s.faculty}</span>
                 <span style={{ color: BRAND.grey, fontSize: 13 }}>{s.date} · {FORMS.find((f) => f.id === s.formType)?.name}</span>
@@ -1326,7 +1326,7 @@ function ManagerDashboard({ submissions }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
         <div>
-          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 4px" }}>My team</h2>
+          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>My team</h2>
           <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>
             Reviews and walks for the colleagues you line-manage.
           </p>
@@ -1340,7 +1340,7 @@ function ManagerDashboard({ submissions }) {
       </div>
       <div style={{
         fontSize: 12, color: BRAND.grey, background: "#fff", border: `1px dashed ${BRAND.line}`,
-        borderRadius: 10, padding: "8px 14px", marginBottom: 20,
+        borderRadius: 10, padding: "8px 14px", marginBottom: 26,
       }}>
         Demo view — in production this page sits behind staff login, and names, levels and line management sync from BromCom.
       </div>
@@ -1348,7 +1348,7 @@ function ManagerDashboard({ submissions }) {
       {reports.length === 0 ? (
         <p style={{ color: BRAND.grey, fontSize: 14 }}>No direct reports found for {who}.</p>
       ) : (
-        <div style={{ display: "grid", gap: 16 }}>
+        <div style={{ display: "grid", gap: 20 }}>
           {reports.map((r) => {
             const subs = submissions
               .filter((x) => x.reviewee === r.name)
@@ -1356,7 +1356,7 @@ function ManagerDashboard({ submissions }) {
               .sort((a, b) => (a.date < b.date ? 1 : -1));
             const latest = subs[0];
             return (
-              <Card key={r.name} style={{ padding: 20 }}>
+              <Card key={r.name} style={{ padding: 26 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                   <div style={{
                     width: 42, height: 42, borderRadius: 12, background: BRAND.magenta, color: "#fff",
@@ -1389,7 +1389,7 @@ function ManagerDashboard({ submissions }) {
                 {subs.length > 0 && (
                   <div style={{ marginTop: 14, display: "grid", gap: 8 }}>
                     {subs.map((s) => (
-                      <details key={s.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "10px 14px" }}>
+                      <details key={s.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "14px 16px" }}>
                         <summary style={{ cursor: "pointer", fontSize: 13.5, color: BRAND.ink, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                           <span style={{ fontWeight: 650 }}>{FORMS.find((f) => f.id === s.formType)?.name}{s.focus ? ` · Spotlight: ${s.focus}` : ""}</span>
                           <span style={{ color: BRAND.grey, fontSize: 12.5 }}>{s.date} · {s.term} · by {s.reviewer}</span>
@@ -1607,7 +1607,7 @@ function NavTile({ num, label, colour, active, onClick, narrow }) {
   return (
     <button onClick={onClick} style={{
       ...base, borderRadius: 16, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-      padding: narrow ? "10px 14px" : "14px 14px 16px",
+      padding: narrow ? "12px 16px" : "16px 16px 18px",
       display: "flex", flexDirection: narrow ? "row" : "column",
       alignItems: narrow ? "center" : "stretch", gap: narrow ? 8 : 0,
       flex: narrow ? "1 1 auto" : undefined,
@@ -1696,8 +1696,8 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: BRAND.pink, fontFamily: font, color: BRAND.ink }}>
       <div style={{
         maxWidth: 1280, margin: "0 auto",
-        padding: narrow ? "16px 16px 90px" : "26px 28px 100px",
-        display: "flex", gap: narrow ? 16 : 28,
+        padding: narrow ? "20px 18px 96px" : "34px 38px 112px",
+        display: "flex", gap: narrow ? 20 : 36,
         flexDirection: narrow ? "column" : "row",
         alignItems: "flex-start",
       }}>
