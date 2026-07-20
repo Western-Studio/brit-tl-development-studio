@@ -166,84 +166,143 @@ const FORMS = [
   },
 ];
 
-const STORAGE_KEY = "brit-tl-studio-submissions-v1";
+// v2: reseeded after the BRIT Check redesign (spotlight, noticed look-fors,
+// shout-outs). The key bump makes browsers holding the old seed pick this up.
+const STORAGE_KEY = "brit-tl-studio-submissions-v2";
 
 /* ------------------------------------------------------------------ *
  *  SEED DATA (so the SLT view is alive on first open)
  * ------------------------------------------------------------------ */
-function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comments) {
+// pick("Belonging", 0, 3) → the 1st and 4th practice look-fors for that strand,
+// so seed data always matches the framework text exactly.
+const pick = (key, ...idx) => {
+  const practice = STRANDS.find((s) => s.key === key).practice;
+  return idx.map((i) => practice[i]);
+};
+
+function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comments, extra = {}) {
   const strands = {};
   STRANDS.forEach((s, i) => {
-    strands[s.key] = { rating: ratings[i], comment: comments[i] || "" };
+    strands[s.key] = {
+      rating: ratings[i],
+      comment: comments[i] || "",
+      noticed: extra.noticed?.[s.key] || [],
+    };
   });
   return {
     id, formType, submittedAt: date,
     date, term, academicYear: "2026/27", faculty, reviewee, reviewer, strands,
+    focus: extra.focus || "",
+    celebrate: extra.celebrate || "",
+    nextStep: extra.nextStep || "",
     overall: formType === "learning-walk" ? (comments[4] || "") : "",
   };
 }
 
 const SEED = [
   mk("s1", "peer-review", "2026-09-18", "Autumn 1", "Theatre", "Amara Okafor", "Daniel Price",
-    ["Embedded", "Embedded", "Transformational", "Developing"],
-    ["Warm start, names used throughout, clear routines.",
-     "Studio reset quickly between exercises, sightlines good.",
+    ["Embedded", "Embedded", "Embedded", "Developing"],
+    ["Every student greeted by name at the door, and the register doubled as a check-in. Two quieter students had planned entry points into the devising task — nobody was invisible at the back.",
+     "",
      "Students could articulate the why of the devising task without prompting.",
-     "Progress within the lesson clear, though longer-arc journey less visible."]),
+     "Progress within the lesson clear, though the longer arc was less visible in one visit."],
+    {
+      focus: "Belonging",
+      noticed: { Belonging: pick("Belonging", 0, 1, 3), Travel: pick("Travel", 2) },
+      celebrate: "The check-in ritual at the door — students visibly arrived ready because someone expected them.",
+      nextStep: "Try handing the warm-down reflection to a student to lead, once a fortnight.",
+    }),
   mk("s2", "peer-review", "2026-09-22", "Autumn 1", "Games Design & VFX", "Leah Sturrock", "Priya Nair",
     ["Developing", "Embedded", "Transformational", "Developing"],
     ["A few students on the edges, less drawn in during the brief.",
      "Dual-screen setup worked well for the pipeline demo.",
-     "Purpose of the sprint framed brilliantly against a real client scenario.",
-     "Hard to see individual progress across the session."]),
-  mk("s3", "peer-review", "2026-10-02", "Music", "Autumn 2", "Marcus Bell", "Sofia Andrews",
-    ["Transformational", "Transformational", "Embedded", "Embedded"], // note: term/faculty order handled below
-    ["Every student contributed; genuine ensemble belonging.",
-     "Room configured for both rehearsal and feedback, seamless.",
-     "Intent clear, could sharpen the link to the assessment brief.",
-     "Good visible gains on the arrangement task."]),
+     "The sprint was framed against a live client brief with last year's showreel running as a living model of excellence — students could say exactly what they were learning and why it mattered.",
+     ""],
+    {
+      focus: "Intent",
+      noticed: { Intent: pick("Intent", 0, 1), Room: pick("Room", 1) },
+      celebrate: "The client framing — the room believed the work was real, because it was.",
+      nextStep: "A two-minute scan for who's drifting at the back during briefings.",
+    }),
+  mk("s3", "peer-review", "2026-10-02", "Autumn 2", "Music", "Marcus Bell", "Sofia Andrews",
+    ["Transformational", "Transformational", "Embedded", "Embedded"],
+    ["Genuine ensemble culture — every student contributed, and risk-taking in the improvisation felt completely safe. The wall of work-in-progress made the room feel owned by the people in it.",
+     "Configured for both rehearsal and feedback without a reset — seamless.",
+     "Intent clear; the link to the assessment brief could be sharpened.",
+     ""],
+    {
+      focus: "Belonging",
+      noticed: { Belonging: pick("Belonging", 0, 2, 3), Room: pick("Room", 2), Travel: pick("Travel", 3) },
+      celebrate: "An ensemble where it is visibly safe to fail — that culture takes years to build, and it shows.",
+    }),
   mk("s4", "peer-review", "2026-10-09", "Autumn 2", "Film & Media Production", "Yusuf Rahman", "Daniel Price",
     ["Embedded", "Developing", "Transformational", "Embedded"],
     ["Strong rapport, inclusive questioning.",
-     "Kit distribution ate into time; space felt tight for the group size.",
+     "Kit distribution ate the first ten minutes and the space felt tight for the group size. Once running, sightlines to the edit demo worked well — set-up before the lesson would buy that time back.",
      "Learning purpose exceptionally clear and student-owned.",
-     "Progress evident across the edit task."]),
+     "Progress evident across the edit task."],
+    {
+      focus: "Room",
+      noticed: { Room: pick("Room", 1), Intent: pick("Intent", 0), Travel: pick("Travel", 3) },
+      celebrate: "The edit demo itself was superb — clear, well paced, and students leaned in.",
+      nextStep: "Stage the kit trolleys before the lesson, so the environment is set before learning starts.",
+    }),
   mk("s5", "peer-review", "2026-10-14", "Autumn 2", "Dance", "Priya Nair", "Amara Okafor",
     ["Embedded", "Embedded", "Embedded", "Transformational"],
-    ["Inclusive, quieter students given space.",
-     "Studio well used, clear zones.",
+    ["Inclusive — quieter students given planned space.",
+     "",
      "Purpose shared and understood.",
-     "Exceptional visible travel — students named their own next steps."]),
-  mk("s6", "peer-review", "2026-11-05", "Autumn 2", "Visual Arts & Design", "Sofia Andrews", "Leah Sturrock",
+     "Students did the heavy thinking throughout. Feedback from the mid-point showing landed and was acted on before the end, and every dancer could name their own next step."],
+    {
+      focus: "Travel",
+      noticed: { Travel: pick("Travel", 0, 2, 3), Belonging: pick("Belonging", 1) },
+      celebrate: "The moment the dancers self-corrected after the showing without being told — that is Travel.",
+    }),
+  mk("s6", "peer-review", "2026-11-05", "Spring 1", "Visual Arts & Design", "Sofia Andrews", "Leah Sturrock",
     ["Developing", "Embedded", "Transformational", "Developing"],
     ["Belonging building; a couple of students disengaged early.",
-     "Studio set up well for independent work.",
-     "Intent outstanding — critique framed with real purpose.",
-     "Journey across the project less visible in a single visit."]),
+     "",
+     "Critique was framed with real purpose against professional exemplars on the wall — standards felt aspirational without being out of reach.",
+     "The journey across the project was less visible in a single visit."],
+    {
+      focus: "Intent",
+      noticed: { Intent: pick("Intent", 1, 2) },
+      celebrate: "The critique culture — generous, rigorous, and completely student-led by the end.",
+      nextStep: "Name the learning (not just the task) at the top of the session, so the why is as visible as the what.",
+    }),
   mk("s7", "learning-walk", "2026-09-25", "Autumn 1", "Musical Theatre", "Daniel Price", "Kerry Western",
     ["Embedded", "Embedded", "Transformational", "Embedded"],
-    ["", "", "", "", "Purpose strong across all three rooms; belonging solid; travel visible in the vocal work."]),
+    ["", "", "", "", "Mobile-phones check-in walk across three rooms: policy landing well. Intent strong everywhere; belonging solid; travel visible in the vocal work."]),
   mk("s8", "learning-walk", "2026-10-08", "Autumn 2", "Production Arts", "Marcus Bell", "Kerry Western",
     ["Developing", "Developing", "Embedded", "Developing"],
-    ["", "", "", "", "Environment and belonging need attention; intent clear but travel hard to read on a walk."]),
-  mk("s9", "peer-review", "2026-11-12", "Autumn 2", "Interactive Digital Design", "Amara Okafor", "Yusuf Rahman",
+    ["", "", "", "", "Belonging-focus walk: students arrived to an unset space and a quiet welcome — environment and greeting both need attention. Intent clear; travel hard to read on a walk."]),
+  mk("s9", "peer-review", "2026-11-12", "Spring 1", "Interactive Digital Design", "Amara Okafor", "Yusuf Rahman",
     ["Transformational", "Embedded", "Transformational", "Embedded"],
-    ["Genuinely inclusive, every voice mattered.",
-     "Lab set up for pair programming, worked well.",
+    ["Genuinely inclusive pair programming — rotations planned so quieter students took the driving seat, and every voice mattered in the stand-up.",
+     "Lab set up for pairing before students arrived.",
      "Intent razor-sharp, tied to a live brief.",
-     "Good gains, students could self-assess."]),
-  mk("s10", "peer-review", "2026-11-18", "Autumn 2", "Theatre", "Leah Sturrock", "Sofia Andrews",
+     "Good gains; students could self-assess against the brief."],
+    {
+      focus: "Belonging",
+      noticed: { Belonging: pick("Belonging", 0, 1), Intent: pick("Intent", 0), Travel: pick("Travel", 1) },
+      celebrate: "Quieter students literally in the driving seat — inclusion by design, not by luck.",
+    }),
+  mk("s10", "peer-review", "2026-11-18", "Spring 1", "Theatre", "Leah Sturrock", "Sofia Andrews",
     ["Embedded", "Transformational", "Embedded", "Developing"],
     ["Strong belonging, clear rituals.",
-     "Studio transformed for the promenade piece — superb use of space.",
-     "Purpose understood, could push articulation further.",
-     "Travel less clear within the single session."]),
-  mk("s11", "learning-walk", "2026-11-20", "Autumn 2", "Music", "Priya Nair", "Kerry Western",
+     "The studio transformed for the promenade piece — zones, sightlines and safety all considered, and students reset the space themselves like a working company.",
+     "Purpose understood; articulation could be pushed further.",
+     ""],
+    {
+      focus: "Room",
+      noticed: { Room: pick("Room", 0, 1, 3), Belonging: pick("Belonging", 3) },
+      celebrate: "A room run like a professional company — the students owned the space.",
+      nextStep: "Capture the reset routine as a one-page company call sheet other groups could borrow.",
+    }),
+  mk("s11", "learning-walk", "2026-11-20", "Spring 1", "Music", "Priya Nair", "Kerry Western",
     ["Embedded", "Transformational", "Transformational", "Embedded"],
-    ["", "", "", "", "Room and intent both excellent; belonging embedded; travel evident in the composition task."]),
+    ["", "", "", "", "Rooms-focus walk: both studios set before learning started, kit ready, sightlines clean. Intent excellent; travel evident in the composition task."]),
 ];
-// Fix the two seed rows where I put faculty/term in swapped order for readability
-SEED[2].term = "Autumn 2"; SEED[2].faculty = "Music";
 
 /* ------------------------------------------------------------------ *
  *  STORAGE HELPERS
