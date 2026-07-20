@@ -1539,11 +1539,14 @@ export default function App() {
           gap: 12, alignItems: narrow ? "center" : "stretch",
         }}>
           <div style={{ padding: narrow ? "0 4px" : "4px 2px 12px", marginRight: narrow ? 8 : 0 }}>
-            <div style={{ fontWeight: 900, fontSize: narrow ? 26 : 34, letterSpacing: "-.04em", lineHeight: 1 }}>
+            <div style={{ fontWeight: 900, fontSize: narrow ? 24 : 32, letterSpacing: "-.03em", lineHeight: 0.95, color: BRAND.magenta }}>
+              BRIT
+            </div>
+            <div style={{ fontWeight: 900, fontSize: narrow ? 24 : 32, letterSpacing: "-.04em", lineHeight: 1.05, color: BRAND.ink }}>
               studio<span style={{ color: BRAND.magenta }}>.</span>
             </div>
-            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".16em", color: BRAND.grey, marginTop: 5 }}>
-              BRIT T&amp;L DEVELOPMENT
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: ".16em", color: BRAND.grey, marginTop: 6 }}>
+              T&amp;L DEVELOPMENT
             </div>
           </div>
           {nav.map((n) => (
