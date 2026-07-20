@@ -23,23 +23,100 @@ const BRAND = {
   transformational: "#46B749", // brand green
 };
 
+// The BRIT Check — the four strands of the BRIT lesson framework.
+// "What can you see, hear, and how does it feel?"
 const STRANDS = [
   {
     key: "Belonging",
-    // NOTE: placeholder descriptor — replace with the real BRIT framework definition
-    desc: "Every student feels seen, safe and part of the group; relationships and inclusion are visible in the room.",
+    letter: "B",
+    accent: "#AD227E",
+    focus: "Inclusion and culture",
+    ts: "TS 1 · 5",
+    desc: "Inclusion and culture — every student is known, expected, and safe enough to take creative risks.",
+    practice: [
+      "Every student is known and greeted — nobody is invisible at the back",
+      "Access is proactively planned for neurodiversity and quiet learners",
+      "The room reflects who is in it: identities, voices, a range of work on show",
+      "It is safe to take creative risks — and to fail",
+    ],
+    research: [
+      { name: "Psychological safety — Amy Edmondson", note: "An environment free from interpersonal fear, so students will experiment creatively." },
+      { name: "Attachment & trauma-informed pedagogy", note: "Relational security as the foundation for academic and artistic engagement." },
+    ],
+    levels: {
+      Developing: "Warm moments are appearing. Some students are known and greeted; a few can still drift to the edges unseen.",
+      Embedded: "Every student is known, greeted and expected. Access for neurodiversity and quieter learners is planned as a matter of routine.",
+      Transformational: "The room visibly reflects who is in it — identities, voices and work on show — and it is genuinely safe to take creative risks and fail.",
+    },
   },
   {
     key: "Room",
-    desc: "The learning environment — physical, digital and emotional — is set up so students can do their best work.",
+    letter: "R",
+    accent: "#8447B0",
+    focus: "The physical and digital environment, and how it is used",
+    ts: "TS 5 · 7",
+    desc: "The physical and digital environment — the space works for the task before learning starts.",
+    practice: [
+      "The spatial layout actively fits the technical and creative task",
+      "Sightlines work — everyone can see the board, screen, device or demonstration",
+      "Resources, cables, floor space and kit are safe, accessible and ready",
+      "The environment is set before learning starts, not during it",
+    ],
+    research: [
+      { name: "Reggio Emilia — the “third teacher”", note: "The physical environment as a teacher in its own right. Rooted in Early Years, highly relevant to 14–19 studio pedagogy." },
+      { name: "Vocational studio ergonomics", note: "Industry-standard workspace setups that build professional accountability, health and safety awareness, and technical discipline." },
+    ],
+    levels: {
+      Developing: "The space is functional, but layout or resources sometimes work against the task — set-up can eat into learning time.",
+      Embedded: "The layout fits the technical and creative task, sightlines work for everyone, and kit is safe, accessible and ready before learning starts.",
+      Transformational: "The room works as a third teacher — an industry-standard environment that students help to own, run and reset.",
+    },
   },
   {
     key: "Intent",
-    desc: "The purpose of the learning is clear, shared and worth pursuing; students understand why they are doing what they are doing.",
+    letter: "I",
+    accent: "#C2651A",
+    focus: "Rigour and standards",
+    ts: "TS 3 · 4",
+    desc: "Rigour and standards — it is transparent what is being learned and why, and excellence is visible in the room.",
+    practice: [
+      "It is transparent what is being learned and why — not just what is being “done”",
+      "Living models of excellence are visible in the room",
+      "Professional, vocational and academic standards stay aspirational and rigorous",
+      "Pitch stretches the strongest without losing anyone",
+    ],
+    research: [
+      { name: "Visible Learning — John Hattie", note: "Clear learning intentions so students can explicitly monitor their own progress." },
+      { name: "Expert modelling", note: "Living exemplars of high-level vocational and academic outcomes that scaffold student ambition." },
+    ],
+    levels: {
+      Developing: "Students can say what they are doing, but not always what they are learning — or why it matters — yet.",
+      Embedded: "What is being learned, and why, is transparent. Visible models of excellence keep standards aspirational and rigorous.",
+      Transformational: "Excellence drives the room. Pitch stretches the strongest without losing anyone, and students hold the standard for themselves.",
+    },
   },
   {
     key: "Travel",
-    desc: "Learning moves forward; students make progress and can see how far they have come and where they are going.",
+    letter: "T",
+    accent: "#46B749",
+    focus: "Cognitive processing",
+    ts: "TS 2 · 4 · 6",
+    desc: "Cognitive processing — students do the heavy thinking, feedback lands in the lesson, and progress is visible in the work.",
+    practice: [
+      "Students do the heavy cognitive thinking and creative work — not just watching it happen",
+      "Direct, purposeful dialogue and targeted questioning dig past surface answers",
+      "Formative feedback lands and is acted on within the lesson",
+      "Progress is visible in the work — all have moved forward",
+    ],
+    research: [
+      { name: "Principles of Instruction — Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
+      { name: "Formative assessment — Dylan Wiliam", note: "Immediate, actionable feedback cycles that let students refine their work in the moment." },
+    ],
+    levels: {
+      Developing: "The teacher is still doing much of the heavy thinking; progress is hard to see in the work within the session.",
+      Embedded: "Students do the heavy cognitive and creative work. Questioning digs past surface answers and feedback is acted on in the lesson.",
+      Transformational: "Progress is unmistakable in the work. Every student has moved forward — and can name their own next step.",
+    },
   },
 ];
 
@@ -48,6 +125,11 @@ const RATING_COLOUR = {
   Developing: BRAND.developing,
   Embedded: BRAND.embedded,
   Transformational: BRAND.transformational,
+};
+const RATING_TAGLINE = {
+  Developing: "taking root",
+  Embedded: "everyday practice",
+  Transformational: "lifts the whole room",
 };
 
 const TERMS = ["Autumn 1", "Autumn 2", "Spring 1", "Spring 2", "Summer 1", "Summer 2"];
@@ -313,6 +395,121 @@ function SpineFields({ v, set }) {
 /* ------------------------------------------------------------------ *
  *  FORMS
  * ------------------------------------------------------------------ */
+function StrandBadge({ s, size = 40 }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: Math.round(size * 0.3), background: s.accent,
+      color: "#fff", display: "grid", placeItems: "center", flexShrink: 0,
+      fontWeight: 800, fontSize: Math.round(size * 0.45),
+    }}>{s.letter}</div>
+  );
+}
+
+function DescriptorPicker({ s, value, onPick }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px,1fr))", gap: 10 }}>
+      {RATINGS.map((r) => {
+        const active = value === r;
+        return (
+          <button key={r} onClick={() => onPick(r)} style={{
+            textAlign: "left", padding: "12px 14px", borderRadius: 12, cursor: "pointer",
+            border: `2px solid ${active ? RATING_COLOUR[r] : BRAND.line}`,
+            background: active ? `${RATING_COLOUR[r]}14` : "#fff",
+            transition: "all .15s", fontFamily: "inherit",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: RATING_COLOUR[r], flexShrink: 0 }} />
+              <span style={{ fontWeight: 700, fontSize: 13, color: BRAND.ink }}>{r}</span>
+              <span style={{ fontSize: 11, color: BRAND.grey, fontStyle: "italic" }}>{RATING_TAGLINE[r]}</span>
+            </div>
+            <div style={{ fontSize: 12.5, color: BRAND.grey, lineHeight: 1.55, marginTop: 7 }}>{s.levels[r]}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed }) {
+  const [showWhy, setShowWhy] = useState(false);
+  return (
+    <Card style={{
+      padding: 22, marginBottom: 16,
+      border: `${isFocus ? 2 : 1}px solid ${isFocus ? s.accent : BRAND.line}`,
+      boxShadow: isFocus ? `0 4px 20px ${s.accent}22` : "none",
+    }}>
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+        <StrandBadge s={s} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 17, fontWeight: 800, color: BRAND.ink }}>{s.key}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: BRAND.grey, border: `1px solid ${BRAND.line}`, borderRadius: 999, padding: "2px 9px", letterSpacing: ".03em" }}>{s.ts}</span>
+            {isFocus && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", background: s.accent, borderRadius: 999, padding: "3px 10px" }}>
+                <Sparkles size={12} /> Today's spotlight
+              </span>
+            )}
+          </div>
+          <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 3 }}>{s.focus}</div>
+        </div>
+      </div>
+
+      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "16px 0 8px" }}>
+        In the room you might notice… <span style={{ textTransform: "none", fontWeight: 500, letterSpacing: 0 }}>(tap what you saw)</span>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+        {s.practice.map((p) => {
+          const on = data.noticed?.includes(p);
+          return (
+            <button key={p} onClick={() => onToggleNoticed(s.key, p)} style={{
+              display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 12px",
+              borderRadius: 999, fontSize: 12.5, cursor: "pointer", fontFamily: "inherit",
+              border: `1.5px solid ${on ? s.accent : BRAND.line}`,
+              background: on ? `${s.accent}12` : "#fff",
+              color: on ? s.accent : BRAND.grey, fontWeight: on ? 650 : 500,
+              transition: "all .15s", textAlign: "left",
+            }}>
+              {on && <CheckCircle size={13} />}{p}
+            </button>
+          );
+        })}
+      </div>
+
+      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "0 0 8px" }}>
+        Where does practice sit today?
+      </div>
+      <DescriptorPicker s={s} value={data.rating} onPick={(r) => onRate(s.key, r)} />
+
+      <textarea
+        style={{ ...inputStyle, minHeight: 70, resize: "vertical", marginTop: 14 }}
+        placeholder={isFocus
+          ? `This is the spotlight strand — what did you see and hear, and how did it feel? Be generous with detail.`
+          : `Anything you noticed for ${s.key} (optional)`}
+        value={data.comment}
+        onChange={(e) => onComment(s.key, e.target.value)}
+      />
+
+      <button onClick={() => setShowWhy((w) => !w)} style={{
+        display: "inline-flex", alignItems: "center", gap: 6, marginTop: 12, padding: 0,
+        background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+        fontSize: 12.5, fontWeight: 650, color: s.accent,
+      }}>
+        <GraduationCap size={14} /> The research behind this strand
+        <ChevronDown size={14} style={{ transform: showWhy ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
+      </button>
+      {showWhy && (
+        <div style={{ background: BRAND.pink, borderRadius: 10, padding: "12px 14px", marginTop: 10, display: "grid", gap: 8 }}>
+          {s.research.map((r) => (
+            <div key={r.name} style={{ fontSize: 12.5, color: BRAND.grey, lineHeight: 1.55 }}>
+              <strong style={{ color: BRAND.ink }}>{r.name}.</strong> {r.note}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function ReviewForm({ formId, onBack, onSubmit }) {
   const isWalk = formId === "learning-walk";
   const meta = FORMS.find((f) => f.id === formId);
@@ -320,18 +517,26 @@ function ReviewForm({ formId, onBack, onSubmit }) {
     date: "", term: "", academicYear: "2026/27", faculty: "", reviewee: "", reviewer: "",
   });
   const [strands, setStrands] = useState(
-    STRANDS.reduce((a, s) => ({ ...a, [s.key]: { rating: "", comment: "" } }), {})
+    STRANDS.reduce((a, s) => ({ ...a, [s.key]: { rating: "", comment: "", noticed: [] } }), {})
   );
+  const [focusStrand, setFocusStrand] = useState("");
+  const [celebrate, setCelebrate] = useState("");
+  const [nextStep, setNextStep] = useState("");
   const [overall, setOverall] = useState("");
   const [done, setDone] = useState(false);
 
   const setSpineField = (k, val) => setSpine((s) => ({ ...s, [k]: val }));
   const setRating = (k, r) => setStrands((s) => ({ ...s, [k]: { ...s[k], rating: r } }));
   const setComment = (k, c) => setStrands((s) => ({ ...s, [k]: { ...s[k], comment: c } }));
+  const toggleNoticed = (k, p) => setStrands((s) => {
+    const cur = s[k].noticed || [];
+    return { ...s, [k]: { ...s[k], noticed: cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p] } };
+  });
 
   const complete =
     Object.values(spine).every((x) => x.trim()) &&
-    STRANDS.every((s) => strands[s.key].rating);
+    STRANDS.every((s) => strands[s.key].rating) &&
+    (isWalk || (focusStrand && celebrate.trim()));
 
   const submit = () => {
     const record = {
@@ -340,6 +545,9 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       submittedAt: new Date().toISOString().slice(0, 10),
       ...spine,
       strands,
+      focus: isWalk ? "" : focusStrand,
+      celebrate: isWalk ? "" : celebrate,
+      nextStep: isWalk ? "" : nextStep,
       overall: isWalk ? overall : "",
     };
     onSubmit(record);
@@ -371,35 +579,70 @@ function ReviewForm({ formId, onBack, onSubmit }) {
       </button>
       <h2 style={{ fontSize: 22, fontWeight: 700, color: BRAND.ink, margin: "0 0 4px" }}>{meta.name}</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 22px", fontSize: 14 }}>
-        The three descriptors below describe practice developmentally. They are not grades.
+        What can you see, hear — and how does it feel? The descriptors are developmental, never grades.
       </p>
 
       <Card style={{ padding: 22, marginBottom: 20 }}>
         <SpineFields v={spine} set={setSpineField} />
       </Card>
 
-      {STRANDS.map((s) => (
+      {!isWalk && (
+        <Card style={{ padding: 22, marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <Sparkles size={16} color={BRAND.magenta} />
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Today's spotlight</h3>
+          </div>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
+            Peer reviews work best with one narrow focus, agreed together before the lesson.
+            Pick the strand under the spotlight — you'll still glance across all four.
+          </p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {STRANDS.map((s) => {
+              const on = focusStrand === s.key;
+              return (
+                <button key={s.key} onClick={() => setFocusStrand(s.key)} style={{
+                  display: "inline-flex", alignItems: "center", gap: 9, padding: "8px 16px 8px 9px",
+                  borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+                  border: `2px solid ${on ? s.accent : BRAND.line}`,
+                  background: on ? `${s.accent}12` : "#fff", transition: "all .15s",
+                }}>
+                  <StrandBadge s={s} size={26} />
+                  <span style={{ fontSize: 13.5, fontWeight: on ? 750 : 600, color: on ? s.accent : BRAND.grey }}>{s.key}</span>
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+      )}
+
+      {STRANDS.map((s) => isWalk ? (
         <Card key={s.key} style={{ padding: 22, marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 17, fontWeight: 700, color: BRAND.magenta }}>{s.key}</div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 6 }}>
+            <StrandBadge s={s} size={34} />
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: BRAND.ink }}>{s.key}</div>
+              <div style={{ fontSize: 12.5, color: BRAND.grey }}>{s.focus}</div>
+            </div>
           </div>
           <div style={{ fontSize: 13, color: BRAND.grey, margin: "4px 0 14px", lineHeight: 1.5 }}>{s.desc}</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: isWalk ? 0 : 14 }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {RATINGS.map((r) => (
               <Pill key={r} active={strands[s.key].rating === r} colour={RATING_COLOUR[r]} onClick={() => setRating(s.key, r)}>
                 {r}
               </Pill>
             ))}
           </div>
-          {!isWalk && (
-            <textarea
-              style={{ ...inputStyle, minHeight: 70, resize: "vertical" }}
-              placeholder={`What did you notice for ${s.key}?`}
-              value={strands[s.key].comment}
-              onChange={(e) => setComment(s.key, e.target.value)}
-            />
-          )}
         </Card>
+      ) : (
+        <StrandCard
+          key={s.key}
+          s={s}
+          data={strands[s.key]}
+          isFocus={focusStrand === s.key}
+          onRate={setRating}
+          onComment={setComment}
+          onToggleNoticed={toggleNoticed}
+        />
       ))}
 
       {isWalk && (
@@ -411,6 +654,28 @@ function ReviewForm({ formId, onBack, onSubmit }) {
         </Card>
       )}
 
+      {!isWalk && (
+        <Card style={{ padding: 22, marginBottom: 16, background: "#FDFBF6", borderColor: "#EFE3C8" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <MessageCircle size={16} color="#B8860B" />
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Close with care</h3>
+          </div>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
+            Reviews end as conversations between colleagues, not verdicts. Send your colleague away with something to feel good about.
+          </p>
+          <div style={{ display: "grid", gap: 14 }}>
+            <Field label="Shout-out — something your colleague should feel proud of">
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={celebrate}
+                placeholder="The moment worth celebrating from this lesson…" onChange={(e) => setCelebrate(e.target.value)} />
+            </Field>
+            <Field label="One idea worth trying — small, concrete, kind (optional)">
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={nextStep}
+                placeholder="A single practical suggestion, if one occurred to you…" onChange={(e) => setNextStep(e.target.value)} />
+            </Field>
+          </div>
+        </Card>
+      )}
+
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 8 }}>
         <button disabled={!complete} onClick={submit} style={{
           padding: "12px 24px", borderRadius: 999, border: "none",
@@ -418,7 +683,13 @@ function ReviewForm({ formId, onBack, onSubmit }) {
           color: complete ? "#fff" : BRAND.grey, fontWeight: 700, fontSize: 14,
           cursor: complete ? "pointer" : "not-allowed",
         }}>Submit review</button>
-        {!complete && <span style={{ fontSize: 13, color: BRAND.grey }}>Complete all details and a rating for each strand.</span>}
+        {!complete && (
+          <span style={{ fontSize: 13, color: BRAND.grey }}>
+            {isWalk
+              ? "Complete all details and a descriptor for each strand."
+              : "Complete the details, pick a spotlight, choose a descriptor for each strand, and add a shout-out."}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -602,7 +873,11 @@ function SLTDashboard({ submissions }) {
                   </div>
                 ))}
                 {s.overall && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><em>{s.overall}</em></div>}
-                <div style={{ fontSize: 12, color: BRAND.grey, marginTop: 4 }}>Reviewer: {s.reviewer}</div>
+                {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, marginTop: 4, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
+                {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Worth trying:</strong> {s.nextStep}</div>}
+                <div style={{ fontSize: 12, color: BRAND.grey, marginTop: 4 }}>
+                  Reviewer: {s.reviewer}{s.focus ? ` · Spotlight: ${s.focus}` : ""}
+                </div>
               </div>
             </details>
           ))}
@@ -615,19 +890,18 @@ function SLTDashboard({ submissions }) {
 /* ------------------------------------------------------------------ *
  *  HELP BOT (wired to Claude API)
  * ------------------------------------------------------------------ */
-const BOT_SYSTEM = `You are the BRIT T&L Development Studio assistant for an arts and performing-arts specialist institution. You help staff understand and complete the BRIT framework peer review process.
+const BOT_SYSTEM = `You are the BRIT T&L Development Studio assistant for an arts and performing-arts specialist institution. You help staff understand and complete the BRIT lesson framework ("the BRIT Check") and its peer review process.
 
-The BRIT framework is developmental and UNGRADED. It has four strands:
-- Belonging: every student feels seen, safe and part of the group; relationships and inclusion are visible.
-- Room: the learning environment (physical, digital and emotional) is set up so students can do their best work.
-- Intent: the purpose of the learning is clear, shared and worth pursuing; students understand why.
-- Travel: learning moves forward; students make progress and can see how far they have come.
+The BRIT Check is the shared, non-judgmental professional language for reviews, learning walks and quality assurance. It answers "what does excellent teaching and learning look like here?" through three lenses: what can you see, what can you hear, and how does it feel? It has four strands:
 
-Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing, Embedded, Transformational. These describe where practice currently sits on a strand — they are not scores and must never be framed as a mark or judgement of the person.
+- Belonging (inclusion and culture; teaching standards 1 and 5): every student is known and greeted — nobody is invisible at the back. Access is proactively planned for neurodiversity and quiet learners. The room reflects who is in it: identities, voices, and a range of work on show. It is safe to take creative risks and fail. Grounded in psychological safety (Amy Edmondson) and attachment and trauma-informed pedagogy.
+- Room (the physical and digital environment and how it is used; standards 5 and 7): the spatial layout actively fits the technical and creative tasks. Sightlines work so everyone can see the board, screen, device or demonstration. Resources, cables, floor space and kit are safe, accessible and ready before learning starts. Grounded in the Reggio Emilia idea of the environment as "third teacher" and vocational studio ergonomics.
+- Intent (rigour and standards; standards 3 and 4): it is transparent what is being learned and why, not just what is being "done". Living models of excellence are visible, keeping professional, vocational and academic standards aspirational and rigorous. Pitch stretches the strongest without losing anyone. Grounded in Visible Learning (John Hattie) and expert modelling.
+- Travel (cognitive processing; standards 2, 4 and 6): students do the heavy cognitive thinking and creative work rather than watching it happen. Direct, purposeful dialogue and targeted questioning dig past surface answers. Formative feedback lands and is acted on in the lesson. Progress is visible in the work — all have moved forward. Grounded in Rosenshine's Principles of Instruction and Dylan Wiliam's formative assessment.
 
-The process: a reviewer observes a colleague, records the shared details (date, term, faculty, staff member reviewed, reviewer), then for each of the four strands selects a descriptor and writes a short comment on what they noticed. Learning Walks are lighter and rate the strands with a single overall observation.
+Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on a strand — never a mark or judgement of the person.
 
-(These strand definitions are working placeholders in this prototype and may differ from the institution's final wording.)
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus strand — the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each strand, comments in depth on the spotlight strand, and closes with a shout-out (something to feel proud of) and optionally one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections noticeboard. Learning Walks are lighter: descriptors per strand plus one overall observation.
 
 Answer in British English, warmly and concisely. If asked about something you do not have — a specific policy detail, a calendar date, a named person's data — say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
