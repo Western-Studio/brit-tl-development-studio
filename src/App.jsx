@@ -407,6 +407,15 @@ const REFLECTION_SEED = [
   },
 ];
 
+// Coaching sentence-starters for the reflection composer - tap to begin.
+const COACH_PROMPTS = [
+  "I tried",
+  "What changed for my students was",
+  "What surprised me was",
+  "I'm still wrestling with",
+  "Next, I'm going to",
+];
+
 // How a colleague evaluates their idea worth trying when ticking it off.
 const IDEA_OUTCOMES = [
   { label: "Becoming habit", colour: "#46B749" },
@@ -533,6 +542,7 @@ function ReflectionsBoard({ submissions }) {
   const [linkIdea, setLinkIdea] = useState(true);
   const [ideaId, setIdeaId] = useState("");
   const [outcome, setOutcome] = useState("");
+  const [composerOpen, setComposerOpen] = useState(false);
   const fileRef = useRef(null);
 
   const openIdeas = who ? openIdeasFor(who, submissions, posts) : [];
@@ -576,6 +586,7 @@ function ReflectionsBoard({ submissions }) {
     setPosts(next);
     try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(next)); } catch (e) { /* photo too large for storage - post stays in memory */ }
     setText(""); setPhoto(""); setOutcome(""); setIdeaId(""); setLinkIdea(true);
+    setComposerOpen(false);
     if (fileRef.current) fileRef.current.value = "";
   };
 
@@ -588,7 +599,37 @@ function ReflectionsBoard({ submissions }) {
         Micro-insights, wins and works-in-progress - share anything about your practice or development, with a photo if you have one.
       </p>
 
-      <Card style={{ padding: 28, marginBottom: 26 }}>
+      <Card style={{ padding: "22px 28px", marginBottom: 26, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 220 }}>
+          <div style={{ fontWeight: 800, fontSize: 15, color: BRAND.ink }}>Got something you tried, noticed or learned?</div>
+          <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 3 }}>
+            Pin it to the board - and if you have an idea worth trying open, tick it off while you're here.
+          </div>
+        </div>
+        <button onClick={() => setComposerOpen(true)} style={{
+          display: "inline-flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 999,
+          border: "none", background: BRAND.magenta, color: "#fff", fontWeight: 700, fontSize: 14,
+          cursor: "pointer", fontFamily: "inherit",
+        }}><Plus size={16} /> Add a reflection</button>
+      </Card>
+
+      {composerOpen && (
+      <div onClick={() => setComposerOpen(false)} style={{
+        position: "fixed", inset: 0, background: "rgba(42,30,39,.5)", zIndex: 200,
+        display: "grid", placeItems: "center", padding: 18,
+      }}>
+        <div onClick={(e) => e.stopPropagation()} style={{
+          background: "#fff", borderRadius: 24, border: `1.5px solid ${BRAND.ink}`,
+          boxShadow: `8px 8px 0 ${BRAND.magenta}`, maxWidth: 660, width: "100%",
+          maxHeight: "88vh", overflowY: "auto", padding: 28,
+        }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+          <h3 style={{ margin: 0, fontSize: 21, fontWeight: 900, letterSpacing: "-.02em", color: BRAND.ink }}>Add a reflection</h3>
+          <button onClick={() => setComposerOpen(false)} style={{
+            width: 30, height: 30, borderRadius: "50%", border: "none", background: BRAND.pink,
+            color: BRAND.ink, cursor: "pointer", display: "grid", placeItems: "center", padding: 0,
+          }}><X size={16} /></button>
+        </div>
         <div style={{ display: "grid", gap: 18 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 18 }}>
             <Field label="Who's sharing?">
@@ -641,8 +682,21 @@ function ReflectionsBoard({ submissions }) {
             </div>
           )}
 
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 8 }}>
+              NEED A WAY IN? TAP A PROMPT TO START A SENTENCE
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {COACH_PROMPTS.map((c) => (
+                <button key={c} onClick={() => setText((t) => (t ? t.trimEnd() + "\n\n" : "") + c + " ")} style={{
+                  padding: "6px 14px", borderRadius: 999, border: `1.5px solid ${BRAND.line}`, background: "#fff",
+                  cursor: "pointer", fontFamily: "inherit", fontSize: 12.5, fontWeight: 650, color: BRAND.magenta,
+                }}>{c}…</button>
+              ))}
+            </div>
+          </div>
           <Field label={idea ? "How did it go? What changed?" : "Your reflection"}>
-            <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={text}
+            <textarea style={{ ...inputStyle, minHeight: 110, resize: "vertical" }} value={text}
               placeholder="Something you tried, noticed, learned - or are still wrestling with…"
               onChange={(e) => setText(e.target.value)} />
           </Field>
@@ -672,7 +726,9 @@ function ReflectionsBoard({ submissions }) {
             }}>Pin it to the board</button>
           </div>
         </div>
-      </Card>
+        </div>
+      </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 22 }}>
         {posts.map((post) => {
