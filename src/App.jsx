@@ -797,7 +797,7 @@ function FormSelector({ onSelect }) {
             { n: "01", colour: BRAND.magenta, text: "A colleague reviews your practice against the four areas" },
             { n: "02", colour: "#C2651A", text: "You take away one idea worth trying - small, concrete, kind" },
             { n: "03", colour: "#8447B0", text: "You try it, then share how it went on the Share board" },
-            { n: "04", colour: BRAND.green, text: "The idea is ticked off - and the pattern informs SLT" },
+            { n: "04", colour: BRAND.green, text: "The idea is ticked off - and the patterns and picture of T&L across BRIT emerge and can be shared" },
           ].map((step, i) => (
             <div key={step.n} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
               <span style={{
