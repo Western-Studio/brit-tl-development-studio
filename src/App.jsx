@@ -87,9 +87,9 @@ const STRANDS = [
       { name: "Vocational studio ergonomics", note: "Industry-standard workspace setups that build professional accountability, health and safety awareness, and technical discipline." },
     ],
     levels: {
-      Developing: "The space is functional, but layout or resources sometimes work against the task - set-up can eat into learning time.",
-      Embedded: "The layout fits the technical and creative task, sightlines work for everyone, and kit is safe, accessible and ready before learning starts.",
-      Transformational: "The room works as a third teacher - an industry-standard environment that students help to own, run and reset.",
+      Developing: "The space is functional but not yet working for every learner - set-up can eat into learning time, sensory load isn't yet considered, and the digital space takes effort to navigate.",
+      Embedded: "Physical and digital spaces are both set before learning starts - layout, sightlines and kit fit the task, sensory load is planned for, the walls reflect the learners and model excellence, and Google Classroom is organised enough for students to help themselves.",
+      Transformational: "The room works as a third teacher - a neuroinclusive, multi-sensory, industry-standard environment that students help to own, run and reset, with AI-supported digital access (NotebookLM, Gems) so every learner can reach the course independently.",
     },
   },
   {
