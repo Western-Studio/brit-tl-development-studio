@@ -249,6 +249,10 @@ function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comm
     date, term, academicYear: "2026/27", faculty, reviewee, reviewer, strands,
     focus: extra.focus || "",
     inquiry: extra.inquiry || "",
+    yearGroup: extra.yearGroup || "",
+    className: extra.className || "",
+    lessonTitle: extra.lessonTitle || "",
+    aen: extra.aen || "",
     celebrate: extra.celebrate || "",
     evenBetterIf: extra.evenBetterIf || "",
     nextStep: extra.nextStep || "",
@@ -280,6 +284,7 @@ const SEED = [
     {
       focus: "Intent",
       inquiry: "I want to investigate how framing project briefs around live clients affects how clearly students can articulate what they're learning and why.",
+      yearGroup: "Year 13", className: "13A Digital Arts", lessonTitle: "Client sprint - motion identity", aen: "4",
       noticed: { Intent: pick("Intent", 0, 1), Room: pick("Room", 1) },
       celebrate: "The client framing - the room believed the work was real, because it was.",
       nextStep: "A two-minute scan for who's drifting at the back during briefings.",
@@ -305,6 +310,7 @@ const SEED = [
     {
       focus: "Room",
       inquiry: "I want to explore how the first ten minutes of set-up affect how quickly students settle into focused edit work.",
+      yearGroup: "Year 12", className: "12B Film", lessonTitle: "Editing rhythm - montage sequences", aen: "3",
       noticed: { Room: pick("Room", 1), Intent: pick("Intent", 0), Travel: pick("Travel", 3) },
       celebrate: "The edit demo itself was superb - clear, well paced, and students leaned in.",
       nextStep: "Stage the kit trolleys before the lesson, so the environment is set before learning starts.",
@@ -981,7 +987,7 @@ function FormSelector({ onSelect }) {
 /* ------------------------------------------------------------------ *
  *  SHARED SPINE FIELDS
  * ------------------------------------------------------------------ */
-function SpineFields({ v, set, dept }) {
+function SpineFields({ v, set, dept, classCtx }) {
   const reviewee = staffByName(v.reviewee);
   const HEADS = STAFF.filter((s) => s.role.startsWith("Head") || s.role.startsWith("Director"));
   if (dept) {
@@ -1053,6 +1059,33 @@ function SpineFields({ v, set, dept }) {
           </select>
         </Field>
       </div>
+      {classCtx && (
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 10 }}>
+            CLASS CONTEXT - WHERE WILL THE INQUIRY BE ANSWERED?
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 18 }}>
+            <Field label="Year group">
+              <select style={inputStyle} value={v.yearGroup || ""} onChange={(e) => set("yearGroup", e.target.value)}>
+                <option value="">Select…</option>
+                {["Year 10", "Year 11", "Year 12", "Year 13", "Mixed"].map((y) => <option key={y}>{y}</option>)}
+              </select>
+            </Field>
+            <Field label="Class name">
+              <input style={inputStyle} value={v.className || ""} placeholder="e.g. 12B Film"
+                onChange={(e) => set("className", e.target.value)} />
+            </Field>
+            <Field label="Lesson title">
+              <input style={inputStyle} value={v.lessonTitle || ""} placeholder="e.g. Editing rhythm - montage"
+                onChange={(e) => set("lessonTitle", e.target.value)} />
+            </Field>
+            <Field label="AEN learners in the class">
+              <input style={inputStyle} type="number" min="0" value={v.aen || ""} placeholder="e.g. 3"
+                onChange={(e) => set("aen", e.target.value)} />
+            </Field>
+          </div>
+        </div>
+      )}
       {reviewee && (
         <div style={{
           marginTop: 14, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
@@ -1114,6 +1147,10 @@ function printRecord(rec) {
     ${row("Reviewer", rec.reviewer)}
     ${row("Date", rec.date)}${row("Term", rec.term)}
     ${row("Spotlight area", rec.focus)}
+    ${row("Year group", rec.yearGroup)}
+    ${row("Class", rec.className)}
+    ${row("Lesson", rec.lessonTitle)}
+    ${row("AEN learners in the class", rec.aen)}
   </table>
   ${rec.inquiry ? `<div class="box"><strong>Inquiry question:</strong> ${esc(rec.inquiry)}</div>` : ""}
   ${areas}
@@ -1290,6 +1327,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const [draftSaved, setDraftSaved] = useState(false);
   const [spine, setSpine] = useState(draft?.spine || {
     date: "", term: "", academicYear: "2026/27", faculty: "", reviewee: "", reviewer: "",
+    yearGroup: "", className: "", lessonTitle: "", aen: "",
   });
   const [strands, setStrands] = useState(draft?.strands ||
     STRANDS.reduce((a, s) => ({ ...a, [s.key]: { rating: "", comment: "", noticed: [] } }), {})
@@ -1325,12 +1363,15 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   });
 
   const spineComplete = isDept
-    ? [spine.date, spine.term, spine.academicYear, spine.faculty, spine.reviewer].every((x) => x.trim())
-    : Object.values(spine).every((x) => x.trim());
+    ? [spine.date, spine.term, spine.academicYear, spine.faculty, spine.reviewer].every((x) => (x ?? "").trim())
+    : [
+        spine.date, spine.term, spine.academicYear, spine.faculty, spine.reviewee, spine.reviewer,
+        ...(isWalk ? [] : [spine.yearGroup, spine.className, spine.lessonTitle, String(spine.aen ?? "")]),
+      ].every((x) => (x ?? "").trim());
   const complete =
     spineComplete &&
     STRANDS.every((s) => strands[s.key].rating) &&
-    (isWalk || (focusStrand && celebrate.trim() && nextStep.trim()));
+    (isWalk || (focusStrand && celebrate.trim() && nextStep.trim() && (isDept || inquiry.trim())));
 
   const submit = () => {
     const record = {
@@ -1386,7 +1427,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       </p>
 
       <Card style={{ padding: 28, marginBottom: 26 }}>
-        <SpineFields v={spine} set={setSpineField} dept={isDept} />
+        <SpineFields v={spine} set={setSpineField} dept={isDept} classCtx={!isWalk && !isDept} />
       </Card>
 
       {!isWalk && !isDept && spine.reviewee && (() => {
@@ -1450,7 +1491,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
           </div>
           {!isDept && (
             <div style={{ marginTop: 18 }}>
-              <Field label="Our inquiry question - agreed together before the lesson (optional)">
+              <Field label="Our inquiry question - agreed together before the lesson">
                 <textarea style={{ ...inputStyle, minHeight: 54, resize: "vertical" }} value={inquiry}
                   placeholder={`Coach the focus into a question worth investigating: "I want to explore how…" or "I want to investigate how…"`}
                   onChange={(e) => setInquiry(e.target.value)} />
@@ -1589,7 +1630,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               ? "Complete all details and a descriptor for each area."
               : isDept
                 ? "Complete the details, pick this term's focus, choose a descriptor for each area, and add the proudest practice and a priority."
-                : "Complete the details, pick a spotlight, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
+                : "Complete the details and class context, pick a spotlight, agree your inquiry question, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
           </span>
         )}
       </div>
@@ -1904,6 +1945,7 @@ function SLTDashboard({ submissions }) {
                   </div>
                 ))}
                 {s.overall && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><em>{s.overall}</em></div>}
+                {s.className && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Class:</strong> {s.yearGroup} · {s.className}{s.lessonTitle ? ` · ${s.lessonTitle}` : ""}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
                 {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
                 {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, marginTop: 4, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                 {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
@@ -1954,6 +1996,7 @@ function SubmissionDetail({ s }) {
           );
         })}
         {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
+        {s.className && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Class:</strong> {s.yearGroup} · {s.className}{s.lessonTitle ? ` · ${s.lessonTitle}` : ""}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
         {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
         {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
@@ -2238,7 +2281,8 @@ function ManagerDashboard({ submissions }) {
                             );
                           })}
                           {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
-                          {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
+                          {s.className && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Class:</strong> {s.yearGroup} · {s.className}{s.lessonTitle ? ` · ${s.lessonTitle}` : ""}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
+        {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                           {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
                           {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Worth trying:</strong> {s.nextStep}</div>}
@@ -2281,7 +2325,7 @@ Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is
 
 The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts.
 
-The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the optional inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
+The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
 The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. When a colleague with an open idea selects their name on the share board, the idea is pulled through automatically - they post a short update on how it went, evaluate it (Becoming habit / Tried it - refining / Adapted it) and tick it off. The next reviewer of that colleague sees last time's idea at the top of the form for a warm check-in - a conversation, never a gotcha. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement, not grades: area profiles shifting from Developing toward Embedded and Transformational at department level over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Staff page has a "What developmental success looks like" panel explaining exactly this.
 
@@ -2592,8 +2636,8 @@ export default function App() {
         </main>
       </div>
 
-      {role === "staff" && <Ticker />}
-      <HelpBot open={botOpen} setOpen={setBotOpen} raised={role === "staff"} />
+      {role === "staff" && !selectedForm && <Ticker />}
+      <HelpBot open={botOpen} setOpen={setBotOpen} raised={role === "staff" && !selectedForm} />
     </div>
   );
 }
