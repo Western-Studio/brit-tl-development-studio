@@ -1812,13 +1812,13 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
 /* ------------------------------------------------------------------ *
  *  SLT DASHBOARD
  * ------------------------------------------------------------------ */
-function StrandBar({ strand, counts }) {
+function StrandBar({ strand, counts, unit = "review" }) {
   const total = RATINGS.reduce((a, r) => a + counts[r], 0) || 1;
   return (
     <div style={{ marginBottom: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
         <span style={{ fontWeight: 700, color: BRAND.ink, fontSize: 14 }}>{strand}</span>
-        <span style={{ color: BRAND.grey, fontSize: 13 }}>{total} review{total !== 1 ? "s" : ""}</span>
+        <span style={{ color: BRAND.grey, fontSize: 13 }}>{total} {unit}{total !== 1 ? "s" : ""}</span>
       </div>
       <div style={{ display: "flex", height: 26, borderRadius: 8, overflow: "hidden", border: `1px solid ${BRAND.line}` }}>
         {RATINGS.map((r) => {
@@ -1871,6 +1871,19 @@ function SLTDashboard({ submissions }) {
   });
 
   const totalT = STRANDS.reduce((a, s) => a + strandCounts[s.key].Transformational, 0);
+
+  // by year group: descriptor ratings from peer reviews (record-level year
+  // group) and department walk-log entries, all four areas combined
+  const yearCounts = {};
+  const bumpYear = (yg, r) => {
+    if (!yg || !r) return;
+    (yearCounts[yg] ||= { Developing: 0, Embedded: 0, Transformational: 0 })[r]++;
+  };
+  filtered.forEach((sub) => {
+    if (sub.yearGroup) STRANDS.forEach((s) => bumpYear(sub.yearGroup, sub.strands?.[s.key]?.rating));
+    (sub.walkEntries || []).forEach((e) => STRANDS.forEach((s) => bumpYear(e.yearGroup, e.ratings?.[s.key])));
+  });
+  const yearRows = ["Year 10", "Year 11", "Year 12", "Year 13", "Mixed"].filter((y) => yearCounts[y]);
 
   // team-by-team: each line manager's reports, profiled against the four areas
   const teams = STAFF
@@ -1956,6 +1969,19 @@ function SLTDashboard({ submissions }) {
               ))}
             </BarChart>
           </ResponsiveContainer>
+        </Card>
+
+        <Card style={{ padding: 28 }}>
+          <h3 style={{ margin: "0 0 4px", fontSize: 15, color: BRAND.ink }}>By year group</h3>
+          <p style={{ fontSize: 12.5, color: BRAND.grey, margin: "0 0 16px", lineHeight: 1.5 }}>
+            All four areas combined, drawn from peer reviews and department walk logs - only records
+            that name a year group are counted.
+          </p>
+          {yearRows.length === 0 ? (
+            <p style={{ color: BRAND.grey, fontSize: 14, margin: 0 }}>No year-group data in the current view.</p>
+          ) : (
+            yearRows.map((y) => <StrandBar key={y} strand={y} counts={yearCounts[y]} unit="rating" />)
+          )}
         </Card>
       </div>
 
