@@ -867,7 +867,7 @@ function FormSelector({ onSelect }) {
           <OutlinePill>How we see teaching</OutlinePill>
           <div style={{ flex: 1, minHeight: 40 }} />
           <h2 style={{ fontSize: "clamp(28px, 3.4vw, 40px)", fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1.05, margin: "0 0 14px" }}>
-            More than a framework.<br />A shared language.
+            A shared language.
           </h2>
           <p style={{ fontSize: 15, lineHeight: 1.6, margin: 0, opacity: 0.94 }}>
             <strong>The BRIT framework asks three questions of every room: what can you see,
