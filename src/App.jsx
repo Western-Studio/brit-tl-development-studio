@@ -1881,6 +1881,18 @@ function ManagerDashboard({ submissions }) {
   const [who, setWho] = useState("Daniel Price");
   const reports = STAFF.filter((s) => s.manager === who);
 
+  // team profile: every review of a direct report, counted per area
+  const teamSubs = submissions.filter((x) => reports.some((r) => r.name === x.reviewee));
+  const teamCounts = {};
+  STRANDS.forEach((s) => { teamCounts[s.key] = { Developing: 0, Embedded: 0, Transformational: 0 }; });
+  teamSubs.forEach((sub) => {
+    STRANDS.forEach((s) => {
+      const r = sub.strands?.[s.key]?.rating;
+      if (r) teamCounts[s.key][r]++;
+    });
+  });
+  const teamChart = STRANDS.map((s) => ({ strand: s.key, ...teamCounts[s.key] }));
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
@@ -1903,6 +1915,27 @@ function ManagerDashboard({ submissions }) {
       }}>
         Demo view - in production this page sits behind staff login, and names, levels and line management sync from BromCom.
       </div>
+
+      {teamSubs.length > 0 && (
+        <Card style={{ padding: 28, marginBottom: 26 }}>
+          <h3 style={{ margin: "0 0 4px", fontSize: 15, color: BRAND.ink }}>What T&L looks like across the team</h3>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
+            Every review and walk of your {reports.length} direct report{reports.length !== 1 ? "s" : ""} this year,
+            by area - {teamSubs.length} review{teamSubs.length !== 1 ? "s" : ""} in total.
+          </p>
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={teamChart} margin={{ left: -20 }}>
+              <XAxis dataKey="strand" tick={{ fontSize: 12, fill: BRAND.grey }} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: BRAND.grey }} />
+              <Tooltip />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              {RATINGS.map((r) => (
+                <Bar key={r} dataKey={r} stackId="a" fill={RATING_COLOUR[r]} radius={r === "Transformational" ? [4, 4, 0, 0] : 0} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      )}
 
       {reports.length === 0 ? (
         <p style={{ color: BRAND.grey, fontSize: 14 }}>No direct reports found for {who}.</p>
