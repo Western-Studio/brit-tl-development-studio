@@ -762,15 +762,12 @@ function FormSelector({ onSelect }) {
 
       {/* what developmental success looks like */}
       <Card style={{ padding: "30px 32px 32px", marginBottom: 30 }}>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
-          <h2 style={{ fontSize: 24, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: 0 }}>
-            What developmental success looks like
-          </h2>
-          <span style={{ fontSize: 13, color: BRAND.grey, fontWeight: 600 }}>Movement, not a grade.</span>
-        </div>
+        <h2 style={{ fontSize: 24, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 6px" }}>
+          What developmental success looks like
+        </h2>
         <p style={{ fontSize: 13.5, color: BRAND.grey, margin: "0 0 22px", lineHeight: 1.55, maxWidth: 720 }}>
-          The descriptors are stages of a journey, not verdicts. Success is practice moving to the right over
-          time - and the ideas from every review actually getting tried.
+          The descriptors are stages of a journey. Success is practice moving to the right over
+          time - and the ideas being tried and tested.
         </p>
 
         {/* the descriptor journey */}
