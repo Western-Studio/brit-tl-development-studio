@@ -1483,6 +1483,23 @@ function SLTDashboard({ submissions }) {
 
   const totalT = STRANDS.reduce((a, s) => a + strandCounts[s.key].Transformational, 0);
 
+  // team-by-team: each line manager's reports, profiled against the four areas
+  const teams = STAFF
+    .filter((m) => STAFF.some((x) => x.manager === m.name))
+    .map((m) => {
+      const reports = STAFF.filter((x) => x.manager === m.name);
+      const subs = filtered.filter((x) => reports.some((r) => r.name === x.reviewee));
+      const counts = {};
+      STRANDS.forEach((s) => { counts[s.key] = { Developing: 0, Embedded: 0, Transformational: 0 }; });
+      subs.forEach((sub) => {
+        STRANDS.forEach((s) => {
+          const r = sub.strands?.[s.key]?.rating;
+          if (r) counts[s.key][r]++;
+        });
+      });
+      return { manager: m, reports, subs, counts };
+    });
+
   // follow-through: every peer-review "idea worth trying" vs share board tick-offs
   const boardPosts = loadReflections();
   const ideas = filtered
@@ -1551,6 +1568,50 @@ function SLTDashboard({ submissions }) {
             </BarChart>
           </ResponsiveContainer>
         </Card>
+      </div>
+
+      {/* team by team */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 6px" }}>
+        <Users size={16} color={BRAND.magenta} />
+        <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Team by team</h3>
+      </div>
+      <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 16px", lineHeight: 1.5 }}>
+        Every line manager's team, profiled against the four areas - the same view each manager sees on
+        their own dashboard. Filters above apply here too.
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 22, marginBottom: 30 }}>
+        {teams.map(({ manager, reports, subs, counts }) => (
+          <Card key={manager.name} style={{ padding: 26 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 4 }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 11, background: BRAND.ink, color: "#fff",
+                display: "grid", placeItems: "center", fontWeight: 800, fontSize: 13.5,
+              }}>{manager.name.split(" ").map((w) => w[0]).join("")}</div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: 15, color: BRAND.ink }}>{manager.name}'s team</div>
+                <div style={{ fontSize: 12, color: BRAND.grey }}>
+                  {reports.length} colleague{reports.length !== 1 ? "s" : ""} · {subs.length} review{subs.length !== 1 ? "s" : ""} in view
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", margin: "10px 0 16px" }}>
+              {reports.map((r) => {
+                const n = subs.filter((s) => s.reviewee === r.name).length;
+                return (
+                  <span key={r.name} style={{
+                    fontSize: 11.5, fontWeight: 650, color: n ? BRAND.ink : BRAND.grey,
+                    border: `1.5px solid ${n ? BRAND.line : "#EDE4EA"}`, borderRadius: 999, padding: "3px 10px",
+                  }}>{r.name}{n ? ` · ${n}` : ""}</span>
+                );
+              })}
+            </div>
+            {subs.length === 0 ? (
+              <p style={{ color: BRAND.grey, fontSize: 13, margin: 0 }}>No reviews for this team in the current view.</p>
+            ) : (
+              STRANDS.map((s) => <StrandBar key={s.key} strand={s.key} counts={counts[s.key]} />)
+            )}
+          </Card>
+        ))}
       </div>
 
       {/* follow-through */}
