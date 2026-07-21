@@ -204,6 +204,14 @@ const FORMS = [
     active: true,
   },
   {
+    id: "device-walk",
+    name: "Device & Phone Walk",
+    blurb: "Is the phone-box policy landing - and what is the impact on teaching and learning?",
+    icon: Lock,
+    profile: "staff",
+    active: true,
+  },
+  {
     id: "dept-review",
     name: "Departmental Review",
     blurb: "Termly department-level review by the head of department, across the four areas.",
@@ -221,9 +229,26 @@ const FORMS = [
   },
 ];
 
-// v3: reseeded for the BromCom-style directory, Terms 1-5 and the real
-// department list. The key bump makes browsers holding an old seed reseed.
-const STORAGE_KEY = "brit-tl-studio-submissions-v3";
+// v4: adds the Device & Phone Walk seeds and walk spotlight foci. The key
+// bump makes browsers holding an old seed reseed (demo data resets).
+const STORAGE_KEY = "brit-tl-studio-submissions-v4";
+
+// The device & phone policy, as checked on a Device & Phone Walk.
+const POLICY_CHECKS = [
+  { key: "phoneBox", label: "Phones in the box at the start of the lesson" },
+  { key: "headphones", label: "Headphones off and away unless directed" },
+  { key: "chromebookOnly", label: "No smart devices other than Chromebooks" },
+];
+const DEVICE_SCALE = [
+  { label: "In place", colour: "#46B749" },
+  { label: "Mostly - needed a nudge", colour: "#C2651A" },
+  { label: "Not yet", colour: "#C0392B" },
+];
+const CLASSTOOLS_SCALE = [
+  { label: "Working well", colour: "#46B749" },
+  { label: "Patchy", colour: "#C2651A" },
+  { label: "Not really working", colour: "#C0392B" },
+];
 
 /* ------------------------------------------------------------------ *
  *  SEED DATA (so the SLT view is alive on first open)
@@ -341,10 +366,12 @@ const SEED = [
     }),
   mk("s7", "learning-walk", "2026-09-25", "Term 1", "Musical Theatre", "Grace Adeyemi", "Kerry Western",
     ["Embedded", "Embedded", "Transformational", "Embedded"],
-    ["", "", "", "", "Mobile-phones check-in walk across three rooms: policy landing well. Intent strong everywhere; belonging solid; travel visible in the vocal work."]),
+    ["", "", "", "", "Mobile-phones check-in walk across three rooms: policy landing well. Intent strong everywhere; belonging solid; travel visible in the vocal work."],
+    { focus: "Room", className: "Across three rooms" }),
   mk("s8", "learning-walk", "2026-10-08", "Term 2", "Production Arts", "Elena Petrova", "Kerry Western",
     ["Developing", "Developing", "Embedded", "Developing"],
-    ["", "", "", "", "Belonging-focus walk: students arrived to an unset space and a quiet welcome - environment and greeting both need attention. Intent clear; travel hard to read on a walk."]),
+    ["", "", "", "", "Belonging-focus walk: students arrived to an unset space and a quiet welcome - environment and greeting both need attention. Intent clear; travel hard to read on a walk."],
+    { focus: "Belonging", className: "13C Production Arts" }),
   mk("s9", "peer-review", "2026-11-12", "Term 2", "Music Technology", "Jordan Mackey", "Yusuf Rahman",
     ["Transformational", "Embedded", "Transformational", "Embedded"],
     ["Genuinely inclusive pair programming - rotations planned so quieter students took the driving seat, and every voice mattered in the stand-up.",
@@ -388,7 +415,28 @@ const SEED = [
     }),
   mk("s11", "learning-walk", "2026-11-20", "Term 2", "Music", "Marcus Bell", "Kerry Western",
     ["Embedded", "Transformational", "Transformational", "Embedded"],
-    ["", "", "", "", "Rooms-focus walk: both studios set before learning started, kit ready, sightlines clean. Intent excellent; travel evident in the composition task."]),
+    ["", "", "", "", "Rooms-focus walk: both studios set before learning started, kit ready, sightlines clean. Intent excellent; travel evident in the composition task."],
+    { focus: "Room", className: "Both music studios" }),
+  {
+    id: "dw1", formType: "device-walk", submittedAt: "2026-11-21", date: "2026-11-21", term: "Term 2",
+    academicYear: "2026/27", faculty: "Music Technology", reviewee: "Jordan Mackey", reviewer: "Kerry Western",
+    className: "12A Music Tech",
+    deviceChecks: { phoneBox: "In place", headphones: "Mostly - needed a nudge", chromebookOnly: "In place" },
+    impact: "Starts are noticeably cleaner - the box by the door is routine now and the first task landed a good five minutes earlier than this time last term. Two students reached for headphones out of habit during independent work and self-corrected with one look.",
+    classTools: { used: true, rating: "Working well", note: "Screens paused for the demo without fuss - students knew the drill." },
+    overall: "Policy visibly bedding in; the impact shows most in the first ten minutes.",
+    links: [], walkEntries: [],
+  },
+  {
+    id: "dw2", formType: "device-walk", submittedAt: "2026-11-26", date: "2026-11-26", term: "Term 2",
+    academicYear: "2026/27", faculty: "Science", reviewee: "Rachel Okon", reviewer: "Kerry Western",
+    className: "11B Science",
+    deviceChecks: { phoneBox: "Mostly - needed a nudge", headphones: "In place", chromebookOnly: "Not yet" },
+    impact: "The box is used but not yet automatic - three phones went in after a reminder. One smartwatch and a personal tablet out during the practical; attention visibly fragmented at that bench compared with the rest of the room.",
+    classTools: { used: false, rating: "", note: "" },
+    overall: "Worth a follow-up walk in two weeks once the routine has had time to stick.",
+    links: [], walkEntries: [],
+  },
 ];
 
 /* ------------------------------------------------------------------ *
@@ -843,7 +891,7 @@ function ReflectionsBoard({ submissions }) {
   );
 }
 
-const FORM_ACCENT = { "peer-review": "#AD227E", "learning-walk": "#8447B0", "dept-review": "#46B749", "aen-review": "#C0392B" };
+const FORM_ACCENT = { "peer-review": "#AD227E", "learning-walk": "#8447B0", "device-walk": "#C2651A", "dept-review": "#46B749", "aen-review": "#C0392B" };
 
 function OutlinePill({ children, colour = "#fff" }) {
   return (
@@ -1134,7 +1182,7 @@ function printRecord(rec) {
   const person = staffByName(rec.reviewee);
   const formName = FORMS.find((f) => f.id === rec.formType)?.name || "Review";
   const row = (k, val) => (val ? `<tr><td>${k}</td><td>${esc(val)}</td></tr>` : "");
-  const areas = STRANDS.map((a) => {
+  const areas = rec.strands == null ? "" : STRANDS.map((a) => {
     const cell = rec.strands?.[a.key] || {};
     return `<div class="area" style="border-left:6px solid ${a.accent}">
       <h3>${a.letter} · ${a.key}
@@ -1175,6 +1223,9 @@ function printRecord(rec) {
   </table>
   ${rec.inquiry ? `<div class="box"><strong>Inquiry question:</strong> ${esc(rec.inquiry)}</div>` : ""}
   ${areas}
+  ${rec.deviceChecks ? `<div class="box"><strong>Device &amp; phone policy:</strong><br>${POLICY_CHECKS.filter((c) => rec.deviceChecks[c.key]).map((c) => `${esc(c.label)}: <strong>${esc(rec.deviceChecks[c.key])}</strong>`).join("<br>")}</div>` : ""}
+  ${rec.impact ? `<div class="box"><strong>Impact on teaching and learning:</strong> ${esc(rec.impact)}</div>` : ""}
+  ${rec.classTools ? `<div class="box"><strong>Class Tools:</strong> ${rec.classTools.used ? `in use - ${esc(rec.classTools.rating)}${rec.classTools.note ? ` (${esc(rec.classTools.note)})` : ""}` : "not in use this lesson"}</div>` : ""}
   ${rec.overall ? `<div class="box"><strong>Overall observation:</strong> ${esc(rec.overall)}</div>` : ""}
   ${rec.celebrate ? `<div class="box"><strong>Shout-out:</strong> ${esc(rec.celebrate)}</div>` : ""}
   ${rec.evenBetterIf ? `<div class="box"><strong>Even better if:</strong> ${esc(rec.evenBetterIf)}</div>` : ""}
@@ -1498,6 +1549,7 @@ function CoachingQuestionsCard() {
 function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const isWalk = formId === "learning-walk";
   const isDept = formId === "dept-review";
+  const isDevice = formId === "device-walk";
   const meta = FORMS.find((f) => f.id === formId);
   const [draftId, setDraftId] = useState(draft?.id || null);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -1516,6 +1568,11 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const [supportNeeded, setSupportNeeded] = useState(draft?.supportNeeded || "");
   const [links, setLinks] = useState(draft?.links?.length ? draft.links : [""]);
   const [walkEntries, setWalkEntries] = useState(draft?.walkEntries || []);
+  const [deviceChecks, setDeviceChecks] = useState(draft?.deviceChecks || {});
+  const [impact, setImpact] = useState(draft?.impact || "");
+  const [ctUsed, setCtUsed] = useState(draft?.classTools?.used || false);
+  const [ctRating, setCtRating] = useState(draft?.classTools?.rating || "");
+  const [ctNote, setCtNote] = useState(draft?.classTools?.note || "");
   const [overall, setOverall] = useState(draft?.overall || "");
   const [done, setDone] = useState(null);
 
@@ -1523,7 +1580,8 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     const id = draftId || "d" + Date.now();
     const record = {
       id, formId, editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
-      spine, strands, focusStrand, inquiry, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries, overall,
+      spine, strands, focusStrand, inquiry, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
+      deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall,
     };
     saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
     setDraftId(id);
@@ -1543,12 +1601,17 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     ? [spine.date, spine.term, spine.academicYear, spine.faculty, spine.reviewer].every((x) => (x ?? "").trim())
     : [
         spine.date, spine.term, spine.academicYear, spine.faculty, spine.reviewee, spine.reviewer,
-        ...(isWalk ? [spine.className] : [spine.yearGroup, spine.className, spine.lessonTitle, String(spine.aen ?? "")]),
+        ...(isWalk || isDevice ? [spine.className] : [spine.yearGroup, spine.className, spine.lessonTitle, String(spine.aen ?? "")]),
       ].every((x) => (x ?? "").trim());
-  const complete =
-    spineComplete &&
-    STRANDS.every((s) => strands[s.key].rating) &&
-    (isWalk || (focusStrand && celebrate.trim() && nextStep.trim() && (isDept || inquiry.trim())));
+  const complete = isDevice
+    ? spineComplete &&
+      POLICY_CHECKS.every((c) => deviceChecks[c.key]) &&
+      impact.trim() &&
+      (!ctUsed || ctRating)
+    : spineComplete &&
+      STRANDS.every((s) => strands[s.key].rating) &&
+      focusStrand &&
+      (isWalk || (celebrate.trim() && nextStep.trim() && (isDept || inquiry.trim())));
 
   const submit = () => {
     const record = {
@@ -1557,16 +1620,19 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       submittedAt: new Date().toISOString().slice(0, 10),
       ...spine,
       reviewee: isDept ? `${spine.faculty} - department` : spine.reviewee,
-      strands,
-      focus: isWalk ? "" : focusStrand,
-      inquiry: isWalk || isDept ? "" : inquiry.trim(),
-      celebrate: isWalk ? "" : celebrate,
-      evenBetterIf: isWalk ? "" : evenBetterIf,
-      nextStep: isWalk ? "" : nextStep,
-      links: isWalk ? [] : links.map((l) => l.trim()).filter(Boolean),
+      strands: isDevice ? undefined : strands,
+      focus: isDevice ? "" : focusStrand,
+      inquiry: isWalk || isDept || isDevice ? "" : inquiry.trim(),
+      celebrate: isWalk || isDevice ? "" : celebrate,
+      evenBetterIf: isWalk || isDevice ? "" : evenBetterIf,
+      nextStep: isWalk || isDevice ? "" : nextStep,
+      links: isWalk || isDevice ? [] : links.map((l) => l.trim()).filter(Boolean),
       walkEntries: isDept ? walkEntries : [],
       supportNeeded: isDept ? supportNeeded : "",
-      overall: isWalk ? overall : "",
+      deviceChecks: isDevice ? deviceChecks : undefined,
+      impact: isDevice ? impact.trim() : "",
+      classTools: isDevice ? { used: ctUsed, rating: ctUsed ? ctRating : "", note: ctUsed ? ctNote.trim() : "" } : undefined,
+      overall: isWalk || isDevice ? overall : "",
     };
     onSubmit(record);
     removeDraft(draftId);
@@ -1607,10 +1673,10 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       </p>
 
       <Card style={{ padding: 28, marginBottom: 26 }}>
-        <SpineFields v={spine} set={setSpineField} dept={isDept} classCtx={!isWalk && !isDept} walk={isWalk} />
+        <SpineFields v={spine} set={setSpineField} dept={isDept} classCtx={!isWalk && !isDept && !isDevice} walk={isWalk || isDevice} />
       </Card>
 
-      {!isWalk && !isDept && spine.reviewee && (() => {
+      {!isWalk && !isDept && !isDevice && spine.reviewee && (() => {
         const prev = submissions
           .filter((r) => r.formType === "peer-review" && r.reviewee === spine.reviewee && r.nextStep)
           .slice()
@@ -1642,16 +1708,18 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         );
       })()}
 
-      {!isWalk && (
+      {!isDevice && (
         <Card style={{ padding: 28, marginBottom: 26 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <Sparkles size={16} color={BRAND.magenta} />
-            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>{isDept ? "This term's focus" : "Today's spotlight"}</h3>
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>{isDept ? "This term's focus" : isWalk ? "This walk's focus" : "Today's spotlight"}</h3>
           </div>
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
             {isDept
               ? "Each term the department puts one area under the spotlight. Pick this term's focus - you'll still take stock of all four."
-              : "Peer reviews work best with one narrow focus, agreed together before the lesson. Pick the area under the spotlight - you'll still glance across all four."}
+              : isWalk
+                ? "Walks work best with one lens. Pick the area this walk is looking for - you'll still rate all four."
+                : "Peer reviews work best with one narrow focus, agreed together before the lesson. Pick the area under the spotlight - you'll still glance across all four."}
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {STRANDS.map((s) => {
@@ -1669,7 +1737,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               );
             })}
           </div>
-          {!isDept && (
+          {!isDept && !isWalk && (
             <div style={{ marginTop: 18 }}>
               <Field label="Our inquiry question - agreed together before the lesson">
                 <textarea style={{ ...inputStyle, minHeight: 54, resize: "vertical" }} value={inquiry}
@@ -1685,11 +1753,91 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         </Card>
       )}
 
-      {!isWalk && !isDept && <CoachingQuestionsCard />}
+      {!isWalk && !isDept && !isDevice && <CoachingQuestionsCard />}
 
       {isDept && <DeptWalkLog entries={walkEntries} setEntries={setWalkEntries} faculty={spine.faculty} />}
 
-      {STRANDS.map((s) => isWalk ? (
+      {isDevice && (
+        <>
+          <Card style={{ padding: 28, marginBottom: 26 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <Lock size={16} color="#C2651A" />
+              <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>The policy - what did you see?</h3>
+            </div>
+            <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 16px", lineHeight: 1.5 }}>
+              Three expectations, one honest reading of each. This checks how the policy is landing - it is
+              not a judgement of the teacher.
+            </p>
+            <div style={{ display: "grid", gap: 16 }}>
+              {POLICY_CHECKS.map((c) => (
+                <div key={c.key}>
+                  <div style={{ fontSize: 13.5, fontWeight: 650, color: BRAND.ink, marginBottom: 8 }}>{c.label}</div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {DEVICE_SCALE.map((o) => {
+                      const on = deviceChecks[c.key] === o.label;
+                      return (
+                        <button key={o.label} onClick={() => setDeviceChecks((prev) => ({ ...prev, [c.key]: o.label }))} style={{
+                          padding: "7px 16px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+                          fontSize: 13, fontWeight: on ? 750 : 600,
+                          border: `2px solid ${on ? o.colour : BRAND.line}`,
+                          background: on ? o.colour : "#fff", color: on ? "#fff" : BRAND.grey,
+                        }}>{o.label}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card style={{ padding: 28, marginBottom: 26 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <BarChart3 size={16} color={BRAND.magenta} />
+              <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Impact on teaching and learning</h3>
+            </div>
+            <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 12px", lineHeight: 1.5 }}>
+              The point of the policy is learning, not tidiness. What difference did you actually see -
+              starts, focus, independence, the feel of the room?
+            </p>
+            <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} value={impact}
+              placeholder="What you noticed about attention, pace and engagement with devices out of the picture…"
+              onChange={(e) => setImpact(e.target.value)} />
+          </Card>
+
+          <Card style={{ padding: 28, marginBottom: 26 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <ClipboardCheck size={16} color="#8447B0" />
+              <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Class Tools</h3>
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13.5, fontWeight: 650, color: BRAND.ink, cursor: "pointer" }}>
+              <input type="checkbox" checked={ctUsed} onChange={(e) => { setCtUsed(e.target.checked); if (!e.target.checked) { setCtRating(""); setCtNote(""); } }} />
+              Class Tools was being used in this lesson
+            </label>
+            {ctUsed && (
+              <div style={{ marginTop: 14 }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+                  <span style={{ fontSize: 12.5, color: BRAND.grey }}>How's it going?</span>
+                  {CLASSTOOLS_SCALE.map((o) => {
+                    const on = ctRating === o.label;
+                    return (
+                      <button key={o.label} onClick={() => setCtRating(o.label)} style={{
+                        padding: "6px 14px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+                        fontSize: 12.5, fontWeight: on ? 750 : 600,
+                        border: `2px solid ${on ? o.colour : BRAND.line}`,
+                        background: on ? o.colour : "#fff", color: on ? "#fff" : BRAND.grey,
+                      }}>{o.label}</button>
+                    );
+                  })}
+                </div>
+                <input style={inputStyle} value={ctNote} placeholder="One-line note on how it was used (optional)"
+                  onChange={(e) => setCtNote(e.target.value)} />
+              </div>
+            )}
+          </Card>
+        </>
+      )}
+
+      {!isDevice && STRANDS.map((s) => isWalk ? (
         <Card key={s.key} style={{ padding: 28, marginBottom: 22, background: s.pastel }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 6 }}>
             <StrandBadge s={s} size={34} />
@@ -1720,16 +1868,16 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         />
       ))}
 
-      {isWalk && (
+      {(isWalk || isDevice) && (
         <Card style={{ padding: 28, marginBottom: 22 }}>
-          <Field label="Overall observation">
+          <Field label={isDevice ? "Overall observation (optional)" : "Overall observation"}>
             <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} value={overall}
               placeholder="One reflection across the walk" onChange={(e) => setOverall(e.target.value)} />
           </Field>
         </Card>
       )}
 
-      {!isWalk && (
+      {!isWalk && !isDevice && (
         <Card style={{ padding: 28, marginBottom: 22 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <ClipboardList size={16} color={BRAND.magenta} />
@@ -1752,7 +1900,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         </Card>
       )}
 
-      {!isWalk && (
+      {!isWalk && !isDevice && (
         <Card style={{ padding: 28, marginBottom: 22, background: "#FDFBF6", borderColor: "#EFE3C8" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <MessageCircle size={16} color="#B8860B" />
@@ -1808,8 +1956,10 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         {draftSaved && <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.green }}>Draft saved - find it on My Dashboard</span>}
         {!complete && (
           <span style={{ fontSize: 13, color: BRAND.grey }}>
-            {isWalk
-              ? "Complete all details and a descriptor for each area."
+            {isDevice
+              ? "Complete the details, a reading for each policy expectation, and the impact on teaching and learning."
+              : isWalk
+              ? "Complete all details, pick the walk's focus, and a descriptor for each area."
               : isDept
                 ? "Complete the details, pick this term's focus, choose a descriptor for each area, and add the proudest practice and a priority."
                 : "Complete the details and class context, pick a spotlight, agree your inquiry question, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
@@ -2143,7 +2293,8 @@ function SLTDashboard({ submissions }) {
                 <span style={{ color: BRAND.grey, fontSize: 13 }}>{s.date} · {FORMS.find((f) => f.id === s.formType)?.name}</span>
               </summary>
               <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
-                {STRANDS.map((st) => (
+                <DeviceSummary s={s} />
+                {s.strands && STRANDS.map((st) => (
                   <div key={st.key} style={{ fontSize: 13 }}>
                     <span style={{ display: "inline-block", width: 90, fontWeight: 700, color: BRAND.magenta }}>{st.key}</span>
                     <span style={{ display: "inline-block", padding: "1px 8px", borderRadius: 999, fontSize: 11, fontWeight: 700, color: "#fff", background: RATING_COLOUR[s.strands[st.key].rating] || BRAND.grey, marginRight: 8 }}>
@@ -2184,6 +2335,34 @@ function SLTDashboard({ submissions }) {
 /* ------------------------------------------------------------------ *
  *  MY DASHBOARD - your forms, drafts and share board posts
  * ------------------------------------------------------------------ */
+const POLICY_SHORT = { phoneBox: "Phone box", headphones: "Headphones", chromebookOnly: "Chromebooks only" };
+function DeviceSummary({ s }) {
+  if (s.formType !== "device-walk") return null;
+  const colour = (label, scale) => scale.find((o) => o.label === label)?.colour || BRAND.grey;
+  return (
+    <div style={{ fontSize: 13, color: BRAND.grey, display: "grid", gap: 6 }}>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+        {POLICY_CHECKS.map((c) => s.deviceChecks?.[c.key] ? (
+          <span key={c.key} title={c.label} style={{
+            padding: "2px 10px", borderRadius: 999, fontSize: 11.5, fontWeight: 700, color: "#fff",
+            background: colour(s.deviceChecks[c.key], DEVICE_SCALE),
+          }}>{POLICY_SHORT[c.key]}: {s.deviceChecks[c.key]}</span>
+        ) : null)}
+      </div>
+      {s.impact && <div><strong>Impact on T&L:</strong> {s.impact}</div>}
+      <div>
+        <strong>Class Tools:</strong>{" "}
+        {s.classTools?.used ? (
+          <>
+            in use · <span style={{ color: colour(s.classTools.rating, CLASSTOOLS_SCALE), fontWeight: 700 }}>{s.classTools.rating}</span>
+            {s.classTools.note ? ` - ${s.classTools.note}` : ""}
+          </>
+        ) : "not in use this lesson"}
+      </div>
+    </div>
+  );
+}
+
 function WalkLogSummary({ entries }) {
   if (!entries?.length) return null;
   const insight = walkInsight(entries);
@@ -2229,7 +2408,8 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
         <span style={{ color: BRAND.grey, fontSize: 12.5 }}>{s.date} · {s.term} · by {s.reviewer}</span>
       </summary>
       <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
-        {STRANDS.map((a) => {
+        <DeviceSummary s={s} />
+        {s.strands && STRANDS.map((a) => {
           const cell = s.strands?.[a.key] || {};
           return (
             <div key={a.key} style={{ fontSize: 13 }}>
@@ -2561,7 +2741,8 @@ function ManagerDashboard({ submissions }) {
                           <span style={{ color: BRAND.grey, fontSize: 12.5 }}>{s.date} · {s.term} · by {s.reviewer}</span>
                         </summary>
                         <div style={{ marginTop: 10, display: "grid", gap: 6 }}>
-                          {STRANDS.map((a) => {
+                          <DeviceSummary s={s} />
+                          {s.strands && STRANDS.map((a) => {
                             const cell = s.strands?.[a.key] || {};
                             return (
                               <div key={a.key} style={{ fontSize: 13 }}>
@@ -2614,7 +2795,7 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area - never a mark or judgement of the person.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, descriptors per area, plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, a spotlight focus (the area the walk is looking for), descriptors per area, plus one overall observation. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It checks how the policy is landing - it is never a judgement of the teacher. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
@@ -2876,6 +3057,8 @@ export default function App() {
       celebrate: rec.celebrate || "", evenBetterIf: rec.evenBetterIf || "", nextStep: rec.nextStep || "",
       supportNeeded: rec.supportNeeded || "", links: rec.links?.length ? rec.links : [""],
       walkEntries: rec.walkEntries || [], overall: rec.overall || "",
+      deviceChecks: rec.deviceChecks || {}, impact: rec.impact || "",
+      classTools: rec.classTools || { used: false, rating: "", note: "" },
     });
     setSelectedForm(rec.formType);
     setRole("staff");
