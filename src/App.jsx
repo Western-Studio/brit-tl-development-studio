@@ -75,6 +75,11 @@ const STRANDS = [
       "The environment is set before learning starts, not during it",
       "Digital tools genuinely support the task, not distract from it",
       "Transitions are quick - no learning time lost to the space",
+      "The room is neuroinclusive - sensory load is considered, and every learner has a way to engage comfortably",
+      "What's on the walls reflects the learners in the room, and models excellence",
+      "Learning is multi-sensory - seeing, hearing, moving and doing all have a place",
+      "The digital space is as organised as the physical one - Google Classroom is accessible and easy to navigate",
+      "AI supports access to learning - a NotebookLM or Gem puts the course resources at students' fingertips",
     ],
     research: [
       { name: "Reggio Emilia - the “third teacher”", note: "The physical environment as a teacher in its own right. Rooted in Early Years, highly relevant to 14–19 studio pedagogy." },
