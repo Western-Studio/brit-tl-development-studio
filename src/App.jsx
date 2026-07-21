@@ -248,6 +248,7 @@ function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comm
     id, formType, submittedAt: date,
     date, term, academicYear: "2026/27", faculty, reviewee, reviewer, strands,
     focus: extra.focus || "",
+    inquiry: extra.inquiry || "",
     celebrate: extra.celebrate || "",
     evenBetterIf: extra.evenBetterIf || "",
     nextStep: extra.nextStep || "",
@@ -278,6 +279,7 @@ const SEED = [
      ""],
     {
       focus: "Intent",
+      inquiry: "I want to investigate how framing project briefs around live clients affects how clearly students can articulate what they're learning and why.",
       noticed: { Intent: pick("Intent", 0, 1), Room: pick("Room", 1) },
       celebrate: "The client framing - the room believed the work was real, because it was.",
       nextStep: "A two-minute scan for who's drifting at the back during briefings.",
@@ -302,6 +304,7 @@ const SEED = [
      "Progress evident across the edit task."],
     {
       focus: "Room",
+      inquiry: "I want to explore how the first ten minutes of set-up affect how quickly students settle into focused edit work.",
       noticed: { Room: pick("Room", 1), Intent: pick("Intent", 0), Travel: pick("Travel", 3) },
       celebrate: "The edit demo itself was superb - clear, well paced, and students leaned in.",
       nextStep: "Stage the kit trolleys before the lesson, so the environment is set before learning starts.",
@@ -410,6 +413,56 @@ const REFLECTION_SEED = [
     text: "Update on my idea worth trying: trolleys now get staged at break before every shoot lesson. We start the edit demo eight minutes earlier and the room feels calm from the first minute.",
     photo: seedArt("#8447B0", "#46B749"),
     action: { recId: "s4", idea: "Stage the kit trolleys before the lesson, so the environment is set before learning starts.", outcome: "Becoming habit" },
+  },
+];
+
+// Coaching questions from the peer review toolkit - they script the
+// conversation in five phases. Ask, don't tell: a mirror, not a critic.
+const COACHING_QUESTIONS = [
+  {
+    phase: "Opening on strengths",
+    qs: [
+      "Which three things were you pleased with in that lesson? How could you develop those further?",
+      "What were you excited about in that lesson?",
+      "There were some really good examples of [X] - which were you most pleased with?",
+      "What would you like to share and celebrate from that session?",
+    ],
+  },
+  {
+    phase: "Students & learning",
+    qs: [
+      "Which points in the session were the students most engaged in? Why do you think that was?",
+      "What do you think the students learnt - was it what you were expecting them to learn?",
+      "Who do you think struggled the most? What would have supported them further?",
+      "I noticed [student] wasn't involved at the start. What usually works to draw them in?",
+    ],
+  },
+  {
+    phase: "Teaching decisions",
+    qs: [
+      "In the lesson I noticed that… - did you notice it too, and what did you make of it?",
+      "You chose to… - what did you want to achieve there?",
+      "Can you talk me through the staging of the lesson - how it links back, and what it previews?",
+      "If we'd filmed that lesson, which parts would look lively and which quiet? How effective was that balance?",
+    ],
+  },
+  {
+    phase: "The what-ifs",
+    qs: [
+      "What would have happened if you had… in that situation?",
+      "What else could you have done when…?",
+      "What would happen if you…?",
+      "Where were the opportunities to respond to equality and diversity in that lesson?",
+    ],
+  },
+  {
+    phase: "Action planning",
+    qs: [
+      "What would you like to change, and what options do you have?",
+      "What small steps could you make to improve [X] - and what do you need to make that happen?",
+      "If you could improve one thing about that lesson, what would it be?",
+      "What are the three biggest learning points you're taking away?",
+    ],
   },
 ];
 
@@ -1062,6 +1115,7 @@ function printRecord(rec) {
     ${row("Date", rec.date)}${row("Term", rec.term)}
     ${row("Spotlight area", rec.focus)}
   </table>
+  ${rec.inquiry ? `<div class="box"><strong>Inquiry question:</strong> ${esc(rec.inquiry)}</div>` : ""}
   ${areas}
   ${rec.overall ? `<div class="box"><strong>Overall observation:</strong> ${esc(rec.overall)}</div>` : ""}
   ${rec.celebrate ? `<div class="box"><strong>Shout-out:</strong> ${esc(rec.celebrate)}</div>` : ""}
@@ -1187,6 +1241,47 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
   );
 }
 
+function CoachingQuestionsCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card style={{ padding: "20px 28px", marginBottom: 26 }}>
+      <button onClick={() => setOpen((o) => !o)} style={{
+        display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none",
+        border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+      }}>
+        <MessageCircle size={16} color={BRAND.magenta} />
+        <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Coaching questions for the conversation</h3>
+        <span style={{ fontSize: 12.5, color: BRAND.grey, fontStyle: "italic" }}>ask, don't tell</span>
+        <ChevronDown size={17} color={BRAND.grey} style={{
+          marginLeft: "auto", transition: "transform .2s", transform: open ? "rotate(180deg)" : "none",
+        }} />
+      </button>
+      {open && (
+        <>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "10px 0 16px", lineHeight: 1.5 }}>
+            You and your partner are equals in this - be a mirror, not a critic, and keep the conversation
+            on the learning, not the person. Borrow whatever helps.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 18 }}>
+            {COACHING_QUESTIONS.map((g) => (
+              <div key={g.phase}>
+                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".07em", color: BRAND.magenta, marginBottom: 8 }}>
+                  {g.phase.toUpperCase()}
+                </div>
+                <ul style={{ margin: 0, paddingLeft: 16, display: "grid", gap: 7 }}>
+                  {g.qs.map((q) => (
+                    <li key={q} style={{ fontSize: 12.5, color: BRAND.grey, lineHeight: 1.45 }}>{q}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </Card>
+  );
+}
+
 function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const isWalk = formId === "learning-walk";
   const isDept = formId === "dept-review";
@@ -1200,6 +1295,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     STRANDS.reduce((a, s) => ({ ...a, [s.key]: { rating: "", comment: "", noticed: [] } }), {})
   );
   const [focusStrand, setFocusStrand] = useState(draft?.focusStrand || "");
+  const [inquiry, setInquiry] = useState(draft?.inquiry || "");
   const [celebrate, setCelebrate] = useState(draft?.celebrate || "");
   const [evenBetterIf, setEvenBetterIf] = useState(draft?.evenBetterIf || "");
   const [nextStep, setNextStep] = useState(draft?.nextStep || "");
@@ -1212,7 +1308,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     const id = draftId || "d" + Date.now();
     const record = {
       id, formId, savedAt: new Date().toISOString().slice(0, 10),
-      spine, strands, focusStrand, celebrate, evenBetterIf, nextStep, supportNeeded, links, overall,
+      spine, strands, focusStrand, inquiry, celebrate, evenBetterIf, nextStep, supportNeeded, links, overall,
     };
     saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
     setDraftId(id);
@@ -1245,6 +1341,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       reviewee: isDept ? `${spine.faculty} - department` : spine.reviewee,
       strands,
       focus: isWalk ? "" : focusStrand,
+      inquiry: isWalk || isDept ? "" : inquiry.trim(),
       celebrate: isWalk ? "" : celebrate,
       evenBetterIf: isWalk ? "" : evenBetterIf,
       nextStep: isWalk ? "" : nextStep,
@@ -1351,8 +1448,23 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               );
             })}
           </div>
+          {!isDept && (
+            <div style={{ marginTop: 18 }}>
+              <Field label="Our inquiry question - agreed together before the lesson (optional)">
+                <textarea style={{ ...inputStyle, minHeight: 54, resize: "vertical" }} value={inquiry}
+                  placeholder={`Coach the focus into a question worth investigating: "I want to explore how…" or "I want to investigate how…"`}
+                  onChange={(e) => setInquiry(e.target.value)} />
+              </Field>
+              <p style={{ fontSize: 12, color: BRAND.grey, margin: "8px 0 0", lineHeight: 1.5 }}>
+                “I want to work on behaviour” becomes “I want to investigate how clearer transition routines
+                affect how quickly Year 10 start independent tasks.” Will it genuinely stretch the practice?
+              </p>
+            </div>
+          )}
         </Card>
       )}
+
+      {!isWalk && !isDept && <CoachingQuestionsCard />}
 
       {STRANDS.map((s) => isWalk ? (
         <Card key={s.key} style={{ padding: 28, marginBottom: 22, background: s.pastel }}>
@@ -1427,6 +1539,9 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
             {isDept
               ? "Close the review looking forward - celebrate what's working, and name what would move the department on."
               : "Reviews end as conversations between colleagues, not verdicts. Send your colleague away with something to feel good about."}
+          </p>
+          <p style={{ fontSize: 12, color: "#B8860B", fontWeight: 650, margin: "-6px 0 14px" }}>
+            The golden rules: specific, not waffly · linked to the why · future-proofed.
           </p>
           <div style={{ display: "grid", gap: 18 }}>
             <Field label={isDept ? "Proudest practice - what should the department feel proud of?" : "Shout-out - something your colleague should feel proud of"}>
@@ -1789,6 +1904,7 @@ function SLTDashboard({ submissions }) {
                   </div>
                 ))}
                 {s.overall && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><em>{s.overall}</em></div>}
+                {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
                 {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, marginTop: 4, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                 {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
                 {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>{s.formType === "dept-review" ? "Priority for next term" : "Worth trying"}:</strong> {s.nextStep}</div>}
@@ -1838,6 +1954,7 @@ function SubmissionDetail({ s }) {
           );
         })}
         {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
+        {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
         {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
         {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>{s.formType === "dept-review" ? "Priority for next term" : "Worth trying"}:</strong> {s.nextStep}</div>}
@@ -2121,7 +2238,8 @@ function ManagerDashboard({ submissions }) {
                             );
                           })}
                           {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
-                          {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
+                          {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
+        {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                           {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
                           {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Worth trying:</strong> {s.nextStep}</div>}
                           {s.links?.length > 0 && (
@@ -2162,6 +2280,8 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area - never a mark or judgement of the person.
 
 The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts.
+
+The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the optional inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
 The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. When a colleague with an open idea selects their name on the share board, the idea is pulled through automatically - they post a short update on how it went, evaluate it (Becoming habit / Tried it - refining / Adapted it) and tick it off. The next reviewer of that colleague sees last time's idea at the top of the form for a warm check-in - a conversation, never a gotcha. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement, not grades: area profiles shifting from Developing toward Embedded and Transformational at department level over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Staff page has a "What developmental success looks like" panel explaining exactly this.
 
