@@ -2287,7 +2287,7 @@ The follow-through loop: every peer review ends with one idea worth trying, and 
 
 Important terminology: at this school "strands" means the vocational departments, so never call the four framework areas "strands" - call them areas. Answer in British English, warmly and concisely. If asked about something you do not have - a specific policy detail, a calendar date, a named person's data - say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
-function HelpBot({ open, setOpen }) {
+function HelpBot({ open, setOpen, raised }) {
   const [messages, setMessages] = useState([
     { role: "assistant", content: "Hi - I can help with anything about the BRIT framework and the review process. What do the four areas mean, how do the descriptors work, how to complete a review. What would you like to know?" },
   ]);
@@ -2348,7 +2348,7 @@ function HelpBot({ open, setOpen }) {
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} style={{
-        position: "fixed", bottom: 66, right: 24, width: 58, height: 58, borderRadius: "50%",
+        position: "fixed", bottom: raised ? 66 : 20, right: 24, width: 58, height: 58, borderRadius: "50%",
         background: BRAND.magenta, border: "none", cursor: "pointer", boxShadow: "0 6px 20px rgba(173,34,126,.35)",
         display: "grid", placeItems: "center", zIndex: 50,
       }}>
@@ -2359,7 +2359,7 @@ function HelpBot({ open, setOpen }) {
 
   return (
     <div style={{
-      position: "fixed", bottom: 66, right: 24, width: 380, maxWidth: "calc(100vw - 32px)", height: 540, maxHeight: "calc(100vh - 110px)",
+      position: "fixed", bottom: raised ? 66 : 20, right: 24, width: 380, maxWidth: "calc(100vw - 32px)", height: 540, maxHeight: "calc(100vh - 110px)",
       background: "#fff", borderRadius: 18, boxShadow: "0 12px 40px rgba(42,30,39,.25)", display: "flex", flexDirection: "column", zIndex: 50,
       border: `1px solid ${BRAND.line}`, overflow: "hidden",
     }}>
@@ -2592,8 +2592,8 @@ export default function App() {
         </main>
       </div>
 
-      <Ticker />
-      <HelpBot open={botOpen} setOpen={setBotOpen} />
+      {role === "staff" && <Ticker />}
+      <HelpBot open={botOpen} setOpen={setBotOpen} raised={role === "staff"} />
     </div>
   );
 }
