@@ -2271,7 +2271,7 @@ export default function App() {
           flexWrap: narrow ? "wrap" : "nowrap",
           gap: 12, alignItems: narrow ? "center" : "stretch",
         }}>
-          <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", marginRight: narrow ? 10 : 0 }}>
+          <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
             <svg width={narrow ? 100 : 136} viewBox="0 0 142 202" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
               <text x="0" y="54" textLength="142" lengthAdjust="spacingAndGlyphs"
                 style={{ fontFamily: "'Anton',sans-serif", fontSize: 74, fill: BRAND.magenta }}>BRIT</text>
