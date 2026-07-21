@@ -2784,7 +2784,7 @@ function ManagerDashboard({ submissions }) {
 /* ------------------------------------------------------------------ *
  *  HELP BOT (wired to Claude API)
  * ------------------------------------------------------------------ */
-const BOT_SYSTEM = `You are the BRIT T&L Studio assistant for an arts and performing-arts specialist institution. You help staff understand and complete the BRIT lesson framework and its peer review process.
+const BOT_SYSTEM = `You are the T&L Assistant, the BRIT T&L Development Studio's built-in helper for an arts and performing-arts specialist institution. You help staff understand and complete the BRIT lesson framework and its peer review process.
 
 The BRIT framework is the shared, non-judgmental professional language for reviews, learning walks and quality assurance. It answers "what does excellent teaching and learning look like here?" through three lenses: what can you see, what can you hear, and how does it feel? It has four areas:
 
@@ -2881,7 +2881,7 @@ function HelpBot({ open, setOpen, raised }) {
     }}>
       <div style={{ background: BRAND.magenta, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#fff" }}>
-          <Bot size={20} /> <span style={{ fontWeight: 700, fontSize: 15 }}>Process assistant</span>
+          <Bot size={20} /> <span style={{ fontWeight: 700, fontSize: 15 }}>T&amp;L Assistant</span>
         </div>
         <button onClick={() => setOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}>
           <X size={20} color="#fff" />
@@ -3106,7 +3106,7 @@ export default function App() {
             <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
               onClick={() => { setRole(n.key); setSelectedForm(null); setResumeDraft(null); }} />
           ))}
-          <NavTile num="06" label="Ask the assistant" colour={BRAND.magenta} narrow={narrow}
+          <NavTile num="06" label="T&L Assistant" colour={BRAND.magenta} narrow={narrow}
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && (
             <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
