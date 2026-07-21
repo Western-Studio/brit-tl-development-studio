@@ -532,15 +532,24 @@ function saveDrafts(list) {
 function removeDraft(id) {
   if (id) saveDrafts(loadDrafts().filter((d) => d.id !== id));
 }
-// Stored copies of the seed posts keep whatever they were saved with; swap in
-// the current version and append any seed posts added since, so design and
-// content changes reach returning browsers. Real staff posts pass through.
+// Stored copies of the seed posts refresh their artwork and any seed posts
+// added since first visit get appended - but deleted seeds stay deleted
+// (tombstoned) and edited text survives. Real staff posts pass through.
+const DELETED_SEEDS_KEY = "brit-tl-studio-deleted-seeds-v1";
+function deletedSeeds() {
+  try { return JSON.parse(localStorage.getItem(DELETED_SEEDS_KEY)) || []; } catch (e) { return []; }
+}
+function tombstoneSeed(id) {
+  if (!REFLECTION_SEED.some((s) => s.id === id)) return;
+  try { localStorage.setItem(DELETED_SEEDS_KEY, JSON.stringify([...new Set([...deletedSeeds(), id])])); } catch (e) { /* ignore */ }
+}
 function refreshSeedArt(list) {
+  const gone = deletedSeeds();
   const synced = list.map((p) => {
     const seed = REFLECTION_SEED.find((s) => s.id === p.id);
-    return seed ? { ...seed } : p;
+    return seed ? { ...p, photo: seed.photo } : p;
   });
-  const missing = REFLECTION_SEED.filter((s) => !list.some((p) => p.id === s.id));
+  const missing = REFLECTION_SEED.filter((s) => !list.some((p) => p.id === s.id) && !gone.includes(s.id));
   return [...synced, ...missing];
 }
 function loadReflections() {
@@ -1513,7 +1522,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const saveDraft = () => {
     const id = draftId || "d" + Date.now();
     const record = {
-      id, formId, savedAt: new Date().toISOString().slice(0, 10),
+      id, formId, editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
       spine, strands, focusStrand, inquiry, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries, overall,
     };
     saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
@@ -1543,7 +1552,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
 
   const submit = () => {
     const record = {
-      id: "r" + Date.now(),
+      id: draft?.editOf || "r" + Date.now(),
       formType: formId,
       submittedAt: new Date().toISOString().slice(0, 10),
       ...spine,
@@ -1570,9 +1579,11 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EAF7EC", display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
           <CheckCircle size={30} color={BRAND.green} />
         </div>
-        <h3 style={{ margin: "0 0 10px", color: BRAND.ink }}>Review submitted</h3>
+        <h3 style={{ margin: "0 0 10px", color: BRAND.ink }}>{draft?.editOf ? "Review updated" : "Review submitted"}</h3>
         <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 24px" }}>
-          It has been added to the {meta.name.toLowerCase()} record and is visible on the SLT dashboard.
+          {draft?.editOf
+            ? `The ${meta.name.toLowerCase()} record has been updated everywhere it appears.`
+            : `It has been added to the ${meta.name.toLowerCase()} record and is visible on the SLT dashboard.`}
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={onBack} style={{
@@ -2201,7 +2212,14 @@ function WalkLogSummary({ entries }) {
   );
 }
 
-function SubmissionDetail({ s }) {
+const smallActionBtn = (danger) => ({
+  padding: "5px 14px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+  fontSize: 12, fontWeight: 700, background: "#fff",
+  border: `1.5px solid ${danger ? "#E7C9C9" : BRAND.line}`,
+  color: danger ? "#C0392B" : BRAND.magenta,
+});
+
+function SubmissionDetail({ s, onEdit, onDelete }) {
   return (
     <details style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "14px 16px" }}>
       <summary style={{ cursor: "pointer", fontSize: 13.5, color: BRAND.ink, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
@@ -2237,17 +2255,41 @@ function SubmissionDetail({ s }) {
             ))}
           </div>
         )}
-        <div><PdfButton rec={s} subtle /></div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <PdfButton rec={s} subtle />
+          {onEdit && <button onClick={() => onEdit(s)} style={smallActionBtn(false)}>Edit</button>}
+          {onDelete && (
+            <button onClick={() => { if (window.confirm("Delete this review? This can't be undone.")) onDelete(s.id); }}
+              style={smallActionBtn(true)}>Delete</button>
+          )}
+        </div>
       </div>
     </details>
   );
 }
 
-function MyDashboard({ submissions, onResumeDraft }) {
+function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSubmission }) {
   const [me, setMe] = useState(() => {
     try { return localStorage.getItem(ME_KEY) || "Amara Okafor"; } catch (e) { return "Amara Okafor"; }
   });
   const [drafts, setDrafts] = useState(loadDrafts());
+  const [reflections, setReflections] = useState(loadReflections());
+  const [editingPost, setEditingPost] = useState(null);
+  const [editText, setEditText] = useState("");
+  const saveReflections = (next) => {
+    setReflections(next);
+    try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ }
+  };
+  const deletePost = (id) => {
+    if (!window.confirm("Delete this post from the share board? This can't be undone.")) return;
+    tombstoneSeed(id);
+    saveReflections(reflections.filter((p) => p.id !== id));
+  };
+  const savePostEdit = (id) => {
+    if (!editText.trim()) return;
+    saveReflections(reflections.map((p) => (p.id === id ? { ...p, text: editText.trim() } : p)));
+    setEditingPost(null); setEditText("");
+  };
   const person = staffByName(me);
   const pickMe = (n) => {
     setMe(n);
@@ -2258,7 +2300,7 @@ function MyDashboard({ submissions, onResumeDraft }) {
   const myDrafts = drafts.filter((d) => !d.spine?.reviewer || d.spine.reviewer === me);
   const aboutMe = submissions.filter((s) => s.reviewee === me).slice().sort(byDate);
   const byMe = submissions.filter((s) => s.reviewer === me).slice().sort(byDate);
-  const myPosts = loadReflections().filter((x) => x.name === me);
+  const myPosts = reflections.filter((x) => x.name === me);
   const discard = (id) => { removeDraft(id); setDrafts(loadDrafts()); };
 
   const sectionH = { margin: "0 0 14px", fontSize: 15, color: BRAND.ink };
@@ -2356,7 +2398,9 @@ function MyDashboard({ submissions, onResumeDraft }) {
         {byMe.length === 0 ? (
           <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>None yet - your turn will come around.</p>
         ) : (
-          <div style={{ display: "grid", gap: 8 }}>{byMe.map((s) => <SubmissionDetail key={s.id} s={s} />)}</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {byMe.map((s) => <SubmissionDetail key={s.id} s={s} onEdit={onEditSubmission} onDelete={onDeleteSubmission} />)}
+          </div>
         )}
       </Card>
 
@@ -2368,11 +2412,31 @@ function MyDashboard({ submissions, onResumeDraft }) {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 }}>
             {myPosts.map((post) => (
-              <div key={post.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 14, overflow: "hidden" }}>
+              <div key={post.id} style={{ border: `1px solid ${BRAND.line}`, borderRadius: 14, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 {post.photo && <img src={post.photo} alt="" style={{ width: "100%", height: 110, objectFit: "cover", display: "block" }} />}
-                <div style={{ padding: "12px 14px" }}>
-                  <p style={{ fontSize: 13, color: BRAND.ink, lineHeight: 1.5, margin: 0 }}>{post.text}</p>
-                  <div style={{ fontSize: 11.5, color: BRAND.grey, marginTop: 8 }}>{post.date}</div>
+                <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", flex: 1 }}>
+                  {editingPost === post.id ? (
+                    <>
+                      <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical", fontSize: 13 }} value={editText}
+                        onChange={(e) => setEditText(e.target.value)} />
+                      <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                        <button onClick={() => savePostEdit(post.id)} disabled={!editText.trim()} style={{
+                          ...smallActionBtn(false), background: editText.trim() ? BRAND.magenta : BRAND.line,
+                          color: editText.trim() ? "#fff" : BRAND.grey, border: "none",
+                        }}>Save</button>
+                        <button onClick={() => { setEditingPost(null); setEditText(""); }} style={smallActionBtn(false)}>Cancel</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ fontSize: 13, color: BRAND.ink, lineHeight: 1.5, margin: 0, flex: 1 }}>{post.text}</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 11.5, color: BRAND.grey, marginRight: "auto" }}>{post.date}</span>
+                        <button onClick={() => { setEditingPost(post.id); setEditText(post.text); }} style={smallActionBtn(false)}>Edit</button>
+                        <button onClick={() => deletePost(post.id)} style={smallActionBtn(true)}>Delete</button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -2550,7 +2614,7 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area - never a mark or judgement of the person.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, descriptors per area, plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, descriptors per area, plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
@@ -2783,10 +2847,38 @@ export default function App() {
 
   const addSubmission = (rec) => {
     setSubmissions((prev) => {
-      const next = [...prev, rec];
+      const exists = prev.some((x) => x.id === rec.id);
+      const next = exists ? prev.map((x) => (x.id === rec.id ? rec : x)) : [...prev, rec];
       saveSubmissions(next);
       return next;
     });
+  };
+
+  const deleteSubmission = (id) => {
+    setSubmissions((prev) => {
+      const next = prev.filter((x) => x.id !== id);
+      saveSubmissions(next);
+      return next;
+    });
+  };
+
+  // Reopen a submitted record in its form, pre-filled; submitting replaces it.
+  const editSubmission = (rec) => {
+    setResumeDraft({
+      id: rec.id, formId: rec.formType, editOf: rec.id,
+      spine: {
+        date: rec.date || "", term: rec.term || "", academicYear: rec.academicYear || "",
+        faculty: rec.faculty || "", reviewee: rec.formType === "dept-review" ? "" : (rec.reviewee || ""),
+        reviewer: rec.reviewer || "", yearGroup: rec.yearGroup || "", className: rec.className || "",
+        lessonTitle: rec.lessonTitle || "", aen: rec.aen || "",
+      },
+      strands: rec.strands, focusStrand: rec.focus || "", inquiry: rec.inquiry || "",
+      celebrate: rec.celebrate || "", evenBetterIf: rec.evenBetterIf || "", nextStep: rec.nextStep || "",
+      supportNeeded: rec.supportNeeded || "", links: rec.links?.length ? rec.links : [""],
+      walkEntries: rec.walkEntries || [], overall: rec.overall || "",
+    });
+    setSelectedForm(rec.formType);
+    setRole("staff");
   };
 
   const font = "'Archivo','Helvetica Neue',Arial,sans-serif";
@@ -2852,7 +2944,8 @@ export default function App() {
               : <FormSelector onSelect={setSelectedForm} />
           ) : role === "me" ? (
             <MyDashboard submissions={submissions}
-              onResumeDraft={(d) => { setResumeDraft(d); setSelectedForm(d.formId); setRole("staff"); }} />
+              onResumeDraft={(d) => { setResumeDraft(d); setSelectedForm(d.formId); setRole("staff"); }}
+              onEditSubmission={editSubmission} onDeleteSubmission={deleteSubmission} />
           ) : role === "board" ? (
             <ReflectionsBoard submissions={submissions} />
           ) : role === "manager" ? (
