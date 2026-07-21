@@ -49,6 +49,7 @@ const STRANDS = [
       "It is safe to take creative risks - and to fail",
       "Names are used - in greetings, questions and feedback",
       "Every voice is drawn in, not just the confident ones",
+      "The learning facilitator is introduced and collaborated with - a teaching partnership, not an extra pair of hands",
     ],
     research: [
       { name: "Psychological safety - Amy Edmondson", note: "An environment free from interpersonal fear, so students will experiment creatively." },
