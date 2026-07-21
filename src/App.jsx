@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera
+  Camera, Lightbulb
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -399,6 +399,19 @@ const REFLECTION_SEED = [
     text: "Rebuilt the studio patch bay with student engineers on a rota - the Room area of the framework in action. Set-up time has halved and the kit gets treated like it's theirs, because it is.",
     photo: seedArt("#46B749", "#8447B0"),
   },
+  {
+    id: "n4", name: "Yusuf Rahman", date: "2026-11-24",
+    text: "Update on my idea worth trying: trolleys now get staged at break before every shoot lesson. We start the edit demo eight minutes earlier and the room feels calm from the first minute.",
+    photo: seedArt("#8447B0", "#46B749"),
+    action: { recId: "s4", idea: "Stage the kit trolleys before the lesson, so the environment is set before learning starts.", outcome: "Becoming habit" },
+  },
+];
+
+// How a colleague evaluates their idea worth trying when ticking it off.
+const IDEA_OUTCOMES = [
+  { label: "Becoming habit", colour: "#46B749" },
+  { label: "Tried it - refining", colour: "#AD227E" },
+  { label: "Adapted it", colour: "#C2651A" },
 ];
 
 /* ------------------------------------------------------------------ *
@@ -439,13 +452,16 @@ function saveDrafts(list) {
 function removeDraft(id) {
   if (id) saveDrafts(loadDrafts().filter((d) => d.id !== id));
 }
-// Stored copies of the seed posts keep whatever placeholder art they were
-// saved with; swap in the current artwork so design changes reach them.
+// Stored copies of the seed posts keep whatever they were saved with; swap in
+// the current version and append any seed posts added since, so design and
+// content changes reach returning browsers. Real staff posts pass through.
 function refreshSeedArt(list) {
-  return list.map((p) => {
+  const synced = list.map((p) => {
     const seed = REFLECTION_SEED.find((s) => s.id === p.id);
-    return seed ? { ...p, photo: seed.photo } : p;
+    return seed ? { ...seed } : p;
   });
+  const missing = REFLECTION_SEED.filter((s) => !list.some((p) => p.id === s.id));
+  return [...synced, ...missing];
 }
 function loadReflections() {
   try {
@@ -453,6 +469,15 @@ function loadReflections() {
     if (r) return refreshSeedArt(r);
   } catch (e) { /* fall through */ }
   return REFLECTION_SEED;
+}
+// Follow-through: a peer review's "one idea worth trying" stays open until
+// its owner pins a share board post linked to it.
+function openIdeasFor(name, submissions, posts) {
+  return submissions
+    .filter((r) => r.formType === "peer-review" && r.reviewee === name && r.nextStep)
+    .filter((r) => !posts.some((p) => p.action?.recId === r.id))
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 /* ------------------------------------------------------------------ *
@@ -500,12 +525,18 @@ const inputStyle = {
 /* ------------------------------------------------------------------ *
  *  REFLECTIONS SHARE BOARD - staff share practice & development posts
  * ------------------------------------------------------------------ */
-function ReflectionsBoard() {
+function ReflectionsBoard({ submissions }) {
   const [posts, setPosts] = useState([]);
   const [who, setWho] = useState("");
   const [text, setText] = useState("");
   const [photo, setPhoto] = useState("");
+  const [linkIdea, setLinkIdea] = useState(true);
+  const [ideaId, setIdeaId] = useState("");
+  const [outcome, setOutcome] = useState("");
   const fileRef = useRef(null);
+
+  const openIdeas = who ? openIdeasFor(who, submissions, posts) : [];
+  const idea = linkIdea ? (openIdeas.find((r) => r.id === ideaId) || openIdeas[0]) : null;
 
   useEffect(() => {
     try {
@@ -536,16 +567,19 @@ function ReflectionsBoard() {
   };
 
   const share = () => {
-    if (!who || !text.trim()) return;
-    const post = { id: "n" + Date.now(), name: who, date: new Date().toISOString().slice(0, 10), text: text.trim(), photo };
+    if (!canShare) return;
+    const post = {
+      id: "n" + Date.now(), name: who, date: new Date().toISOString().slice(0, 10), text: text.trim(), photo,
+      ...(idea ? { action: { recId: idea.id, idea: idea.nextStep, outcome } } : {}),
+    };
     const next = [post, ...posts];
     setPosts(next);
     try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(next)); } catch (e) { /* photo too large for storage - post stays in memory */ }
-    setText(""); setPhoto("");
+    setText(""); setPhoto(""); setOutcome(""); setIdeaId(""); setLinkIdea(true);
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const canShare = who && text.trim();
+  const canShare = who && text.trim() && (!idea || outcome);
 
   return (
     <div>
@@ -558,13 +592,56 @@ function ReflectionsBoard() {
         <div style={{ display: "grid", gap: 18 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 18 }}>
             <Field label="Who's sharing?">
-              <select style={inputStyle} value={who} onChange={(e) => setWho(e.target.value)}>
+              <select style={inputStyle} value={who} onChange={(e) => { setWho(e.target.value); setIdeaId(""); setOutcome(""); setLinkIdea(true); }}>
                 <option value="">Select…</option>
                 {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
               </select>
             </Field>
           </div>
-          <Field label="Your reflection">
+
+          {who && openIdeas.length > 0 && (
+            <div style={{ border: `2px solid ${linkIdea ? BRAND.green : BRAND.line}`, borderRadius: 16, padding: "16px 18px", background: linkIdea ? "#F2FAF3" : "#fff" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <Lightbulb size={16} color="#C2651A" />
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: BRAND.ink }}>Your idea worth trying</span>
+                <span style={{ fontSize: 12, color: BRAND.grey }}>· pulled through from your review{openIdeas.length > 1 ? "s" : ""}</span>
+              </div>
+              {openIdeas.length > 1 ? (
+                <select style={{ ...inputStyle, marginBottom: 10 }} value={(idea || openIdeas[0]).id} onChange={(e) => setIdeaId(e.target.value)}>
+                  {openIdeas.map((r) => <option key={r.id} value={r.id}>{r.term} · {r.nextStep}</option>)}
+                </select>
+              ) : (
+                <p style={{ fontSize: 14, color: BRAND.ink, fontStyle: "italic", margin: "0 0 4px", lineHeight: 1.5 }}>
+                  “{openIdeas[0].nextStep}”
+                </p>
+              )}
+              <p style={{ fontSize: 12, color: BRAND.grey, margin: "0 0 12px" }}>
+                {(idea || openIdeas[0]).term} peer review · suggested by {(idea || openIdeas[0]).reviewer}
+              </p>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 650, color: BRAND.ink, cursor: "pointer" }}>
+                <input type="checkbox" checked={linkIdea} onChange={(e) => { setLinkIdea(e.target.checked); if (!e.target.checked) setOutcome(""); }} />
+                This post is my update on the idea - tick it off
+              </label>
+              {linkIdea && (
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
+                  <span style={{ fontSize: 12.5, color: BRAND.grey, alignSelf: "center" }}>How did it go?</span>
+                  {IDEA_OUTCOMES.map((o) => {
+                    const on = outcome === o.label;
+                    return (
+                      <button key={o.label} onClick={() => setOutcome(o.label)} style={{
+                        padding: "6px 14px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+                        fontSize: 12.5, fontWeight: on ? 750 : 600,
+                        border: `2px solid ${on ? o.colour : BRAND.line}`,
+                        background: on ? o.colour : "#fff", color: on ? "#fff" : BRAND.grey,
+                      }}>{o.label}</button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          <Field label={idea ? "How did it go? What changed?" : "Your reflection"}>
             <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={text}
               placeholder="Something you tried, noticed, learned - or are still wrestling with…"
               onChange={(e) => setText(e.target.value)} />
@@ -606,6 +683,14 @@ function ReflectionsBoard() {
               border: `1.5px solid ${BRAND.ink}`, boxShadow: `5px 5px 0 ${BRAND.line}`,
               display: "flex", flexDirection: "column",
             }}>
+              {post.action && (
+                <div style={{ background: "#EAF6EB", padding: "10px 16px", borderBottom: `1.5px solid ${BRAND.ink}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 800, letterSpacing: ".06em", color: "#2E7D32" }}>
+                    <CheckCircle size={13} /> IDEA TICKED OFF · {post.action.outcome.toUpperCase()}
+                  </div>
+                  <div style={{ fontSize: 12, color: BRAND.grey, marginTop: 4, fontStyle: "italic", lineHeight: 1.45 }}>“{post.action.idea}”</div>
+                </div>
+              )}
               {post.photo && <img src={post.photo} alt="" style={{ width: "100%", height: 150, objectFit: "cover", display: "block" }} />}
               <div style={{ padding: "14px 16px 16px", display: "flex", flexDirection: "column", flex: 1 }}>
                 <p style={{ fontSize: 13.5, color: BRAND.ink, lineHeight: 1.55, margin: 0, flex: 1 }}>{post.text}</p>
@@ -674,6 +759,61 @@ function FormSelector({ onSelect }) {
           ))}
         </div>
       </div>
+
+      {/* what developmental success looks like */}
+      <Card style={{ padding: "30px 32px 32px", marginBottom: 30 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap", marginBottom: 6 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: 0 }}>
+            What developmental success looks like
+          </h2>
+          <span style={{ fontSize: 13, color: BRAND.grey, fontWeight: 600 }}>Movement, not a grade.</span>
+        </div>
+        <p style={{ fontSize: 13.5, color: BRAND.grey, margin: "0 0 22px", lineHeight: 1.55, maxWidth: 720 }}>
+          The descriptors are stages of a journey, not verdicts. Success is practice moving to the right over
+          time - and the ideas from every review actually getting tried.
+        </p>
+
+        {/* the descriptor journey */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(215px, 1fr))", gap: 14, marginBottom: 26 }}>
+          {[
+            { name: "Developing", colour: BRAND.developing, bg: "#F5F1F4", line: "Practice is emerging - deliberate, sometimes uneven, always moving." },
+            { name: "Embedded", colour: BRAND.embedded, bg: "#F8E9F2", line: "Practice is consistent - part of how the room simply runs." },
+            { name: "Transformational", colour: BRAND.transformational, bg: "#EAF6EB", line: "Practice spreads - students lead it, colleagues borrow it." },
+          ].map((stage, i) => (
+            <div key={stage.name} style={{ position: "relative", background: stage.bg, borderRadius: 16, padding: "18px 20px", border: `1.5px solid ${stage.colour}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontFamily: "'Anton',sans-serif", fontSize: 26, lineHeight: 1, color: stage.colour }}>{i + 1}</span>
+                <span style={{ fontSize: 15, fontWeight: 800, color: BRAND.ink }}>{stage.name}</span>
+                {i < 2 && <ArrowRight size={16} color={stage.colour} style={{ marginLeft: "auto" }} />}
+              </div>
+              <div style={{ fontSize: 12.5, color: BRAND.grey, lineHeight: 1.5 }}>{stage.line}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* the follow-through loop */}
+        <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 12 }}>
+          AND THE LOOP THAT PROVES IT'S MOVING
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: 12 }}>
+          {[
+            { n: "01", colour: BRAND.magenta, text: "A colleague reviews your practice against the four areas" },
+            { n: "02", colour: "#C2651A", text: "You take away one idea worth trying - small, concrete, kind" },
+            { n: "03", colour: "#8447B0", text: "You try it, then share how it went on the Share board" },
+            { n: "04", colour: BRAND.green, text: "The idea is ticked off - and the pattern informs SLT" },
+          ].map((step, i) => (
+            <div key={step.n} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span style={{
+                width: 30, height: 30, borderRadius: "50%", flexShrink: 0, background: step.colour,
+                display: "grid", placeItems: "center", color: "#fff", fontSize: 12, fontWeight: 800,
+              }}>{step.n}</span>
+              <span style={{ fontSize: 12.5, color: BRAND.ink, lineHeight: 1.45, paddingTop: 2 }}>
+                {step.text}{i === 3 && <CheckCircle size={13} color={BRAND.green} style={{ marginLeft: 5, verticalAlign: "-2px" }} />}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Card>
 
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>Choose a form</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 28px", fontSize: 14 }}>
@@ -988,7 +1128,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
   );
 }
 
-function ReviewForm({ formId, onBack, onSubmit, draft }) {
+function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const isWalk = formId === "learning-walk";
   const isDept = formId === "dept-review";
   const meta = FORMS.find((f) => f.id === formId);
@@ -1092,6 +1232,38 @@ function ReviewForm({ formId, onBack, onSubmit, draft }) {
       <Card style={{ padding: 28, marginBottom: 26 }}>
         <SpineFields v={spine} set={setSpineField} dept={isDept} />
       </Card>
+
+      {!isWalk && !isDept && spine.reviewee && (() => {
+        const prev = submissions
+          .filter((r) => r.formType === "peer-review" && r.reviewee === spine.reviewee && r.nextStep)
+          .slice()
+          .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+        if (!prev) return null;
+        const update = loadReflections().find((p) => p.action?.recId === prev.id);
+        return (
+          <Card style={{ padding: 28, marginBottom: 26, background: update ? "#F2FAF3" : "#FDFBF6", borderColor: update ? BRAND.green : "#EFE3C8" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <Lightbulb size={16} color="#C2651A" />
+              <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Check in on last time's idea</h3>
+            </div>
+            <p style={{ fontSize: 14, color: BRAND.ink, fontStyle: "italic", margin: "0 0 6px", lineHeight: 1.5 }}>“{prev.nextStep}”</p>
+            <p style={{ fontSize: 12, color: BRAND.grey, margin: "0 0 10px" }}>{prev.term} peer review · suggested by {prev.reviewer}</p>
+            {update ? (
+              <div style={{ fontSize: 13, color: BRAND.ink, display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <CheckCircle size={16} color={BRAND.green} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>
+                  <strong>Ticked off on the share board · {update.action.outcome}.</strong>{" "}
+                  <span style={{ color: BRAND.grey }}>“{update.text}”</span>
+                </span>
+              </div>
+            ) : (
+              <p style={{ fontSize: 13, color: BRAND.grey, margin: 0 }}>
+                Not ticked off yet - worth a warm check-in during today's conversation, not a gotcha.
+              </p>
+            )}
+          </Card>
+        );
+      })()}
 
       {!isWalk && (
         <Card style={{ padding: 28, marginBottom: 26 }}>
@@ -1314,6 +1486,13 @@ function SLTDashboard({ submissions }) {
 
   const totalT = STRANDS.reduce((a, s) => a + strandCounts[s.key].Transformational, 0);
 
+  // follow-through: every peer-review "idea worth trying" vs share board tick-offs
+  const boardPosts = loadReflections();
+  const ideas = filtered
+    .filter((r) => r.formType === "peer-review" && r.nextStep)
+    .map((r) => ({ rec: r, update: boardPosts.find((p) => p.action?.recId === r.id) }));
+  const ticked = ideas.filter((i) => i.update);
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 26 }}>
@@ -1339,6 +1518,7 @@ function SLTDashboard({ submissions }) {
           { label: "Reviews in view", value: filtered.length, bg: BRAND.magenta },
           { label: "Transformational ratings", value: totalT, bg: BRAND.green },
           { label: "Departments covered", value: new Set(filtered.map((s) => s.faculty)).size, bg: "#8447B0" },
+          { label: "Ideas ticked off", value: `${ticked.length}/${ideas.length}`, bg: "#C2651A" },
         ].map((stat) => (
           <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "26px 28px", color: "#fff" }}>
             <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1 }}>{stat.value}</div>
@@ -1375,6 +1555,66 @@ function SLTDashboard({ submissions }) {
           </ResponsiveContainer>
         </Card>
       </div>
+
+      {/* follow-through */}
+      <Card style={{ padding: 28, marginBottom: 30 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <Lightbulb size={16} color="#C2651A" />
+          <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Follow-through - do ideas get tried?</h3>
+        </div>
+        <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 16px", lineHeight: 1.5 }}>
+          Every peer review closes with one idea worth trying. Colleagues tick theirs off on the share board
+          with a short reflection on how it went - that loop closing is the quality signal, not a score.
+        </p>
+        {ideas.length === 0 ? (
+          <p style={{ color: BRAND.grey, fontSize: 14, margin: 0 }}>No ideas issued in the current view.</p>
+        ) : (
+          <>
+            <div style={{ display: "flex", height: 26, borderRadius: 8, overflow: "hidden", border: `1px solid ${BRAND.line}`, marginBottom: 18 }}>
+              {ticked.length > 0 && (
+                <div style={{ width: `${(ticked.length / ideas.length) * 100}%`, background: BRAND.green, display: "grid", placeItems: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>
+                  {ticked.length} ticked off
+                </div>
+              )}
+              {ideas.length - ticked.length > 0 && (
+                <div style={{ flex: 1, background: "#B9A7B4", display: "grid", placeItems: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>
+                  {ideas.length - ticked.length} still open
+                </div>
+              )}
+            </div>
+            {ticked.length > 0 && (
+              <div style={{ display: "grid", gap: 10, marginBottom: ideas.length > ticked.length ? 16 : 0 }}>
+                {ticked.map(({ rec, update }) => {
+                  const oc = IDEA_OUTCOMES.find((o) => o.label === update.action.outcome);
+                  return (
+                    <div key={rec.id} style={{ padding: "12px 14px", background: "#F2FAF3", borderRadius: 10, borderLeft: `3px solid ${BRAND.green}` }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 4 }}>
+                        <strong style={{ fontSize: 13.5, color: BRAND.ink }}>{rec.reviewee}</strong>
+                        <span style={{ fontSize: 12, color: BRAND.grey }}>{rec.faculty} · idea from {rec.term}</span>
+                        <span style={{ padding: "1px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, color: "#fff", background: oc?.colour || BRAND.green }}>
+                          {update.action.outcome}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12.5, color: BRAND.grey, fontStyle: "italic", marginBottom: 4 }}>“{rec.nextStep}”</div>
+                      <div style={{ fontSize: 13.5, color: BRAND.ink, lineHeight: 1.5 }}>{update.text}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {ideas.length > ticked.length && (
+              <div style={{ fontSize: 13, color: BRAND.grey, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                <span style={{ fontWeight: 700 }}>Still open:</span>
+                {ideas.filter((i) => !i.update).map(({ rec }) => (
+                  <span key={rec.id} style={{ padding: "3px 12px", borderRadius: 999, border: `1.5px solid ${BRAND.line}`, fontSize: 12.5 }}>
+                    {rec.reviewee} · {rec.term}
+                  </span>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </Card>
 
       {/* comment explorer */}
       <Card style={{ padding: 28, marginBottom: 30 }}>
@@ -1770,6 +2010,8 @@ Reviews use three DEVELOPMENTAL DESCRIPTORS, not grades: Developing (practice is
 
 The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: descriptors per area plus one overall observation. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts.
 
+The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. When a colleague with an open idea selects their name on the share board, the idea is pulled through automatically - they post a short update on how it went, evaluate it (Becoming habit / Tried it - refining / Adapted it) and tick it off. The next reviewer of that colleague sees last time's idea at the top of the form for a warm check-in - a conversation, never a gotcha. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement, not grades: area profiles shifting from Developing toward Embedded and Transformational at department level over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Staff page has a "What developmental success looks like" panel explaining exactly this.
+
 Important terminology: at this school "strands" means the vocational departments, so never call the four framework areas "strands" - call them areas. Answer in British English, warmly and concisely. If asked about something you do not have - a specific policy detail, a calendar date, a named person's data - say you do not have that and suggest checking with the T&L team. Never invent specifics. Keep answers to a few sentences unless more is genuinely needed.`;
 
 function HelpBot({ open, setOpen }) {
@@ -2061,13 +2303,14 @@ export default function App() {
           ) : role === "staff" ? (
             selectedForm
               ? <ReviewForm key={resumeDraft ? resumeDraft.id : selectedForm} formId={selectedForm} draft={resumeDraft}
+                  submissions={submissions}
                   onBack={() => { setSelectedForm(null); setResumeDraft(null); }} onSubmit={addSubmission} />
               : <FormSelector onSelect={setSelectedForm} />
           ) : role === "me" ? (
             <MyDashboard submissions={submissions}
               onResumeDraft={(d) => { setResumeDraft(d); setSelectedForm(d.formId); setRole("staff"); }} />
           ) : role === "board" ? (
-            <ReflectionsBoard />
+            <ReflectionsBoard submissions={submissions} />
           ) : role === "manager" ? (
             <ManagerDashboard submissions={submissions} />
           ) : (
