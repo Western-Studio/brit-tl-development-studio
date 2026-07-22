@@ -50,7 +50,6 @@ const STRANDS = [
       "Names are used - in greetings, questions and feedback",
       "Every voice is drawn in, not just the confident ones",
       "The learning facilitator is introduced and collaborated with - a teaching partnership, not an extra pair of hands",
-      "Struggle is healthy - being stuck is treated as part of learning",
       "Students work as a company - leading, following, negotiating, building trust",
     ],
     research: [
@@ -141,6 +140,7 @@ const STRANDS = [
       "Misconceptions are caught and unpicked in the moment",
       "Students make real choices about how they work",
       "Ideas travel - learning from one context shows up in another",
+      "Struggle is healthy - being stuck is treated as part of learning",
     ],
     research: [
       { name: "Principles of Instruction - Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
