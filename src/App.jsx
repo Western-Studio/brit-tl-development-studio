@@ -2505,7 +2505,113 @@ const smallActionBtn = (danger) => ({
   color: danger ? "#C0392B" : BRAND.magenta,
 });
 
+function ReviewFullView({ rec, onClose }) {
+  const meta = FORMS.find((f) => f.id === rec.formType);
+  const update = loadReflections().find((p) => p.action?.recId === rec.id);
+  const oc = update && IDEA_OUTCOMES.find((o) => o.label === update.action.outcome);
+  const row = (label, value) => value ? (
+    <div style={{ fontSize: 13.5, color: BRAND.ink, lineHeight: 1.5 }}>
+      <strong style={{ color: BRAND.grey }}>{label}:</strong> {value}
+    </div>
+  ) : null;
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, background: "rgba(42,30,39,.5)", zIndex: 200,
+      display: "grid", placeItems: "center", padding: 18,
+    }}>
+      <div onClick={(e) => e.stopPropagation()} style={{
+        background: "#fff", borderRadius: 24, border: `1.5px solid ${BRAND.ink}`,
+        boxShadow: `8px 8px 0 ${BRAND.magenta}`, maxWidth: 680, width: "100%",
+        maxHeight: "88vh", overflowY: "auto", padding: 28,
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16, gap: 12 }}>
+          <div>
+            <h3 style={{ margin: "0 0 4px", fontSize: 21, fontWeight: 900, letterSpacing: "-.02em", color: BRAND.ink }}>{meta?.name}</h3>
+            <div style={{ fontSize: 12.5, color: BRAND.grey }}>{rec.reviewee} · {rec.date} · {rec.term} · by {rec.reviewer}</div>
+          </div>
+          <button onClick={onClose} style={{
+            width: 30, height: 30, borderRadius: "50%", border: "none", background: BRAND.pink,
+            color: BRAND.ink, cursor: "pointer", display: "grid", placeItems: "center", padding: 0, flexShrink: 0,
+          }}><X size={16} /></button>
+        </div>
+
+        <div style={{ display: "grid", gap: 8, marginBottom: 18 }}>
+          {rec.focus && row("Spotlight", rec.focus)}
+          {rec.className && row("Class", `${[rec.yearGroup, rec.className, rec.lessonTitle].filter(Boolean).join(" · ")}${rec.aen ? ` · ${rec.aen} AEN learner${rec.aen === "1" ? "" : "s"}` : ""}`)}
+          {rec.lessonFocus && row("Lesson focus", rec.lessonFocus)}
+          {rec.priorContext && row("Prior context", rec.priorContext)}
+          {rec.inquiry && row("Inquiry question", rec.inquiry)}
+        </div>
+
+        <DeviceSummary s={rec} />
+
+        {rec.strands && STRANDS.map((a) => {
+          const cell = rec.strands?.[a.key] || {};
+          return (
+            <div key={a.key} style={{ background: a.pastel, borderRadius: 14, padding: "14px 16px", marginBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: cell.comment || cell.noticed?.length ? 8 : 0 }}>
+                <StrandBadge s={a} size={28} />
+                <span style={{ fontWeight: 800, fontSize: 15, color: BRAND.ink }}>{a.key}</span>
+                {cell.rating && <span style={{ padding: "2px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, color: "#fff", background: RATING_COLOUR[cell.rating] }}>{cell.rating}</span>}
+                {rec.focus === a.key && <span style={{ fontSize: 11, fontWeight: 700, color: a.accent }}>· spotlight</span>}
+              </div>
+              {cell.noticed?.length > 0 && (
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: cell.comment ? 8 : 0 }}>
+                  {cell.noticed.map((n) => (
+                    <span key={n} style={{ fontSize: 11.5, color: BRAND.ink, background: "#fff", borderRadius: 999, padding: "3px 10px", border: `1px solid ${a.accent}55` }}>{n}</span>
+                  ))}
+                </div>
+              )}
+              {cell.comment && <div style={{ fontSize: 13.5, color: BRAND.grey, lineHeight: 1.5 }}>{cell.comment}</div>}
+            </div>
+          );
+        })}
+
+        {rec.overall && <div style={{ fontSize: 13.5, color: BRAND.grey, fontStyle: "italic", margin: "4px 0 10px" }}>{rec.overall}</div>}
+        <WalkLogSummary entries={rec.walkEntries} />
+
+        <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+          {rec.celebrate && <div style={{ fontSize: 13.5, color: BRAND.ink, padding: "10px 14px", background: "#FDFBF6", borderRadius: 10 }}><strong>{rec.formType === "dept-review" ? "Proudest practice" : "Shout-out"}:</strong> {rec.celebrate}</div>}
+          {rec.evenBetterIf && row("Even better if", rec.evenBetterIf)}
+          {rec.nextStep && row(rec.formType === "dept-review" ? "Priority for next term" : "One idea worth trying", rec.nextStep)}
+          {rec.supportNeeded && <div style={{ fontSize: 13.5, color: "#C0392B" }}><strong>Support needed:</strong> {rec.supportNeeded}</div>}
+          {rec.links?.length > 0 && (
+            <div style={{ fontSize: 13 }}>
+              <strong style={{ color: BRAND.grey }}>Linked documents:</strong>{" "}
+              {rec.links.map((l, i) => <a key={i} href={l} target="_blank" rel="noreferrer" style={{ color: BRAND.magenta, marginRight: 10, wordBreak: "break-all" }}>{l}</a>)}
+            </div>
+          )}
+        </div>
+
+        {rec.nextStep && rec.formType === "peer-review" && (
+          <div style={{ marginTop: 16, borderRadius: 14, padding: "14px 16px", background: update ? "#F2FAF3" : BRAND.pink, border: `1.5px solid ${update ? BRAND.green : BRAND.line}` }}>
+            {update ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 800, color: "#2E7D32", marginBottom: 6 }}>
+                  <CheckCircle size={14} /> Idea ticked off{oc ? ` · ${oc.label}` : ""}
+                </div>
+                <div style={{ fontSize: 13.5, color: BRAND.ink, lineHeight: 1.5 }}>{update.text}</div>
+                {update.action?.took && <div style={{ fontSize: 12.5, color: BRAND.grey, fontStyle: "italic", marginTop: 6 }}>From the review: “{update.action.took}”</div>}
+                {update.photo && <img src={update.photo} alt="" style={{ marginTop: 10, maxWidth: "100%", maxHeight: 200, borderRadius: 10, display: "block" }} />}
+                <div style={{ fontSize: 11.5, color: BRAND.grey, marginTop: 8 }}>Shared {update.date}</div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13, color: BRAND.grey }}>
+                <Lightbulb size={13} color="#C2651A" style={{ verticalAlign: "-2px", marginRight: 4 }} />
+                Not ticked off yet - the idea is still open.
+              </div>
+            )}
+          </div>
+        )}
+
+        <div style={{ marginTop: 18 }}><PdfButton rec={rec} /></div>
+      </div>
+    </div>
+  );
+}
+
 function SubmissionDetail({ s, onEdit, onDelete }) {
+  const [full, setFull] = useState(false);
   return (
     <details style={{ border: `1px solid ${BRAND.line}`, borderRadius: 10, padding: "14px 16px" }}>
       <summary style={{ cursor: "pointer", fontSize: 13.5, color: BRAND.ink, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
@@ -2545,6 +2651,10 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
           </div>
         )}
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <button onClick={() => setFull(true)} style={{
+            ...smallActionBtn(false), background: BRAND.magenta, color: "#fff", border: "none",
+            display: "inline-flex", alignItems: "center", gap: 5,
+          }}><Search size={13} /> Open full review</button>
           <PdfButton rec={s} subtle />
           {onEdit && <button onClick={() => onEdit(s)} style={smallActionBtn(false)}>Edit</button>}
           {onDelete && (
@@ -2553,6 +2663,7 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
           )}
         </div>
       </div>
+      {full && <ReviewFullView rec={s} onClose={() => setFull(false)} />}
     </details>
   );
 }
@@ -3259,7 +3370,9 @@ export default function App() {
     const style = document.createElement("style");
     style.textContent =
       "@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}" +
-      "@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}";
+      "@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}" +
+      ".brit-rail{-ms-overflow-style:none;scrollbar-width:none}" +
+      ".brit-rail::-webkit-scrollbar{width:0;height:0;display:none}";
     document.head.appendChild(style);
   }, []);
 
@@ -3330,12 +3443,12 @@ export default function App() {
         alignItems: "flex-start",
       }}>
         {/* rail */}
-        <aside style={{
-          width: narrow ? "100%" : compact ? 56 : 176, flexShrink: 0,
+        <aside className="brit-rail" style={{
+          width: narrow ? "100%" : compact ? 64 : 184, flexShrink: 0,
           position: narrow ? "static" : "sticky", top: 26,
           maxHeight: narrow ? "none" : "calc(100vh - 52px)",
           overflowY: narrow ? "visible" : "auto",
-          scrollbarWidth: "thin",
+          padding: narrow ? 0 : compact ? "4px 6px" : "4px 6px 4px 4px",
           display: "flex", flexDirection: narrow ? "row" : "column",
           flexWrap: narrow ? "wrap" : "nowrap",
           gap: 12, alignItems: narrow ? "center" : compact ? "center" : "stretch",
