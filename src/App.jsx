@@ -1345,17 +1345,18 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
       </div>
 
       <button onClick={() => setShowPills((v) => !v)} style={{
-        display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none",
-        border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
-        margin: "20px 0 10px", textAlign: "left",
+        display: "flex", alignItems: "center", gap: 10, width: "100%",
+        background: s.accent, color: "#fff", border: "none", borderRadius: 12,
+        padding: "11px 16px", cursor: "pointer", fontFamily: "inherit",
+        margin: "20px 0 12px", textAlign: "left",
       }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em" }}>
-          {noticePrompt || "In the room you might notice…"}{showPills && <span style={{ fontWeight: 500, letterSpacing: 0 }}> (tap what you saw)</span>}
+        <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: ".01em" }}>
+          {noticePrompt || "In the room you might notice…"}{showPills && <span style={{ fontWeight: 500 }}> (tap what you saw)</span>}
         </span>
         {tapped > 0 && !showPills && (
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: s.accent, borderRadius: 999, padding: "2px 9px" }}>{tapped}</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: s.accent, background: "#fff", borderRadius: 999, padding: "2px 9px" }}>{tapped}</span>
         )}
-        <ChevronDown size={15} color={BRAND.grey} style={{
+        <ChevronDown size={18} color="#fff" strokeWidth={2.5} style={{
           marginLeft: "auto", flexShrink: 0, transition: "transform .2s",
           transform: showPills ? "rotate(180deg)" : "none",
         }} />
@@ -1380,8 +1381,11 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
       </div>
       )}
 
-      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em", margin: "0 0 10px" }}>
-        Where does practice sit today?
+      <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "0 0 10px" }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em" }}>Where does practice sit today?</span>
+        {data.rating
+          ? <CheckCircle size={14} color={BRAND.green} />
+          : <span style={{ fontSize: 11, fontWeight: 700, color: s.accent, border: `1.5px solid ${s.accent}`, borderRadius: 999, padding: "2px 10px" }}>select one</span>}
       </div>
       <DescriptorPicker s={s} value={data.rating} onPick={(r) => onRate(s.key, r)} />
 
