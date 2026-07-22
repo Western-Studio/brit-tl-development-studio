@@ -1305,6 +1305,9 @@ function DescriptorPicker({ s, value, onPick }) {
 }
 
 function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noticePrompt }) {
+  const [showPills, setShowPills] = useState(isFocus);
+  useEffect(() => { setShowPills(isFocus); }, [isFocus]);
+  const tapped = data.noticed?.length || 0;
   return (
     <Card style={{
       padding: 28, marginBottom: 22, background: s.pastel,
@@ -1327,9 +1330,23 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
         </div>
       </div>
 
-      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em", margin: "20px 0 10px" }}>
-        {noticePrompt || "In the room you might notice…"} <span style={{ fontWeight: 500, letterSpacing: 0 }}>(tap what you saw)</span>
-      </div>
+      <button onClick={() => setShowPills((v) => !v)} style={{
+        display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none",
+        border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit",
+        margin: "20px 0 10px", textAlign: "left",
+      }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em" }}>
+          {noticePrompt || "In the room you might notice…"}{showPills && <span style={{ fontWeight: 500, letterSpacing: 0 }}> (tap what you saw)</span>}
+        </span>
+        {tapped > 0 && !showPills && (
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: s.accent, borderRadius: 999, padding: "2px 9px" }}>{tapped}</span>
+        )}
+        <ChevronDown size={15} color={BRAND.grey} style={{
+          marginLeft: "auto", flexShrink: 0, transition: "transform .2s",
+          transform: showPills ? "rotate(180deg)" : "none",
+        }} />
+      </button>
+      {showPills && (
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
         {s.practice.map((p) => {
           const on = data.noticed?.includes(p);
@@ -1347,6 +1364,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
           );
         })}
       </div>
+      )}
 
       <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em", margin: "0 0 10px" }}>
         Where does practice sit today?
