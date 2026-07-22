@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera, Lightbulb
+  Camera, Lightbulb, ChevronLeft, ChevronRight
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -3175,10 +3175,20 @@ function useNarrow(query = "(max-width: 700px)") {
   return narrow;
 }
 
-function NavTile({ num, label, colour, active, onClick, narrow }) {
+function NavTile({ num, label, colour, active, onClick, narrow, compact }) {
   const base = active
     ? { background: BRAND.pink, color: BRAND.ink, border: `1.5px solid ${BRAND.ink}` }
     : { background: colour, color: "#fff", border: `1.5px solid ${colour}` };
+  if (compact) {
+    return (
+      <button onClick={onClick} title={label} style={{
+        ...base, borderRadius: 12, cursor: "pointer", fontFamily: "inherit",
+        width: 48, height: 48, display: "grid", placeItems: "center", padding: 0, flexShrink: 0,
+      }}>
+        <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span>
+      </button>
+    );
+  }
   return (
     <button onClick={onClick} style={{
       ...base, borderRadius: 16, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
@@ -3234,7 +3244,16 @@ export default function App() {
   const [selectedForm, setSelectedForm] = useState(null);
   const [resumeDraft, setResumeDraft] = useState(null);
   const [botOpen, setBotOpen] = useState(false);
+  const [railCollapsed, setRailCollapsed] = useState(() => {
+    try { return localStorage.getItem("brit-tl-studio-rail") === "collapsed"; } catch (e) { return false; }
+  });
+  const toggleRail = () => setRailCollapsed((c) => {
+    const next = !c;
+    try { localStorage.setItem("brit-tl-studio-rail", next ? "collapsed" : "open"); } catch (e) { /* ignore */ }
+    return next;
+  });
   const narrow = useNarrow();
+  const compact = !narrow && railCollapsed;
 
   useEffect(() => {
     const style = document.createElement("style");
@@ -3312,15 +3331,26 @@ export default function App() {
       }}>
         {/* rail */}
         <aside style={{
-          width: narrow ? "100%" : 176, flexShrink: 0,
+          width: narrow ? "100%" : compact ? 56 : 176, flexShrink: 0,
           position: narrow ? "static" : "sticky", top: 26,
           maxHeight: narrow ? "none" : "calc(100vh - 52px)",
           overflowY: narrow ? "visible" : "auto",
           scrollbarWidth: "thin",
           display: "flex", flexDirection: narrow ? "row" : "column",
           flexWrap: narrow ? "wrap" : "nowrap",
-          gap: 12, alignItems: narrow ? "center" : "stretch",
+          gap: 12, alignItems: narrow ? "center" : compact ? "center" : "stretch",
         }}>
+          {!narrow && (
+            <button onClick={toggleRail} title={compact ? "Expand menu" : "Collapse menu"} style={{
+              width: 30, height: 30, borderRadius: 999, border: `1.5px solid ${BRAND.line}`,
+              background: "#fff", color: BRAND.ink, cursor: "pointer", flexShrink: 0,
+              display: "grid", placeItems: "center", padding: 0,
+              alignSelf: compact ? "center" : "flex-end",
+            }}>
+              {compact ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+            </button>
+          )}
+          {!compact && (
           <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
             <svg width={narrow ? 100 : 136} viewBox="0 0 142 202" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
               <text x="0" y="54" textLength="142" lengthAdjust="spacingAndGlyphs"
@@ -3333,13 +3363,14 @@ export default function App() {
                 style={{ fontFamily: "'Anton',sans-serif", fontSize: 38, fill: "none", stroke: BRAND.magenta, strokeWidth: 1.7 }}>STUDIO<tspan style={{ fill: BRAND.magenta, stroke: "none" }}>.</tspan></text>
             </svg>
           </div>
+          )}
           {nav.map((n) => (
-            <NavTile key={n.key} {...n} narrow={narrow} active={role === n.key}
+            <NavTile key={n.key} {...n} narrow={narrow} compact={compact} active={role === n.key}
               onClick={() => { setRole(n.key); setSelectedForm(null); setResumeDraft(null); }} />
           ))}
-          <NavTile num="06" label="T&L Assistant" colour={BRAND.magenta} narrow={narrow}
+          <NavTile num="06" label="T&L Assistant" colour={BRAND.magenta} narrow={narrow} compact={compact}
             active={false} onClick={() => setBotOpen(true)} />
-          {!narrow && (
+          {!narrow && !compact && (
             <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
               BRIT framework · prototype
             </div>
