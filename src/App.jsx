@@ -1515,6 +1515,18 @@ function DeptWalkLog({ entries, setEntries, faculty }) {
   );
 }
 
+// Groups form sections under a phase label; passes children straight
+// through on forms that don't use phases.
+function FormGroup({ label, active, children }) {
+  if (!active) return children;
+  return (
+    <section style={{ border: `1.5px solid ${BRAND.line}`, borderRadius: 26, padding: "22px 22px 4px", marginBottom: 30 }}>
+      <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "-.01em", color: BRAND.ink, margin: "0 4px 18px" }}>{label}</div>
+      {children}
+    </section>
+  );
+}
+
 function CoachingQuestionsCard() {
   const [open, setOpen] = useState(false);
   return (
@@ -1683,6 +1695,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       </button>
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 26px" }}>{meta.name}</h2>
 
+      <FormGroup label="To discuss before the review" active={!isWalk && !isDept && !isDevice}>
       <Card style={{ padding: 28, marginBottom: 26 }}>
         <SpineFields v={spine} set={setSpineField} dept={isDept} classCtx={!isWalk && !isDept && !isDevice} walk={isWalk || isDevice} />
       </Card>
@@ -1811,7 +1824,9 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
           }}><Plus size={14} /> Add another link</button>
         </Card>
       )}
+      </FormGroup>
 
+      <FormGroup label="To record during the review" active={!isWalk && !isDept && !isDevice}>
       {isDevice && (
         <>
           <Card style={{ padding: 28, marginBottom: 26 }}>
@@ -1970,6 +1985,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
           </div>
         </Card>
       )}
+      </FormGroup>
 
       <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8, flexWrap: "wrap" }}>
         <button disabled={!complete} onClick={submit} style={{
