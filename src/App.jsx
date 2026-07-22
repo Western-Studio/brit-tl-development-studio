@@ -643,7 +643,7 @@ const Pill = ({ active, colour, children, onClick }) => (
 
 const Field = ({ label, children }) => (
   <label style={{ display: "block" }}>
-    <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em" }}>
+    <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em" }}>
       {label}
     </span>
     <div style={{ marginTop: 6 }}>{children}</div>
@@ -812,7 +812,7 @@ function ReflectionsBoard({ submissions }) {
 
           <div>
             <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 8 }}>
-              NEED A WAY IN? TAP A PROMPT TO START A SENTENCE
+              Need a way in? Tap a prompt to start a sentence
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {COACH_PROMPTS.map((c) => (
@@ -870,7 +870,7 @@ function ReflectionsBoard({ submissions }) {
               {post.action && (
                 <div style={{ background: "#EAF6EB", padding: "10px 16px", borderBottom: `1.5px solid ${BRAND.ink}` }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 800, letterSpacing: ".06em", color: "#2E7D32" }}>
-                    <CheckCircle size={13} /> IDEA TICKED OFF · {post.action.outcome.toUpperCase()}
+                    <CheckCircle size={13} /> Idea ticked off · {post.action.outcome}
                   </div>
                   <div style={{ fontSize: 12, color: BRAND.grey, marginTop: 4, fontStyle: "italic", lineHeight: 1.45 }}>“{post.action.idea}”</div>
                 </div>
@@ -974,7 +974,7 @@ function FormSelector({ onSelect }) {
 
         {/* the follow-through loop */}
         <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 12 }}>
-          AND THE LOOP THAT PROVES IT'S MOVING
+          And the loop that proves it's moving
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: 12 }}>
           {[
@@ -1132,7 +1132,7 @@ function SpineFields({ v, set, dept, classCtx, walk }) {
       {classCtx && (
         <div style={{ marginTop: 18 }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 10 }}>
-            CLASS CONTEXT - WHERE WILL THE INQUIRY BE ANSWERED?
+            Class context - where will the inquiry be answered?
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 18 }}>
             <Field label="Year group">
@@ -1167,7 +1167,7 @@ function SpineFields({ v, set, dept, classCtx, walk }) {
           <span style={{
             marginLeft: "auto", fontSize: 10, fontWeight: 700, letterSpacing: ".08em",
             border: `1px solid ${BRAND.line}`, borderRadius: 999, padding: "3px 9px",
-          }}>BROMCOM · DEMO SYNC</span>
+          }}>BromCom · demo sync</span>
         </div>
       )}
     </div>
@@ -1314,8 +1314,8 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
         </div>
       </div>
 
-      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "20px 0 10px" }}>
-        {noticePrompt || "In the room you might notice…"} <span style={{ textTransform: "none", fontWeight: 500, letterSpacing: 0 }}>(tap what you saw)</span>
+      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em", margin: "20px 0 10px" }}>
+        {noticePrompt || "In the room you might notice…"} <span style={{ fontWeight: 500, letterSpacing: 0 }}>(tap what you saw)</span>
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 22 }}>
         {s.practice.map((p) => {
@@ -1335,7 +1335,7 @@ function StrandCard({ s, data, isFocus, onRate, onComment, onToggleNoticed, noti
         })}
       </div>
 
-      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, textTransform: "uppercase", letterSpacing: ".04em", margin: "0 0 10px" }}>
+      <div style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em", margin: "0 0 10px" }}>
         Where does practice sit today?
       </div>
       <DescriptorPicker s={s} value={data.rating} onPick={(r) => onRate(s.key, r)} />
@@ -1496,7 +1496,7 @@ function DeptWalkLog({ entries, setEntries, faculty }) {
       {entries.length > 1 && (
         <div style={{ background: BRAND.pink, borderRadius: 14, padding: "16px 18px" }}>
           <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".07em", color: BRAND.magenta, marginBottom: 12 }}>
-            WHAT THE WALK IS SAYING
+            What the walk is saying
           </div>
           {STRANDS.map((s) => <StrandBar key={s.key} strand={s.key} counts={agg[s.key]} />)}
           {insight && <p style={{ fontSize: 13, color: BRAND.ink, margin: "4px 0 0", lineHeight: 1.55 }}>{insight}</p>}
@@ -1531,7 +1531,7 @@ function CoachingQuestionsCard() {
             {COACHING_QUESTIONS.map((g) => (
               <div key={g.phase}>
                 <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".07em", color: BRAND.magenta, marginBottom: 8 }}>
-                  {g.phase.toUpperCase()}
+                  {g.phase}
                 </div>
                 <ul style={{ margin: 0, paddingLeft: 16, display: "grid", gap: 7 }}>
                   {g.qs.map((q) => (
@@ -2540,7 +2540,7 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
                 <span style={{
                   fontSize: 10.5, fontWeight: 800, letterSpacing: ".08em", color: "#C2651A",
                   border: "1.5px solid #C2651A", borderRadius: 999, padding: "3px 10px",
-                }}>DRAFT</span>
+                }}>Draft</span>
                 <div style={{ flex: 1, minWidth: 160 }}>
                   <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.ink }}>
                     {FORMS.find((f) => f.id === d.formId)?.name}
@@ -3112,7 +3112,7 @@ export default function App() {
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && (
             <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
-              BRIT FRAMEWORK · PROTOTYPE
+              BRIT framework · prototype
             </div>
           )}
         </aside>
