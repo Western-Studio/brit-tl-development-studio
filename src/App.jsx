@@ -274,6 +274,8 @@ function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comm
     date, term, academicYear: "2026/27", faculty, reviewee, reviewer, strands,
     focus: extra.focus || "",
     inquiry: extra.inquiry || "",
+    lessonFocus: extra.lessonFocus || "",
+    priorContext: extra.priorContext || "",
     yearGroup: extra.yearGroup || "",
     className: extra.className || "",
     lessonTitle: extra.lessonTitle || "",
@@ -311,6 +313,8 @@ const SEED = [
       focus: "Intent",
       inquiry: "I want to investigate how framing project briefs around live clients affects how clearly students can articulate what they're learning and why.",
       yearGroup: "Year 13", className: "13A Digital Arts", lessonTitle: "Client sprint - motion identity", aen: "4",
+      lessonFocus: "Students can pitch their motion-identity concept against the client brief, justifying design choices in industry language.",
+      priorContext: "Second week of the sprint; two students joined the course late and are still finding the pipeline.",
       noticed: { Intent: pick("Intent", 0, 1), Room: pick("Room", 1) },
       celebrate: "The client framing - the room believed the work was real, because it was.",
       nextStep: "A two-minute scan for who's drifting at the back during briefings.",
@@ -337,6 +341,7 @@ const SEED = [
       focus: "Room",
       inquiry: "I want to explore how the first ten minutes of set-up affect how quickly students settle into focused edit work.",
       yearGroup: "Year 12", className: "12B Film", lessonTitle: "Editing rhythm - montage sequences", aen: "3",
+      lessonFocus: "Students can make deliberate pacing decisions in a montage edit and explain why they made them.",
       noticed: { Room: pick("Room", 1), Intent: pick("Intent", 0), Travel: pick("Travel", 3) },
       celebrate: "The edit demo itself was superb - clear, well paced, and students leaned in.",
       nextStep: "Stage the kit trolleys before the lesson, so the environment is set before learning starts.",
@@ -1212,6 +1217,8 @@ function printRecord(rec) {
     ${row("Lesson", rec.lessonTitle)}
     ${row("AEN learners in the class", rec.aen)}
   </table>
+  ${rec.lessonFocus ? `<div class="box"><strong>Lesson focus:</strong> ${esc(rec.lessonFocus)}</div>` : ""}
+  ${rec.priorContext ? `<div class="box"><strong>Prior context and considerations:</strong> ${esc(rec.priorContext)}</div>` : ""}
   ${rec.inquiry ? `<div class="box"><strong>Inquiry question:</strong> ${esc(rec.inquiry)}</div>` : ""}
   ${areas}
   ${rec.deviceChecks ? `<div class="box"><strong>Device &amp; phone policy:</strong><br>${POLICY_CHECKS.filter((c) => rec.deviceChecks[c.key]).map((c) => `${esc(c.label)}: <strong>${esc(rec.deviceChecks[c.key])}</strong>`).join("<br>")}</div>` : ""}
@@ -1553,6 +1560,8 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   );
   const [focusStrand, setFocusStrand] = useState(draft?.focusStrand || "");
   const [inquiry, setInquiry] = useState(draft?.inquiry || "");
+  const [lessonFocus, setLessonFocus] = useState(draft?.lessonFocus || "");
+  const [priorContext, setPriorContext] = useState(draft?.priorContext || "");
   const [celebrate, setCelebrate] = useState(draft?.celebrate || "");
   const [evenBetterIf, setEvenBetterIf] = useState(draft?.evenBetterIf || "");
   const [nextStep, setNextStep] = useState(draft?.nextStep || "");
@@ -1571,7 +1580,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     const id = draftId || "d" + Date.now();
     const record = {
       id, formId, editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
-      spine, strands, focusStrand, inquiry, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
+      spine, strands, focusStrand, inquiry, lessonFocus, priorContext, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
       deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall,
     };
     saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
@@ -1602,7 +1611,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     : spineComplete &&
       STRANDS.every((s) => strands[s.key].rating) &&
       focusStrand &&
-      (isWalk || (celebrate.trim() && nextStep.trim() && (isDept || inquiry.trim())));
+      (isWalk || (celebrate.trim() && nextStep.trim() && (isDept || (inquiry.trim() && lessonFocus.trim()))));
 
   const submit = () => {
     const record = {
@@ -1614,6 +1623,8 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       strands: isDevice ? undefined : strands,
       focus: isDevice ? "" : focusStrand,
       inquiry: isWalk || isDept || isDevice ? "" : inquiry.trim(),
+      lessonFocus: isWalk || isDept || isDevice ? "" : lessonFocus.trim(),
+      priorContext: isWalk || isDept || isDevice ? "" : priorContext.trim(),
       celebrate: isWalk || isDevice ? "" : celebrate,
       evenBetterIf: isWalk || isDevice ? "" : evenBetterIf,
       nextStep: isWalk || isDevice ? "" : nextStep,
@@ -1699,6 +1710,27 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         );
       })()}
 
+      {!isWalk && !isDept && !isDevice && (
+        <Card style={{ padding: 28, marginBottom: 26 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            <GraduationCap size={17} color="#46B749" />
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Lesson focus</h3>
+          </div>
+          <div style={{ display: "grid", gap: 18 }}>
+            <Field label="What do you want the students to learn - and why?">
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={lessonFocus}
+                placeholder="The intended learning in your colleague's words, and why it matters now…"
+                onChange={(e) => setLessonFocus(e.target.value)} />
+            </Field>
+            <Field label="Prior context and considerations (optional)">
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={priorContext}
+                placeholder="Where the class is coming from, group dynamics, AEN needs, anything the reviewer should know…"
+                onChange={(e) => setPriorContext(e.target.value)} />
+            </Field>
+          </div>
+        </Card>
+      )}
+
       {!isDevice && (
         <Card style={{ padding: 28, marginBottom: 26 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -1747,6 +1779,29 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       {!isWalk && !isDept && !isDevice && <CoachingQuestionsCard />}
 
       {isDept && <DeptWalkLog entries={walkEntries} setEntries={setWalkEntries} faculty={spine.faculty} />}
+
+      {!isWalk && !isDevice && (
+        <Card style={{ padding: 28, marginBottom: 22 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <ClipboardList size={16} color={BRAND.magenta} />
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Linked documents</h3>
+          </div>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 12px", lineHeight: 1.5 }}>
+            Paste links to anything that supports the review - lesson plans, slides, the brief, photos of the work. Optional.
+          </p>
+          <div style={{ display: "grid", gap: 10 }}>
+            {links.map((l, i) => (
+              <input key={i} style={inputStyle} type="url" placeholder="https://…" value={l}
+                onChange={(e) => setLinks((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))} />
+            ))}
+          </div>
+          <button onClick={() => setLinks((prev) => [...prev, ""])} style={{
+            marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px",
+            borderRadius: 999, border: `1.5px solid ${BRAND.line}`, background: "#fff", cursor: "pointer",
+            fontFamily: "inherit", fontSize: 12.5, fontWeight: 650, color: BRAND.magenta,
+          }}><Plus size={14} /> Add another link</button>
+        </Card>
+      )}
 
       {isDevice && (
         <>
@@ -1867,29 +1922,6 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       )}
 
       {!isWalk && !isDevice && (
-        <Card style={{ padding: 28, marginBottom: 22 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <ClipboardList size={16} color={BRAND.magenta} />
-            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Linked documents</h3>
-          </div>
-          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 12px", lineHeight: 1.5 }}>
-            Paste links to anything that supports the review - lesson plans, slides, the brief, photos of the work. Optional.
-          </p>
-          <div style={{ display: "grid", gap: 10 }}>
-            {links.map((l, i) => (
-              <input key={i} style={inputStyle} type="url" placeholder="https://…" value={l}
-                onChange={(e) => setLinks((prev) => prev.map((x, j) => (j === i ? e.target.value : x)))} />
-            ))}
-          </div>
-          <button onClick={() => setLinks((prev) => [...prev, ""])} style={{
-            marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px",
-            borderRadius: 999, border: `1.5px solid ${BRAND.line}`, background: "#fff", cursor: "pointer",
-            fontFamily: "inherit", fontSize: 12.5, fontWeight: 650, color: BRAND.magenta,
-          }}><Plus size={14} /> Add another link</button>
-        </Card>
-      )}
-
-      {!isWalk && !isDevice && (
         <Card style={{ padding: 28, marginBottom: 22, background: "#FDFBF6", borderColor: "#EFE3C8" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <MessageCircle size={16} color="#B8860B" />
@@ -1951,7 +1983,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               ? "Complete all details, pick the walk's focus, and a descriptor for each area."
               : isDept
                 ? "Complete the details, pick this term's focus, choose a descriptor for each area, and add the proudest practice and a priority."
-                : "Complete the details and class context, pick a spotlight, agree your inquiry question, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
+                : "Complete the details and class context, set the lesson focus, pick a spotlight, agree your inquiry question, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
           </span>
         )}
       </div>
@@ -2293,6 +2325,8 @@ function SLTDashboard({ submissions }) {
                 ))}
                 {s.overall && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><em>{s.overall}</em></div>}
                 {s.className && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Class:</strong> {[s.yearGroup, s.className, s.lessonTitle].filter(Boolean).join(" · ")}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
+                {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
+                {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Prior context:</strong> {s.priorContext}</div>}
                 {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
                 {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, marginTop: 4, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                 {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
@@ -2409,6 +2443,8 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
         })}
         {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
         {s.className && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Class:</strong> {[s.yearGroup, s.className, s.lessonTitle].filter(Boolean).join(" · ")}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
+        {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
+        {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Prior context:</strong> {s.priorContext}</div>}
         {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
         {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
@@ -2742,6 +2778,8 @@ function ManagerDashboard({ submissions }) {
                           })}
                           {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
                           {s.className && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Class:</strong> {[s.yearGroup, s.className, s.lessonTitle].filter(Boolean).join(" · ")}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
+        {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
+        {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Prior context:</strong> {s.priorContext}</div>}
         {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                           {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
@@ -2783,7 +2821,7 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area, as stages of a journey.
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, a spotlight focus (the area the walk is looking for), descriptors per area, plus one overall observation. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, a spotlight focus (the area the walk is looking for), descriptors per area, plus one overall observation. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
@@ -3044,6 +3082,7 @@ export default function App() {
         lessonTitle: rec.lessonTitle || "", aen: rec.aen || "",
       },
       strands: rec.strands, focusStrand: rec.focus || "", inquiry: rec.inquiry || "",
+      lessonFocus: rec.lessonFocus || "", priorContext: rec.priorContext || "",
       celebrate: rec.celebrate || "", evenBetterIf: rec.evenBetterIf || "", nextStep: rec.nextStep || "",
       supportNeeded: rec.supportNeeded || "", links: rec.links?.length ? rec.links : [""],
       walkEntries: rec.walkEntries || [], overall: rec.overall || "",
