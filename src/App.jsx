@@ -1681,10 +1681,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: BRAND.magenta, cursor: "pointer", fontSize: 14, fontWeight: 600, marginBottom: 22, padding: 0 }}>
         <ArrowLeft size={16} /> All forms
       </button>
-      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>{meta.name}</h2>
-      <p style={{ color: BRAND.grey, margin: "0 0 26px", fontSize: 14 }}>
-        What can you see, hear - and how does it feel?
-      </p>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 26px" }}>{meta.name}</h2>
 
       <Card style={{ padding: 28, marginBottom: 26 }}>
         <SpineFields v={spine} set={setSpineField} dept={isDept} classCtx={!isWalk && !isDept && !isDevice} walk={isWalk || isDevice} />
