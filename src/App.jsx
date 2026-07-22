@@ -1570,7 +1570,7 @@ function FormGroup({ label, active, children }) {
 function CoachingQuestionsCard() {
   const [open, setOpen] = useState(false);
   return (
-    <Card style={{ padding: "20px 28px", marginBottom: 26 }}>
+    <div style={{ marginTop: 20, borderTop: `1.5px solid ${BRAND.line}`, paddingTop: 16 }}>
       <button onClick={() => setOpen((o) => !o)} style={{
         display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none",
         border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
@@ -1604,7 +1604,7 @@ function CoachingQuestionsCard() {
           </div>
         </>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -1833,12 +1833,11 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
                 “I want to work on behaviour” becomes “I want to investigate how clearer transition routines
                 affect how quickly Year 10 start independent tasks.” Will it genuinely stretch the practice?
               </p>
+              <CoachingQuestionsCard />
             </div>
           )}
         </Card>
       )}
-
-      {!isWalk && !isDept && !isDevice && <CoachingQuestionsCard />}
 
       {isDept && <DeptWalkLog entries={walkEntries} setEntries={setWalkEntries} faculty={spine.faculty} />}
 
