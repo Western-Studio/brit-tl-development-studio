@@ -1757,7 +1757,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         <Card style={{ padding: 28, marginBottom: 26 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <Sparkles size={16} color={BRAND.magenta} />
-            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>{isDept ? "This term's focus" : "Today's spotlight"}</h3>
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>{isDept ? "This term's focus" : "Spotlight"}</h3>
           </div>
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
             {isDept
