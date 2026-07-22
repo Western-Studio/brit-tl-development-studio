@@ -50,6 +50,8 @@ const STRANDS = [
       "Names are used - in greetings, questions and feedback",
       "Every voice is drawn in, not just the confident ones",
       "The learning facilitator is introduced and collaborated with - a teaching partnership, not an extra pair of hands",
+      "Struggle is healthy - being stuck is treated as part of learning",
+      "Students work as a company - leading, following, negotiating, building trust",
     ],
     research: [
       { name: "Psychological safety - Amy Edmondson", note: "An environment free from interpersonal fear, so students will experiment creatively." },
@@ -81,6 +83,8 @@ const STRANDS = [
       "Learning is multi-sensory - seeing, hearing, moving and doing all have a place",
       "The digital space is as organised as the physical one - Google Classroom is accessible and easy to navigate",
       "AI supports access to learning - a NotebookLM or Gem puts the course resources at students' fingertips",
+      "Students create with digital tools, not just consume",
+      "Access tools are a normal part of the room - text-to-speech, dictation, visual timetables",
     ],
     research: [
       { name: "Reggio Emilia - the “third teacher”", note: "The physical environment as a teacher in its own right. Rooted in Early Years, highly relevant to 14–19 studio pedagogy." },
@@ -107,6 +111,8 @@ const STRANDS = [
       "Pitch stretches the strongest without losing anyone",
       "Success criteria are concrete, not vague",
       "The why connects to industry, audience or assessment",
+      "The work has an audience beyond the teacher - performed, published, pitched or used",
+      "Redrafting is normal - critique makes the work better",
     ],
     research: [
       { name: "Visible Learning - John Hattie", note: "Clear learning intentions so students can explicitly monitor their own progress." },
@@ -114,8 +120,8 @@ const STRANDS = [
     ],
     levels: {
       Developing: "Students can say what they are doing, but not always what they are learning - or why it matters - yet.",
-      Embedded: "What is being learned, and why, is transparent. Visible models of excellence keep standards aspirational and rigorous.",
-      Transformational: "Excellence drives the room. Pitch stretches the strongest without losing anyone, and students hold the standard for themselves.",
+      Embedded: "What is being learned, and why, is transparent and connects to industry, audience or assessment. Visible models of excellence keep standards aspirational.",
+      Transformational: "The work matters to someone beyond the room - performed, published, pitched or used - and students hold the standard for themselves because the audience is real.",
     },
   },
   {
@@ -133,15 +139,17 @@ const STRANDS = [
       "Progress is visible in the work - all have moved forward",
       "Students can say how their work has improved",
       "Misconceptions are caught and unpicked in the moment",
+      "Students make real choices about how they work",
+      "Ideas travel - learning from one context shows up in another",
     ],
     research: [
       { name: "Principles of Instruction - Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
       { name: "Formative assessment - Dylan Wiliam", note: "Immediate, actionable feedback cycles that let students refine their work in the moment." },
     ],
     levels: {
-      Developing: "The teacher is still doing much of the heavy thinking; progress is hard to see in the work within the session.",
-      Embedded: "Students do the heavy cognitive and creative work. Questioning digs past surface answers and feedback is acted on in the lesson.",
-      Transformational: "Progress is unmistakable in the work. Every student has moved forward - and can name their own next step.",
+      Developing: "The teacher is still doing much of the heavy thinking, and the next step usually comes from them.",
+      Embedded: "Students do the heavy cognitive and creative work, make real choices about how they work, and act on feedback in the lesson.",
+      Transformational: "Students set direction and manage the journey - making decisions, recovering from mistakes, and carrying learning into new contexts. Every student can name their own next step. Crew, not passengers.",
     },
   },
 ];
@@ -500,6 +508,8 @@ const COACHING_QUESTIONS = [
       "What do you think the students learnt - was it what you were expecting them to learn?",
       "Who do you think struggled the most? What would have supported them further?",
       "I noticed [student] wasn't involved at the start. What usually works to draw them in?",
+      "Where did they freeze - and where did they take off?",
+      "What fascinates this class - and what drains them?",
     ],
   },
   {
@@ -509,6 +519,7 @@ const COACHING_QUESTIONS = [
       "You chose to… - what did you want to achieve there?",
       "Can you talk me through the staging of the lesson - how it links back, and what it previews?",
       "If we'd filmed that lesson, which parts would look lively and which quiet? How effective was that balance?",
+      "Who is the audience for this work - and do the students know?",
     ],
   },
   {
@@ -527,6 +538,7 @@ const COACHING_QUESTIONS = [
       "What small steps could you make to improve [X] - and what do you need to make that happen?",
       "If you could improve one thing about that lesson, what would it be?",
       "What are the three biggest learning points you're taking away?",
+      "What will you solve next?",
     ],
   },
 ];
@@ -2816,10 +2828,12 @@ The BRIT framework is the shared, non-judgmental professional language for revie
 
 - Belonging (inclusion and culture; teaching standards 1 and 5): every student is known and greeted - nobody is invisible at the back. Access is proactively planned for neurodiversity and quiet learners. The room reflects who is in it: identities, voices, and a range of work on show. It is safe to take creative risks and fail. Grounded in psychological safety (Amy Edmondson) and attachment and trauma-informed pedagogy.
 - Room (the physical and digital environment and how it is used; standards 5 and 7): the spatial layout actively fits the technical and creative tasks. Sightlines work so everyone can see the board, screen, device or demonstration. Resources, cables, floor space and kit are safe, accessible and ready before learning starts. Grounded in the Reggio Emilia idea of the environment as "third teacher" and vocational studio ergonomics.
-- Intent (rigour and standards; standards 3 and 4): it is transparent what is being learned and why, not just what is being "done". Living models of excellence are visible, keeping professional, vocational and academic standards aspirational and rigorous. Pitch stretches the strongest without losing anyone. Grounded in Visible Learning (John Hattie) and expert modelling.
-- Travel (cognitive processing; standards 2, 4 and 6): students do the heavy cognitive thinking and creative work rather than watching it happen. Direct, purposeful dialogue and targeted questioning dig past surface answers. Formative feedback lands and is acted on in the lesson. Progress is visible in the work - all have moved forward. Grounded in Rosenshine's Principles of Instruction and Dylan Wiliam's formative assessment.
+- Intent (rigour and standards; standards 3 and 4): it is transparent what is being learned and why, not just what is being "done". Living models of excellence are visible, keeping professional, vocational and academic standards aspirational and rigorous. Pitch stretches the strongest without losing anyone. At the top end, the work has an audience beyond the teacher - performed, published, pitched or used - and redrafting is normal because critique makes the work better. Grounded in Visible Learning (John Hattie) and expert modelling.
+- Travel (cognitive processing; standards 2, 4 and 6): students do the heavy cognitive thinking and creative work rather than watching it happen. Direct, purposeful dialogue and targeted questioning dig past surface answers. Formative feedback lands and is acted on in the lesson. Progress is visible in the work - all have moved forward. At the top end, students make real choices about how they work, recover from mistakes, and carry learning from one context into another - crew, not passengers. Grounded in Rosenshine's Principles of Instruction and Dylan Wiliam's formative assessment.
 
 Reviews use three DEVELOPMENTAL DESCRIPTORS: Developing (practice is taking root), Embedded (consistent everyday practice), Transformational (practice that lifts the whole room). They describe where practice currently sits on an area, as stages of a journey.
+
+Framework vocabulary, for coaching conversations: agency with guardrails (structure with real choice inside it - crew, not passengers); authentic audience (work that is performed, published, pitched or used beyond the room - at the top end, feedback sounds like "this works" or "this breaks" rather than a mark); craftsmanship (redrafting is normal, critique makes the work better); healthy struggle (being stuck is treated as part of learning); the three Cs (competence - work that holds up; chemistry - working well with others, leading and following; character - how you respond when the work is difficult); and access-first rooms (access tools like text-to-speech and dictation are a normal part of the room and let ability surface). Use this vocabulary when helping a reviewer picture what the top end of an area looks like. An example of coaching a focus into an agency-flavoured inquiry: "I want to investigate how offering three routes through the task affects how many students start without prompting."
 
 The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, a spotlight focus (the area the walk is looking for), descriptors per area, plus one overall observation. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
