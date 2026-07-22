@@ -3314,6 +3314,9 @@ export default function App() {
         <aside style={{
           width: narrow ? "100%" : 176, flexShrink: 0,
           position: narrow ? "static" : "sticky", top: 26,
+          maxHeight: narrow ? "none" : "calc(100vh - 52px)",
+          overflowY: narrow ? "visible" : "auto",
+          scrollbarWidth: "thin",
           display: "flex", flexDirection: narrow ? "row" : "column",
           flexWrap: narrow ? "wrap" : "nowrap",
           gap: 12, alignItems: narrow ? "center" : "stretch",
