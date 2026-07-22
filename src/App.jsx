@@ -79,7 +79,6 @@ const STRANDS = [
       "Transitions are quick - no learning time lost to the space",
       "The room is neuroinclusive - sensory load is considered, and every learner has a way to engage comfortably",
       "What's on the walls reflects the learners in the room, and models excellence",
-      "Learning is multi-sensory - seeing, hearing, moving and doing all have a place",
       "The digital space is as organised as the physical one - Google Classroom is accessible and easy to navigate",
       "AI supports access to learning - a NotebookLM or Gem puts the course resources at students' fingertips",
       "Students create with digital tools, not just consume",
@@ -141,6 +140,7 @@ const STRANDS = [
       "Students make real choices about how they work",
       "Ideas travel - learning from one context shows up in another",
       "Struggle is healthy - being stuck is treated as part of learning",
+      "Learning is multi-sensory - seeing, hearing, moving and doing all have a place",
     ],
     research: [
       { name: "Principles of Instruction - Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
