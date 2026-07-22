@@ -81,7 +81,6 @@ const STRANDS = [
       "What's on the walls reflects the learners in the room, and models excellence",
       "The digital space is as organised as the physical one - Google Classroom is accessible and easy to navigate",
       "AI supports access to learning - a NotebookLM or Gem puts the course resources at students' fingertips",
-      "Students create with digital tools, not just consume",
       "Access tools are a normal part of the room - text-to-speech, dictation, visual timetables",
     ],
     research: [
@@ -141,6 +140,7 @@ const STRANDS = [
       "Ideas travel - learning from one context shows up in another",
       "Struggle is healthy - being stuck is treated as part of learning",
       "Learning is multi-sensory - seeing, hearing, moving and doing all have a place",
+      "Students create with digital tools, not just consume",
     ],
     research: [
       { name: "Principles of Instruction - Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
