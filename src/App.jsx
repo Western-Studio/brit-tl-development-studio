@@ -51,6 +51,7 @@ const STRANDS = [
       "Every voice is drawn in, not just the confident ones",
       "The learning facilitator is introduced and collaborated with - a teaching partnership, not an extra pair of hands",
       "Students work as a company - leading, following, negotiating, building trust",
+      "The learning is designed around the students in the room - not the students around the learning",
     ],
     research: [
       { name: "Psychological safety - Amy Edmondson", note: "An environment free from interpersonal fear, so students will experiment creatively." },
