@@ -76,7 +76,6 @@ const STRANDS = [
       "Resources, cables, floor space and kit are safe, accessible and ready",
       "The environment is set before learning starts, not during it",
       "Digital tools genuinely support the task, not distract from it",
-      "Transitions are quick - no learning time lost to the space",
       "The room is neuroinclusive - sensory load is considered, and every learner has a way to engage comfortably",
       "What's on the walls reflects the learners in the room, and models excellence",
       "The digital space is as organised as the physical one - Google Classroom is accessible and easy to navigate",
@@ -141,6 +140,7 @@ const STRANDS = [
       "Struggle is healthy - being stuck is treated as part of learning",
       "Learning is multi-sensory - seeing, hearing, moving and doing all have a place",
       "Students create with digital tools, not just consume",
+      "Transitions keep everyone learning - including those who finish first",
     ],
     research: [
       { name: "Principles of Instruction - Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
