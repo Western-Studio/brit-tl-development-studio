@@ -1398,8 +1398,8 @@ function DeptWalkLog({ entries, setEntries, faculty }) {
         <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Walk the department - log each class</h3>
       </div>
       <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 16px", lineHeight: 1.5 }}>
-        Visiting classes across the department? Log each one individually - teacher, class, and what you saw
-        against the four areas. The department picture builds itself below, and feeds your overall stock-take.
+        Log each class individually - teacher, class, and what you saw against the four areas. The picture
+        builds itself below.
       </p>
 
       {entries.length > 0 && (
@@ -1714,10 +1714,10 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
           </div>
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
             {isDept
-              ? "Each term the department puts one area under the spotlight. Pick this term's focus - you'll still take stock of all four."
+              ? "Pick this term's focus - you'll still take stock of all four."
               : isWalk
-                ? "Walks work best with one lens. Pick the area this walk is looking for - you'll still rate all four."
-                : "Peer reviews work best with one narrow focus, agreed together before the lesson. Pick the area under the spotlight - you'll still glance across all four."}
+                ? "Pick the area this walk is looking for - you'll still rate all four."
+                : "Pick the area under the spotlight, agreed together before the lesson - you'll still glance across all four."}
           </p>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {STRANDS.map((s) => {
@@ -1793,8 +1793,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Impact on teaching and learning</h3>
             </div>
             <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 12px", lineHeight: 1.5 }}>
-              The point of the policy is learning, not tidiness. What difference did you actually see -
-              starts, focus, independence, the feel of the room?
+              What difference did you see - starts, focus, independence, the feel of the room?
             </p>
             <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} value={impact}
               placeholder="What you noticed about attention, pace and engagement with devices out of the picture…"
@@ -2149,8 +2148,7 @@ function SLTDashboard({ submissions }) {
         <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Team by team</h3>
       </div>
       <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 16px", lineHeight: 1.5 }}>
-        Every line manager's team, profiled against the four areas - the same view each manager sees on
-        their own dashboard. Filters above apply here too.
+        Every line manager's team, profiled against the four areas. Filters above apply here too.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 22, marginBottom: 30 }}>
         {teams.map(({ manager, reports, subs, counts }) => (
