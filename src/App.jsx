@@ -78,7 +78,7 @@ const STRANDS = [
       "The environment is set before learning starts, not during it",
       "Digital tools genuinely support the task, not distract from it",
       "The room is neuroinclusive - sensory load is considered, and every learner has a way to engage comfortably",
-      "What's on the walls reflects the learners in the room, and models excellence",
+      "The walls reflect the learners and model excellence - or the space is the professional environment",
       "The digital space is as organised as the physical one - Google Classroom is accessible and easy to navigate",
       "AI supports access to learning - a NotebookLM or Gem puts the course resources at students' fingertips",
       "Access tools are a normal part of the room - text-to-speech, dictation, visual timetables",
