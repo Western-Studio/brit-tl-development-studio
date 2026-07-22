@@ -2035,8 +2035,9 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Try the idea, then share it</h3>
             </div>
             <p style={{ fontSize: 13, color: BRAND.grey, margin: 0, lineHeight: 1.5 }}>
-              {spine.reviewee || "Your colleague"} tries the idea worth trying, then posts a reflection on the
-              Share board - how it went, what the review gave their practice, and a photo. That ticks the idea off.
+              {spine.reviewee || "Your colleague"} tries the idea worth trying, then posts a reflection from
+              My Dashboard or the Share board - how it went, what the review gave their practice, and a photo.
+              That ticks the idea off.
             </p>
           </Card>
         </FormGroup>
@@ -2565,6 +2566,12 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
   const [reflections, setReflections] = useState(loadReflections());
   const [editingPost, setEditingPost] = useState(null);
   const [editText, setEditText] = useState("");
+  const [ideaPick, setIdeaPick] = useState("");
+  const [ideaOutcome, setIdeaOutcome] = useState("");
+  const [ideaText, setIdeaText] = useState("");
+  const [ideaTook, setIdeaTook] = useState("");
+  const [ideaPhoto, setIdeaPhoto] = useState("");
+  const ideaFileRef = useRef(null);
   const saveReflections = (next) => {
     setReflections(next);
     try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ }
@@ -2579,6 +2586,24 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
     saveReflections(reflections.map((p) => (p.id === id ? { ...p, text: editText.trim() } : p)));
     setEditingPost(null); setEditText("");
   };
+  const onIdeaPhoto = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 900 / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+        setIdeaPhoto(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+  };
   const person = staffByName(me);
   const pickMe = (n) => {
     setMe(n);
@@ -2591,6 +2616,21 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
   const byMe = submissions.filter((s) => s.reviewer === me).slice().sort(byDate);
   const myPosts = reflections.filter((x) => x.name === me);
   const discard = (id) => { removeDraft(id); setDrafts(loadDrafts()); };
+
+  const openIdeas = openIdeasFor(me, submissions, reflections);
+  const pickedIdea = openIdeas.find((r) => r.id === ideaPick) || openIdeas[0];
+  const canPostIdea = pickedIdea && ideaText.trim() && ideaOutcome;
+  const postIdea = () => {
+    if (!canPostIdea) return;
+    const post = {
+      id: "n" + Date.now(), name: me, date: new Date().toISOString().slice(0, 10),
+      text: ideaText.trim(), photo: ideaPhoto,
+      action: { recId: pickedIdea.id, idea: pickedIdea.nextStep, outcome: ideaOutcome, took: ideaTook.trim() },
+    };
+    saveReflections([post, ...reflections]);
+    setIdeaText(""); setIdeaTook(""); setIdeaPhoto(""); setIdeaOutcome(""); setIdeaPick("");
+    if (ideaFileRef.current) ideaFileRef.current.value = "";
+  };
 
   const sectionH = { margin: "0 0 14px", fontSize: 15, color: BRAND.ink };
 
@@ -2616,6 +2656,67 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
       }}>
         Demo view - with staff login, this page would simply know who you are.
       </div>
+
+      {/* open idea reflection */}
+      {openIdeas.length > 0 && (
+        <Card style={{ padding: 28, marginBottom: 26, border: `2px solid ${BRAND.green}`, background: "#F2FAF3" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <Lightbulb size={16} color="#C2651A" />
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Your idea worth trying</h3>
+          </div>
+          {openIdeas.length > 1 ? (
+            <select style={{ ...inputStyle, marginBottom: 6 }} value={pickedIdea?.id || ""} onChange={(e) => setIdeaPick(e.target.value)}>
+              {openIdeas.map((r) => <option key={r.id} value={r.id}>{r.term} · {r.nextStep}</option>)}
+            </select>
+          ) : (
+            <p style={{ fontSize: 14, color: BRAND.ink, fontStyle: "italic", margin: "0 0 4px", lineHeight: 1.5 }}>“{pickedIdea?.nextStep}”</p>
+          )}
+          <p style={{ fontSize: 12, color: BRAND.grey, margin: "0 0 14px" }}>
+            {pickedIdea?.term} peer review · suggested by {pickedIdea?.reviewer}
+          </p>
+          <div style={{ display: "grid", gap: 14 }}>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 12.5, color: BRAND.grey }}>How did it go?</span>
+              {IDEA_OUTCOMES.map((o) => {
+                const on = ideaOutcome === o.label;
+                return (
+                  <button key={o.label} onClick={() => setIdeaOutcome(o.label)} style={{
+                    padding: "6px 14px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 12.5, fontWeight: on ? 750 : 600,
+                    border: `2px solid ${on ? o.colour : BRAND.line}`,
+                    background: on ? o.colour : "#fff", color: on ? "#fff" : BRAND.grey,
+                  }}>{o.label}</button>
+                );
+              })}
+            </div>
+            <Field label="How did it go? What changed?">
+              <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={ideaText}
+                placeholder="Your reflection on trying the idea…" onChange={(e) => setIdeaText(e.target.value)} />
+            </Field>
+            <Field label="What I took from the review (optional)">
+              <input style={inputStyle} value={ideaTook} placeholder="What the review gave your practice…"
+                onChange={(e) => setIdeaTook(e.target.value)} />
+            </Field>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <label style={{
+                display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999,
+                border: `1.5px solid ${BRAND.line}`, cursor: "pointer", fontSize: 13, fontWeight: 650,
+                color: BRAND.magenta, background: "#fff",
+              }}>
+                <Camera size={15} /> {ideaPhoto ? "Change photo" : "Add a photo"}
+                <input ref={ideaFileRef} type="file" accept="image/*" onChange={onIdeaPhoto} style={{ display: "none" }} />
+              </label>
+              {ideaPhoto && <img src={ideaPhoto} alt="preview" style={{ height: 52, borderRadius: 8 }} />}
+              <button disabled={!canPostIdea} onClick={postIdea} style={{
+                marginLeft: "auto", padding: "10px 22px", borderRadius: 999, border: "none",
+                background: canPostIdea ? BRAND.green : BRAND.line,
+                color: canPostIdea ? "#fff" : BRAND.grey, fontWeight: 700, fontSize: 14,
+                cursor: canPostIdea ? "pointer" : "not-allowed", fontFamily: "inherit",
+              }}>Post to the Share board & tick it off</button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* stat tiles */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px,1fr))", gap: 18, marginBottom: 30 }}>
@@ -2919,7 +3020,7 @@ The peer review process: reviews run termly by curriculum area, with pairings bu
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
-The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. When a colleague with an open idea selects their name on the share board, the idea is pulled through automatically - they post a short update on how it went (with a photo if they have one), evaluate it (Becoming habit / Tried it - refining / Adapted it), optionally add what they took from the review itself, and tick it off. The peer review form closes with an "After the review" section explaining this loop. The next reviewer of that colleague sees last time's idea at the top of the form and asks how it went - trying the idea matters more than ticking the box. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement: area profiles shifting from Developing toward Embedded and Transformational over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Staff page has a "What developmental success looks like" panel explaining exactly this.
+The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. My Dashboard shows the owner's open idea in a "Your idea worth trying" card where they can post the reflection directly - or, when they select their name on the share board, the idea is pulled through automatically - they post a short update on how it went (with a photo if they have one), evaluate it (Becoming habit / Tried it - refining / Adapted it), optionally add what they took from the review itself, and tick it off. The peer review form closes with an "After the review" section explaining this loop. The next reviewer of that colleague sees last time's idea at the top of the form and asks how it went - trying the idea matters more than ticking the box. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement: area profiles shifting from Developing toward Embedded and Transformational over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Staff page has a "What developmental success looks like" panel explaining exactly this.
 
 If staff ask how the data is used or who can see it, answer factually and briefly, without editorialising in either direction: reviews and descriptors are visible on the SLT dashboard (which any staff member can open), line managers see their team's reviews, and the data aggregates by area, department, team and year group. Do not claim the system keeps no data or that nothing is tracked, and equally do not lecture anyone about quality assurance - just describe what the Studio does and let people draw their own conclusions.
 
