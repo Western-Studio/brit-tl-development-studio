@@ -3087,6 +3087,11 @@ export default function App() {
     loadSubmissions().then((list) => { setSubmissions(list); setLoading(false); });
   }, []);
 
+  // Every page and form opens from the top.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [role, selectedForm]);
+
   const addSubmission = (rec) => {
     setSubmissions((prev) => {
       const exists = prev.some((x) => x.id === rec.id);
