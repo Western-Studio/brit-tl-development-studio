@@ -1124,9 +1124,6 @@ function SpineFields({ v, set, dept, classCtx, walk }) {
       </div>
       {classCtx && (
         <div style={{ marginTop: 18 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 10 }}>
-            Class context - where will the inquiry be answered?
-          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 18 }}>
             <Field label="Year group">
               <select style={inputStyle} value={v.yearGroup || ""} onChange={(e) => set("yearGroup", e.target.value)}>
