@@ -111,6 +111,7 @@ const STRANDS = [
       "The work has an audience beyond the teacher - performed, published, pitched or used",
       "Redrafting is normal - critique makes the work better",
       "The learning is designed around the students in the room - not the students around the learning",
+      "Students understand the relevance of what they are learning - and can say why it matters to them",
     ],
     research: [
       { name: "Visible Learning - John Hattie", note: "Clear learning intentions so students can explicitly monitor their own progress." },
@@ -143,6 +144,7 @@ const STRANDS = [
       "Learning is multi-sensory - seeing, hearing, moving and doing all have a place",
       "Students create with digital tools, not just consume",
       "Transitions keep everyone learning - including those who finish first",
+      "Students are curious - they ask questions, follow rabbit holes and branch their learning independently",
     ],
     research: [
       { name: "Principles of Instruction - Barak Rosenshine", note: "Effective questioning, checking for understanding, and guiding student practice." },
