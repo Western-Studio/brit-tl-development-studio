@@ -997,10 +997,7 @@ function FormSelector({ onSelect }) {
 
       </Card>
 
-      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>Choose a form</h2>
-      <p style={{ color: BRAND.grey, margin: "0 0 28px", fontSize: 14 }}>
-        Every form opens with the same core details, so the data lines up across forms and across years.
-      </p>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 28px" }}>Choose a form</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 22 }}>
         {FORMS.map((f, i) => {
           const disabled = !f.active;
