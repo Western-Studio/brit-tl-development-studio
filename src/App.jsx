@@ -675,13 +675,12 @@ function refreshSeedArt(list) {
   const missing = REFLECTION_SEED.filter((s) => !list.some((p) => p.id === s.id) && !gone.includes(s.id));
   return [...synced, ...missing];
 }
-function loadReflections() {
-  try {
-    const r = JSON.parse(localStorage.getItem(REFLECTIONS_KEY));
-    if (r) return refreshSeedArt(r);
-  } catch (e) { /* fall through */ }
-  return REFLECTION_SEED;
-}
+// Share-board posts now live in Firestore. App keeps this module-level cache
+// fresh from the realtime subscription so read-only consumers (SLT dashboard,
+// tick-off lookups) can read the latest without prop-threading.
+let _reflectionsCache = REFLECTION_SEED;
+function setReflectionsCache(list) { _reflectionsCache = list; }
+function loadReflections() { return _reflectionsCache; }
 // Follow-through: a peer review's "one idea worth trying" stays open until
 // its owner pins a share board post linked to it.
 function openIdeasFor(name, submissions, posts) {
@@ -768,8 +767,8 @@ const inputStyle = {
 /* ------------------------------------------------------------------ *
  *  REFLECTIONS SHARE BOARD - staff share practice & development posts
  * ------------------------------------------------------------------ */
-function ReflectionsBoard({ submissions }) {
-  const [posts, setPosts] = useState([]);
+function ReflectionsBoard({ submissions, reflections, onAdd }) {
+  const posts = reflections;
   const [who, setWho] = useState("");
   const [text, setText] = useState("");
   const [photo, setPhoto] = useState("");
@@ -782,15 +781,6 @@ function ReflectionsBoard({ submissions }) {
 
   const openIdeas = who ? openIdeasFor(who, submissions, posts) : [];
   const idea = linkIdea ? (openIdeas.find((r) => r.id === ideaId) || openIdeas[0]) : null;
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(REFLECTIONS_KEY);
-      if (raw) { setPosts(refreshSeedArt(JSON.parse(raw))); return; }
-    } catch (e) { /* fall through to seed */ }
-    setPosts(REFLECTION_SEED);
-    try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(REFLECTION_SEED)); } catch (e) { /* ignore */ }
-  }, []);
 
   const onPhoto = (e) => {
     const f = e.target.files?.[0];
@@ -817,9 +807,7 @@ function ReflectionsBoard({ submissions }) {
       id: "n" + Date.now(), name: who, date: new Date().toISOString().slice(0, 10), text: text.trim(), photo,
       ...(idea ? { action: { recId: idea.id, idea: idea.nextStep, outcome, took: reviewTake.trim() } } : {}),
     };
-    const next = [post, ...posts];
-    setPosts(next);
-    try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(next)); } catch (e) { /* photo too large for storage - post stays in memory */ }
+    onAdd(post);
     setText(""); setPhoto(""); setOutcome(""); setIdeaId(""); setLinkIdea(true); setReviewTake("");
     setComposerOpen(false);
     if (fileRef.current) fileRef.current.value = "";
@@ -3137,12 +3125,11 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
   );
 }
 
-function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSubmission }) {
+function MyDashboard({ submissions, reflections, onAddReflection, onUpdateReflection, onDeleteReflection, onResumeDraft, onEditSubmission, onDeleteSubmission }) {
   const [me, setMe] = useState(() => {
     try { return localStorage.getItem(ME_KEY) || "Amara Okafor"; } catch (e) { return "Amara Okafor"; }
   });
   const [drafts, setDrafts] = useState(loadDrafts());
-  const [reflections, setReflections] = useState(loadReflections());
   const [editingPost, setEditingPost] = useState(null);
   const [editText, setEditText] = useState("");
   const [ideaPick, setIdeaPick] = useState("");
@@ -3151,18 +3138,13 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
   const [ideaTook, setIdeaTook] = useState("");
   const [ideaPhoto, setIdeaPhoto] = useState("");
   const ideaFileRef = useRef(null);
-  const saveReflections = (next) => {
-    setReflections(next);
-    try { localStorage.setItem(REFLECTIONS_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ }
-  };
   const deletePost = (id) => {
     if (!window.confirm("Delete this post from the share board? This can't be undone.")) return;
-    tombstoneSeed(id);
-    saveReflections(reflections.filter((p) => p.id !== id));
+    onDeleteReflection(id);
   };
   const savePostEdit = (id) => {
     if (!editText.trim()) return;
-    saveReflections(reflections.map((p) => (p.id === id ? { ...p, text: editText.trim() } : p)));
+    onUpdateReflection(id, { text: editText.trim() });
     setEditingPost(null); setEditText("");
   };
   const onIdeaPhoto = (e) => {
@@ -3206,7 +3188,7 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
       text: ideaText.trim(), photo: ideaPhoto,
       action: { recId: pickedIdea.id, idea: pickedIdea.nextStep, outcome: ideaOutcome, took: ideaTook.trim() },
     };
-    saveReflections([post, ...reflections]);
+    onAddReflection(post);
     setIdeaText(""); setIdeaTook(""); setIdeaPhoto(""); setIdeaOutcome(""); setIdeaPick("");
     if (ideaFileRef.current) ideaFileRef.current.value = "";
   };
@@ -3898,6 +3880,7 @@ export default function App() {
   const [resumeDraft, setResumeDraft] = useState(null);
   const [botOpen, setBotOpen] = useState(false);
   const [authUser, setAuthUser] = useState(undefined); // undefined=checking, null=signed out
+  const [reflections, setReflections] = useState(REFLECTION_SEED);
   const [railCollapsed, setRailCollapsed] = useState(() => {
     try { return localStorage.getItem("brit-tl-studio-rail") === "collapsed"; } catch (e) { return false; }
   });
@@ -3958,6 +3941,28 @@ export default function App() {
     return () => unsub();
   }, [authUser]);
 
+  // Share-board posts: same realtime pattern, plus a module cache read-only
+  // consumers use (SLT dashboard, tick-off lookups).
+  useEffect(() => {
+    if (!authUser) return;
+    const col = collection(db, "reflections");
+    let seeded = false;
+    const unsub = onSnapshot(col, async (snap) => {
+      if (snap.empty && !seeded) {
+        seeded = true;
+        try {
+          const batch = writeBatch(db);
+          REFLECTION_SEED.forEach((p) => batch.set(doc(col, p.id), JSON.parse(JSON.stringify(p))));
+          await batch.commit();
+        } catch (e) { setReflections(REFLECTION_SEED); setReflectionsCache(REFLECTION_SEED); }
+        return;
+      }
+      const list = snap.docs.map((d) => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
+      setReflections(list); setReflectionsCache(list);
+    }, () => { setReflections(REFLECTION_SEED); setReflectionsCache(REFLECTION_SEED); });
+    return () => unsub();
+  }, [authUser]);
+
   // Every page and form opens from the top.
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -3974,6 +3979,19 @@ export default function App() {
   const deleteSubmission = (id) => {
     setSubmissions((prev) => prev.filter((x) => x.id !== id));
     deleteDoc(doc(db, "submissions", id)).catch(() => {});
+  };
+
+  const addReflection = (post) => {
+    setReflections((prev) => [post, ...prev]);
+    setDoc(doc(db, "reflections", post.id), JSON.parse(JSON.stringify(post))).catch(() => {});
+  };
+  const updateReflection = (id, patch) => {
+    setReflections((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    setDoc(doc(db, "reflections", id), JSON.parse(JSON.stringify(patch)), { merge: true }).catch(() => {});
+  };
+  const deleteReflection = (id) => {
+    setReflections((prev) => prev.filter((p) => p.id !== id));
+    deleteDoc(doc(db, "reflections", id)).catch(() => {});
   };
 
   // Reopen a submitted record in its form, pre-filled; submitting replaces it.
@@ -4110,10 +4128,12 @@ export default function App() {
               : <FormSelector onSelect={setSelectedForm} />
           ) : role === "me" ? (
             <MyDashboard submissions={submissions}
+              reflections={reflections} onAddReflection={addReflection}
+              onUpdateReflection={updateReflection} onDeleteReflection={deleteReflection}
               onResumeDraft={(d) => { setResumeDraft(d); setSelectedForm(d.formId); setRole("staff"); }}
               onEditSubmission={editSubmission} onDeleteSubmission={deleteSubmission} />
           ) : role === "board" ? (
-            <ReflectionsBoard submissions={submissions} />
+            <ReflectionsBoard submissions={submissions} reflections={reflections} onAdd={addReflection} />
           ) : role === "manager" ? (
             <ManagerDashboard submissions={submissions} />
           ) : (
