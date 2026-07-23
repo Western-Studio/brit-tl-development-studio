@@ -970,28 +970,30 @@ function OutlinePill({ children, colour = "#fff" }) {
 function BritTile({ s }) {
   const [flipped, setFlipped] = useState(false);
   const outline = ["R", "T"].includes(s.letter);
+  // Faces share one grid cell, so the card grows to fit the taller (back) face
+  // - no fixed height, so long text never overflows the tile.
   const faceBase = {
-    position: "absolute", inset: 0, borderRadius: 20, padding: "20px 22px",
+    gridArea: "1 / 1 / 2 / 2", borderRadius: 20, padding: "18px 20px", overflow: "hidden",
     WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden",
     display: "flex", flexDirection: "column", boxSizing: "border-box",
   };
   return (
-    <div onClick={() => setFlipped((f) => !f)} style={{ perspective: 1000, cursor: "pointer", minHeight: 150 }}>
+    <div onClick={() => setFlipped((f) => !f)} style={{ perspective: 1000, cursor: "pointer" }}>
       <div style={{
-        position: "relative", width: "100%", height: "100%", minHeight: 150,
+        display: "grid", minHeight: 140,
         transformStyle: "preserve-3d", transition: "transform .5s",
         transform: flipped ? "rotateY(180deg)" : "none",
       }}>
         {/* front */}
-        <div style={{ ...faceBase, background: s.accent, color: "#fff", justifyContent: "space-between" }}>
+        <div style={{ ...faceBase, background: s.accent, color: "#fff", justifyContent: "space-between", gap: 14 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
             <div style={{
               fontFamily: "'Anton',sans-serif", fontWeight: 400, lineHeight: 1,
-              fontSize: "clamp(44px, 5vw, 66px)",
+              fontSize: "clamp(40px, 5vw, 62px)",
               color: outline ? "transparent" : "#fff",
               WebkitTextStroke: outline ? "2px #fff" : "0",
             }}>{s.letter}</div>
-            <RotateCw size={15} color="#fff" style={{ opacity: 0.7, marginTop: 4 }} />
+            <RotateCw size={15} color="#fff" style={{ opacity: 0.7, marginTop: 4, flexShrink: 0 }} />
           </div>
           <div>
             <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
@@ -1002,10 +1004,10 @@ function BritTile({ s }) {
         <div style={{ ...faceBase, background: s.pastel, transform: "rotateY(180deg)", justifyContent: "flex-start" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
             <span style={{ fontWeight: 800, fontSize: 14, color: s.accent }}>{s.key}</span>
-            <RotateCw size={14} color={s.accent} style={{ opacity: 0.7 }} />
+            <RotateCw size={14} color={s.accent} style={{ opacity: 0.7, flexShrink: 0 }} />
           </div>
           <div style={{ fontSize: 12.5, color: BRAND.ink, lineHeight: 1.5 }}>{s.desc}</div>
-          <div style={{ marginTop: "auto", paddingTop: 8, fontSize: 11, fontWeight: 700, color: s.accent }}>
+          <div style={{ marginTop: 10, fontSize: 11, fontWeight: 700, color: s.accent, lineHeight: 1.45 }}>
             At its best: {s.levels.Transformational}
           </div>
         </div>
@@ -1636,16 +1638,17 @@ function FormGroup({ label, active, children }) {
 function CoachingQuestionsCard() {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ marginTop: 20, borderTop: `1.5px solid ${BRAND.line}`, paddingTop: 16 }}>
+    <div style={{ marginTop: 18 }}>
       <button onClick={() => setOpen((o) => !o)} style={{
-        display: "flex", alignItems: "center", gap: 8, width: "100%", background: "none",
-        border: "none", padding: 0, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+        display: "flex", alignItems: "center", gap: 10, width: "100%",
+        background: BRAND.magenta, color: "#fff", border: "none", borderRadius: 12,
+        padding: "11px 16px", cursor: "pointer", fontFamily: "inherit", textAlign: "left",
       }}>
-        <MessageCircle size={16} color={BRAND.magenta} />
-        <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Coaching questions for the conversation</h3>
-        <span style={{ fontSize: 12.5, color: BRAND.grey, fontStyle: "italic" }}>ask, don't tell</span>
-        <ChevronDown size={17} color={BRAND.grey} style={{
-          marginLeft: "auto", transition: "transform .2s", transform: open ? "rotate(180deg)" : "none",
+        <MessageCircle size={16} color="#fff" />
+        <h3 style={{ margin: 0, fontSize: 14.5, fontWeight: 700, color: "#fff" }}>Coaching questions for the conversation</h3>
+        <span style={{ fontSize: 12.5, color: "#fff", opacity: 0.85, fontStyle: "italic" }}>ask, don't tell</span>
+        <ChevronDown size={19} color="#fff" strokeWidth={2.5} style={{
+          marginLeft: "auto", flexShrink: 0, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none",
         }} />
       </button>
       {open && (
