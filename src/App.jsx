@@ -69,7 +69,7 @@ const STRANDS = [
     letter: "R",
     accent: "#8447B0",
     pastel: "#F2ECF8",
-    focus: "The physical and digital environment, and how it is used",
+    focus: "Physical and digital space",
     ts: "TS 5 · 7",
     desc: "The physical and digital environment - the space works for the task before learning starts.",
     practice: [
