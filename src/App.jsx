@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera, Lightbulb, ChevronLeft, ChevronRight
+  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -988,13 +988,13 @@ function FormSelector({ onSelect }) {
         {/* the descriptor journey */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(215px, 1fr))", gap: 14, marginBottom: 26 }}>
           {[
-            { name: "Developing", colour: BRAND.developing, bg: "#F5F1F4", line: "Practice is emerging - deliberate, sometimes uneven, always moving." },
-            { name: "Embedded", colour: BRAND.embedded, bg: "#F8E9F2", line: "Practice is consistent - part of how the room simply runs." },
-            { name: "Transformational", colour: BRAND.transformational, bg: "#EAF6EB", line: "Practice spreads - students lead it, colleagues borrow it." },
+            { name: "Developing", Icon: Sprout, colour: BRAND.developing, bg: "#F5F1F4", line: "Practice is emerging - deliberate, sometimes uneven, always moving." },
+            { name: "Embedded", Icon: TreeDeciduous, colour: BRAND.embedded, bg: "#F8E9F2", line: "Practice is consistent - part of how the room simply runs." },
+            { name: "Transformational", Icon: Trees, colour: BRAND.transformational, bg: "#EAF6EB", line: "Practice spreads - students lead it, colleagues borrow it." },
           ].map((stage, i) => (
             <div key={stage.name} style={{ position: "relative", background: stage.bg, borderRadius: 16, padding: "18px 20px", border: `1.5px solid ${stage.colour}` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontFamily: "'Anton',sans-serif", fontSize: 26, lineHeight: 1, color: stage.colour }}>{i + 1}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
+                <stage.Icon size={22} color={stage.colour} />
                 <span style={{ fontSize: 15, fontWeight: 800, color: BRAND.ink }}>{stage.name}</span>
                 {i < 2 && <ArrowRight size={16} color={stage.colour} style={{ marginLeft: "auto" }} />}
               </div>
@@ -1003,9 +1003,9 @@ function FormSelector({ onSelect }) {
           ))}
         </div>
 
-        {/* the follow-through loop */}
+        {/* the development process */}
         <div style={{ fontSize: 11.5, fontWeight: 800, letterSpacing: ".08em", color: BRAND.grey, marginBottom: 12 }}>
-          And the loop that proves it's moving
+          The development process
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(165px, 1fr))", gap: 12 }}>
           {[
@@ -1047,7 +1047,9 @@ function FormSelector({ onSelect }) {
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 800, fontSize: 14, color: BRAND.ink }}>{String(i + 1).padStart(2, "0")}</span>
+                <span style={{ width: 42, height: 42, borderRadius: 12, background: disabled ? BRAND.line : accent, display: "grid", placeItems: "center", color: "#fff" }}>
+                  <f.icon size={22} />
+                </span>
                 {f.active ? <ArrowUpRight size={19} color={BRAND.ink} /> : <Lock size={15} color="#C0392B" />}
               </div>
               <div style={{ flex: 1, minHeight: 26 }} />
@@ -2848,7 +2850,7 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
         <h3 style={sectionH}>In progress</h3>
         {myDrafts.length === 0 ? (
           <p style={{ color: BRAND.grey, fontSize: 13.5, margin: 0 }}>
-            Nothing in progress. Start a form from All Staff and use “Save draft” to park it here.
+            Nothing in progress. Start a form from All Review Forms and use “Save draft” to park it here.
           </p>
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
@@ -3130,7 +3132,7 @@ The peer review process: reviews run termly by curriculum area, with pairings bu
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
-The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. My Dashboard shows the owner's open idea in a "Your idea worth trying" card where they can post the reflection directly - or, when they select their name on the share board, the idea is pulled through automatically - they post a short update on how it went (with a photo if they have one), evaluate it (Becoming habit / Tried it - refining / Adapted it), optionally add what they took from the review itself, and tick it off. The peer review form closes with an "After the review" section explaining this loop. The next reviewer of that colleague sees last time's idea at the top of the form and asks how it went - trying the idea matters more than ticking the box. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement: area profiles shifting from Developing toward Embedded and Transformational over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Staff page has a "What developmental success looks like" panel explaining exactly this.
+The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. My Dashboard shows the owner's open idea in a "Your idea worth trying" card where they can post the reflection directly - or, when they select their name on the share board, the idea is pulled through automatically - they post a short update on how it went (with a photo if they have one), evaluate it (Becoming habit / Tried it - refining / Adapted it), optionally add what they took from the review itself, and tick it off. The peer review form closes with an "After the review" section explaining this loop. The next reviewer of that colleague sees last time's idea at the top of the form and asks how it went - trying the idea matters more than ticking the box. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement: area profiles shifting from Developing toward Embedded and Transformational over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Review Forms page has a "What developmental success looks like" panel explaining exactly this.
 
 If staff ask how the data is used or who can see it, answer factually and briefly, without editorialising in either direction: reviews and descriptors are visible on the SLT dashboard (which any staff member can open), line managers see their team's reviews, and the data aggregates by area, department, team and year group. Do not claim the system keeps no data or that nothing is tracked, and equally do not lecture anyone about quality assurance - just describe what the Studio does and let people draw their own conclusions.
 
@@ -3441,7 +3443,7 @@ export default function App() {
 
   const font = "'Archivo','Helvetica Neue',Arial,sans-serif";
   const nav = [
-    { key: "staff", num: "01", label: "All Staff", colour: BRAND.magenta },
+    { key: "staff", num: "01", label: "All Review Forms", colour: BRAND.magenta },
     { key: "me", num: "02", label: "My Dashboard", colour: "#46B749" },
     { key: "board", num: "03", label: "Share board", colour: "#C2651A" },
     { key: "slt", num: "04", label: "SLT", colour: "#8447B0" },
