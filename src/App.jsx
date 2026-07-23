@@ -17,7 +17,8 @@ import "@fontsource/archivo/900.css";
 import "@fontsource/anton/400.css";
 import tlLogo from "./tl-logo.png";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { auth, googleProvider, SCHOOL_DOMAIN } from "./firebase.js";
+import { collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "firebase/firestore";
+import { auth, db, googleProvider, SCHOOL_DOMAIN } from "./firebase.js";
 
 /* ------------------------------------------------------------------ *
  *  BRAND + FRAMEWORK CONSTANTS
@@ -3933,11 +3934,29 @@ export default function App() {
     document.head.appendChild(style);
   }, []);
 
-  useEffect(() => {
-    loadSubmissions().then((list) => { setSubmissions(list); setLoading(false); });
-  }, []);
-
   useEffect(() => onAuthStateChanged(auth, (u) => setAuthUser(u || null)), []);
+
+  // Submissions live in Firestore and sync in realtime across everyone signed
+  // in. First run seeds the demo data so dashboards aren't empty.
+  useEffect(() => {
+    if (!authUser) return;
+    const col = collection(db, "submissions");
+    let seeded = false;
+    const unsub = onSnapshot(col, async (snap) => {
+      if (snap.empty && !seeded) {
+        seeded = true;
+        try {
+          const batch = writeBatch(db);
+          SEED.forEach((rec) => batch.set(doc(col, rec.id), JSON.parse(JSON.stringify(rec))));
+          await batch.commit();
+        } catch (e) { setSubmissions(SEED); setLoading(false); }
+        return; // the listener re-fires with the seeded data
+      }
+      setSubmissions(snap.docs.map((d) => d.data()));
+      setLoading(false);
+    }, () => { setSubmissions(SEED); setLoading(false); });
+    return () => unsub();
+  }, [authUser]);
 
   // Every page and form opens from the top.
   useEffect(() => {
@@ -3947,18 +3966,14 @@ export default function App() {
   const addSubmission = (rec) => {
     setSubmissions((prev) => {
       const exists = prev.some((x) => x.id === rec.id);
-      const next = exists ? prev.map((x) => (x.id === rec.id ? rec : x)) : [...prev, rec];
-      saveSubmissions(next);
-      return next;
+      return exists ? prev.map((x) => (x.id === rec.id ? rec : x)) : [...prev, rec];
     });
+    setDoc(doc(db, "submissions", rec.id), JSON.parse(JSON.stringify(rec))).catch(() => {});
   };
 
   const deleteSubmission = (id) => {
-    setSubmissions((prev) => {
-      const next = prev.filter((x) => x.id !== id);
-      saveSubmissions(next);
-      return next;
-    });
+    setSubmissions((prev) => prev.filter((x) => x.id !== id));
+    deleteDoc(doc(db, "submissions", id)).catch(() => {});
   };
 
   // Reopen a submitted record in its form, pre-filled; submitting replaces it.
