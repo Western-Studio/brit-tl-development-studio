@@ -2084,7 +2084,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         </Card>
       )}
 
-      {!isWalk && !isDevice && (
+      {isDept && (
         <Card style={{ padding: 28, marginBottom: 22, background: "#FDFBF6", borderColor: "#EFE3C8" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <MessageCircle size={16} color="#B8860B" />
@@ -2145,6 +2145,44 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               </Field>
             </div>
           </Card>
+        <Card style={{ padding: 28, marginBottom: 22, background: "#FDFBF6", borderColor: "#EFE3C8" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <MessageCircle size={16} color="#B8860B" />
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Close with care</h3>
+          </div>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
+            {isDept
+              ? "Close the review looking forward - celebrate what's working, and name what would move the department on."
+              : "Send your colleague away with something real to feel good about."}
+          </p>
+          <p style={{ fontSize: 12, color: "#B8860B", fontWeight: 650, margin: "-6px 0 14px" }}>
+            The golden rules: specific, not waffly · linked to the why · future-proofed.
+          </p>
+          <div style={{ display: "grid", gap: 18 }}>
+            <Field label={isDept ? "Proudest practice - what should the department feel proud of?" : "Shout-out - something your colleague should feel proud of"}>
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={celebrate}
+                placeholder={isDept ? "The practice worth celebrating across the department…" : "The moment worth celebrating from this lesson…"}
+                onChange={(e) => setCelebrate(e.target.value)} />
+            </Field>
+            <Field label="Even better if… (optional)">
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={evenBetterIf}
+                placeholder={isDept ? "One shift that would lift the whole department…" : "One tweak that would lift this lesson even further…"}
+                onChange={(e) => setEvenBetterIf(e.target.value)} />
+            </Field>
+            <Field label={isDept ? "One priority for next term - small, concrete, shared" : "One idea worth trying - small, concrete, kind"}>
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={nextStep}
+                placeholder={isDept ? "The single priority the department will carry into next term…" : "A single practical suggestion for your colleague to take away…"}
+                onChange={(e) => setNextStep(e.target.value)} />
+            </Field>
+            {isDept && (
+              <Field label="Support needed from SLT / T&L (optional)">
+                <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={supportNeeded}
+                  placeholder="Anything the department needs that it can't fix alone - time, kit, training, a decision…"
+                  onChange={(e) => setSupportNeeded(e.target.value)} />
+              </Field>
+            )}
+          </div>
+        </Card>
           <Card style={{ padding: 28, marginBottom: 22 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <Lightbulb size={16} color="#C2651A" />
