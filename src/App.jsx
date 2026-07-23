@@ -3910,6 +3910,20 @@ function AuthScreen({ state, email, font }) {
         </div>
         {state === "loading" ? (
           <p style={{ color: BRAND.grey, fontSize: 14, margin: "18px 0 4px" }}>Checking your sign-in…</p>
+        ) : state === "not-set-up" ? (
+          <>
+            <p style={{ color: BRAND.ink, fontSize: 14.5, lineHeight: 1.55, margin: "16px 0 8px" }}>
+              You're signed in as <strong>{email}</strong>, but you haven't been set up for the Studio yet.
+            </p>
+            <p style={{ color: BRAND.grey, fontSize: 13.5, lineHeight: 1.55, margin: "0 0 22px" }}>
+              The Studio is for staff only. If you're a member of staff, ask an SLT or T&amp;L colleague to add you.
+            </p>
+            <button onClick={() => signOut(auth)} style={{
+              width: "100%", padding: "13px 18px", borderRadius: 12, border: "none",
+              background: BRAND.magenta, color: "#fff", fontSize: 15, fontWeight: 700,
+              cursor: "pointer", fontFamily: "inherit",
+            }}>Sign out</button>
+          </>
         ) : state === "wrong-domain" ? (
           <>
             <p style={{ color: BRAND.ink, fontSize: 14.5, lineHeight: 1.55, margin: "16px 0 8px" }}>
@@ -3952,10 +3966,91 @@ function AuthScreen({ state, email, font }) {
 // Forms that can be granted to an individual on top of their role.
 const GRANTABLE_FORMS = ["walk-belonging", "walk-room", "walk-intent", "walk-travel", "device-walk", "trustee-walk"];
 
-function AdminStaff({ directory, onSave, onDelete, myEmail }) {
+// Minimal CSV parser (handles quoted fields, commas and newlines).
+function parseCsv(text) {
+  const rows = []; let row = []; let cur = ""; let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cur); cur = ""; }
+    else if (c === "\n") { row.push(cur); rows.push(row); row = []; cur = ""; }
+    else if (c !== "\r") cur += c;
+  }
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+function roleFromCsv(s) {
+  const t = (s || "").toLowerCase().replace(/[^a-z]/g, "");
+  if (t.includes("slt") || t.includes("seniorlead")) return "slt";
+  if (t.includes("senco")) return "senco";
+  if (t.includes("assistant") || t.includes("deputy")) return "assistant-director";
+  if (t.includes("director") || t.includes("head")) return "director";
+  return "teacher";
+}
+function walksFromCsv(s) {
+  if (!s) return [];
+  const out = new Set();
+  String(s).toLowerCase().split(/[;, ]+/).map((t) => t.trim()).filter(Boolean).forEach((t) => {
+    if (GRANTABLE_FORMS.includes(t)) out.add(t);
+    else if (t.includes("belong")) out.add("walk-belonging");
+    else if (t.includes("room")) out.add("walk-room");
+    else if (t.includes("intent")) out.add("walk-intent");
+    else if (t.includes("travel")) out.add("walk-travel");
+    else if (t.includes("device") || t.includes("phone")) out.add("device-walk");
+    else if (t.includes("trustee")) out.add("trustee-walk");
+  });
+  return [...out];
+}
+
+function AdminStaff({ directory, onSave, onDelete, onImport, myEmail }) {
   const blank = { email: "", name: "", role: "teacher", isTL: false, department: "", manager: "", extraForms: [], level: "" };
   const [form, setForm] = useState(blank);
   const [editing, setEditing] = useState(false);
+  const [importMsg, setImportMsg] = useState("");
+  const fileRef = useRef(null);
+  const onCsv = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const rows = parseCsv(String(reader.result));
+        if (rows.length < 2) { setImportMsg("That file had no data rows."); return; }
+        const header = rows[0].map((h) => h.trim().toLowerCase());
+        const at = (n) => header.indexOf(n);
+        const c = { name: at("name"), email: at("email"), role: at("role"), dept: at("department"), manager: at("manager"), tl: at("istl"), walks: at("walks") };
+        if (c.name < 0 || c.email < 0) { setImportMsg("CSV needs at least 'name' and 'email' columns."); return; }
+        const recs = [];
+        for (let i = 1; i < rows.length; i++) {
+          const r = rows[i]; if (!r || r.every((x) => !x.trim())) continue;
+          const email = (r[c.email] || "").trim().toLowerCase();
+          const name = (r[c.name] || "").trim();
+          if (!email.includes("@") || !name) continue;
+          recs.push({
+            email, name, role: roleFromCsv(c.role >= 0 ? r[c.role] : ""),
+            department: (c.dept >= 0 ? r[c.dept] : "").trim(),
+            manager: (c.manager >= 0 ? r[c.manager] : "").trim().toLowerCase() || null,
+            isTL: /^(true|yes|y|1|tl)$/i.test((c.tl >= 0 ? r[c.tl] : "").trim()),
+            extraForms: walksFromCsv(c.walks >= 0 ? r[c.walks] : ""), level: "",
+          });
+        }
+        if (!recs.length) { setImportMsg("No valid rows (each needs a name and a school email)."); return; }
+        onImport(recs);
+        setImportMsg(`Imported ${recs.length} ${recs.length === 1 ? "person" : "people"}.`);
+      } catch (err) { setImportMsg("Sorry - couldn't read that file."); }
+      if (fileRef.current) fileRef.current.value = "";
+    };
+    reader.readAsText(file);
+  };
+  const templateHref = "data:text/csv;charset=utf-8," + encodeURIComponent(
+    "name,email,role,department,manager,isTL,walks\n" +
+    `Amara Okafor,amara.okafor@${SCHOOL_DOMAIN},teacher,Theatre,daniel.price@${SCHOOL_DOMAIN},,\n` +
+    `Daniel Price,daniel.price@${SCHOOL_DOMAIN},director,Theatre,,,\n` +
+    `Priya Nair,priya.nair@${SCHOOL_DOMAIN},assistant-director,Dance,daniel.price@${SCHOOL_DOMAIN},,walk-belonging;walk-room\n`
+  );
   const set = (k, val) => setForm((f) => ({ ...f, [k]: val }));
   const startEdit = (s) => { setForm({ ...blank, ...s, manager: s.manager || "", extraForms: s.extraForms || [] }); setEditing(true); window.scrollTo(0, 0); };
   const reset = () => { setForm(blank); setEditing(false); };
@@ -3974,8 +4069,24 @@ function AdminStaff({ directory, onSave, onDelete, myEmail }) {
     <div>
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 8px" }}>Manage staff</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 22px", fontSize: 14, lineHeight: 1.55, maxWidth: 640 }}>
-        Set each person's role, department, line manager and access. SLT and T&amp;L see everything; Directors (HoDs) and SENCOs see their team and department reviews; Assistant Directors see their own line-managees; Teachers get peer review and the share board. Tick a walk to invite someone to complete it regardless of role.
+        Set each person's role, department, line manager and access. SLT and T&amp;L see everything; Directors (HoDs) and SENCOs see their team and department reviews; Assistant Directors see their own line-managees; Teachers get peer review and the share board. Tick a walk to invite someone to complete it regardless of role. Only people listed here can sign in.
       </p>
+
+      <Card style={{ padding: 24, marginBottom: 26, background: "#FBF6FA" }}>
+        <h3 style={{ margin: "0 0 8px", fontSize: 16, color: BRAND.ink }}>Import from CSV</h3>
+        <p style={{ margin: "0 0 14px", fontSize: 13, color: BRAND.grey, lineHeight: 1.55, maxWidth: 620 }}>
+          Upload a spreadsheet with columns <strong>name, email, role, department, manager, isTL, walks</strong> (only name and email are required). Role can be teacher, assistant director, director, senco or slt. Manager is that person's email. isTL is yes/no. Walks is an optional list like <code>walk-belonging;walk-room</code>. Re-importing updates matching emails.
+        </p>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <button onClick={() => fileRef.current?.click()} style={{
+            padding: "10px 20px", borderRadius: 999, border: "none", background: BRAND.magenta,
+            color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "inherit",
+          }}>Choose CSV file</button>
+          <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onCsv} style={{ display: "none" }} />
+          <a href={templateHref} download="brit-staff-template.csv" style={{ fontSize: 13, fontWeight: 600, color: BRAND.magenta }}>Download template</a>
+          {importMsg && <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.green }}>{importMsg}</span>}
+        </div>
+      </Card>
 
       <Card style={{ padding: 24, marginBottom: 26 }}>
         <h3 style={{ margin: "0 0 16px", fontSize: 16, color: BRAND.ink }}>{editing ? "Edit person" : "Add a person"}</h3>
@@ -4198,16 +4309,18 @@ export default function App() {
     return () => unsub();
   }, [authUser]);
 
-  // Auto-provision the signed-in user: founding SLT/T&L admin if no admin
-  // exists yet, otherwise a plain teacher they/an admin can adjust later.
+  // Bootstrap only: if no admin exists yet, the first person to sign in
+  // becomes the founding SLT/T&L admin. Unknown users are NOT auto-added once
+  // an admin exists - they must be added to the directory to gain access
+  // (this is what keeps students, who share the domain, out).
   useEffect(() => {
     if (!authUser || !dirLoaded) return;
     const email = authUser.email?.toLowerCase();
     if (!email || directory.some((s) => s.email?.toLowerCase() === email)) return;
     const anyAdmin = directory.some((s) => s.role === "slt" || s.isTL);
+    if (anyAdmin) return;
     const rec = {
-      email, name: authUser.displayName || email,
-      role: anyAdmin ? "teacher" : "slt", isTL: !anyAdmin,
+      email, name: authUser.displayName || email, role: "slt", isTL: true,
       department: "", manager: null, extraForms: [], level: "",
     };
     setDoc(doc(db, "staff", email), rec).catch(() => {});
@@ -4283,6 +4396,11 @@ export default function App() {
   const deleteStaff = (email) => {
     if (email) deleteDoc(doc(db, "staff", email.toLowerCase())).catch(() => {});
   };
+  const importStaff = (records) => {
+    const batch = writeBatch(db);
+    records.forEach((r) => { if (r.email) batch.set(doc(db, "staff", r.email.toLowerCase()), { ...r, email: r.email.toLowerCase() }); });
+    batch.commit().catch(() => {});
+  };
 
   // Reopen a submitted record in its form, pre-filled; submitting replaces it.
   const editSubmission = (rec) => {
@@ -4319,11 +4437,18 @@ export default function App() {
     ...(isFullAccess(effectiveUser) ? [{ key: "admin", num: "06", label: "Manage staff", colour: "#5A4763" }] : []),
   ];
 
-  // Sign-in gate: only verified school Google accounts may enter.
+  // Sign-in gate: verified school account AND a place in the staff directory.
   if (authUser === undefined) return <AuthScreen state="loading" font={font} />;
   const domainOk = !!authUser?.email && authUser.email.toLowerCase().endsWith("@" + SCHOOL_DOMAIN);
   if (!authUser || !domainOk) {
     return <AuthScreen state={authUser ? "wrong-domain" : "signed-out"} email={authUser?.email} font={font} />;
+  }
+  if (!dirLoaded) return <AuthScreen state="loading" font={font} />;
+  const emailLc = authUser.email.toLowerCase();
+  const inDirectory = directory.some((s) => s.email?.toLowerCase() === emailLc);
+  const anyAdminExists = directory.some((s) => s.role === "slt" || s.isTL);
+  if (!inDirectory && anyAdminExists) {
+    return <AuthScreen state="not-set-up" email={authUser.email} font={font} />;
   }
 
   return (
@@ -4443,7 +4568,7 @@ export default function App() {
           ) : role === "manager" ? (
             <ManagerDashboard submissions={submissions} />
           ) : role === "admin" ? (
-            <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} myEmail={currentStaff?.email} />
+            <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} myEmail={currentStaff?.email} />
           ) : (
             <SLTDashboard submissions={submissions} />
           )}
