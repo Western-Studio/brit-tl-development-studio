@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone, Clock
+  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone, Clock, RotateCw
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -967,6 +967,53 @@ function OutlinePill({ children, colour = "#fff" }) {
   );
 }
 
+function BritTile({ s }) {
+  const [flipped, setFlipped] = useState(false);
+  const outline = ["R", "T"].includes(s.letter);
+  const faceBase = {
+    position: "absolute", inset: 0, borderRadius: 20, padding: "20px 22px",
+    WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden",
+    display: "flex", flexDirection: "column", boxSizing: "border-box",
+  };
+  return (
+    <div onClick={() => setFlipped((f) => !f)} style={{ perspective: 1000, cursor: "pointer", minHeight: 150 }}>
+      <div style={{
+        position: "relative", width: "100%", height: "100%", minHeight: 150,
+        transformStyle: "preserve-3d", transition: "transform .5s",
+        transform: flipped ? "rotateY(180deg)" : "none",
+      }}>
+        {/* front */}
+        <div style={{ ...faceBase, background: s.accent, color: "#fff", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div style={{
+              fontFamily: "'Anton',sans-serif", fontWeight: 400, lineHeight: 1,
+              fontSize: "clamp(44px, 5vw, 66px)",
+              color: outline ? "transparent" : "#fff",
+              WebkitTextStroke: outline ? "2px #fff" : "0",
+            }}>{s.letter}</div>
+            <RotateCw size={15} color="#fff" style={{ opacity: 0.7, marginTop: 4 }} />
+          </div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
+            <div style={{ fontSize: 11.5, opacity: 0.9, marginTop: 2, lineHeight: 1.35 }}>{s.focus}</div>
+          </div>
+        </div>
+        {/* back */}
+        <div style={{ ...faceBase, background: s.pastel, transform: "rotateY(180deg)", justifyContent: "flex-start" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontWeight: 800, fontSize: 14, color: s.accent }}>{s.key}</span>
+            <RotateCw size={14} color={s.accent} style={{ opacity: 0.7 }} />
+          </div>
+          <div style={{ fontSize: 12.5, color: BRAND.ink, lineHeight: 1.5 }}>{s.desc}</div>
+          <div style={{ marginTop: "auto", paddingTop: 8, fontSize: 11, fontWeight: 700, color: s.accent }}>
+            At its best: {s.levels.Transformational}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FormSelector({ onSelect }) {
   return (
     <div>
@@ -988,23 +1035,7 @@ function FormSelector({ onSelect }) {
           </p>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12 }}>
-          {STRANDS.map((s) => (
-            <div key={s.key} style={{
-              background: s.accent, borderRadius: 20, padding: "20px 22px", color: "#fff",
-              display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: 130,
-            }}>
-              <div style={{
-                fontFamily: "'Anton',sans-serif", fontWeight: 400, lineHeight: 1,
-                fontSize: "clamp(44px, 5vw, 66px)",
-                color: ["B", "I"].includes(s.letter) ? "#fff" : "transparent",
-                WebkitTextStroke: ["B", "I"].includes(s.letter) ? "0" : "2px #fff",
-              }}>{s.letter}</div>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
-                <div style={{ fontSize: 11.5, opacity: 0.9, marginTop: 2, lineHeight: 1.35 }}>{s.focus}</div>
-              </div>
-            </div>
-          ))}
+          {STRANDS.map((s) => <BritTile key={s.key} s={s} />)}
         </div>
       </div>
 
