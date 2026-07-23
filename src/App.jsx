@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees
+  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -203,7 +203,7 @@ const FORMS = [
     id: "peer-review",
     name: "Peer Review",
     blurb: "Developmental review against the four BRIT framework areas, with comments per area.",
-    icon: ClipboardCheck,
+    icon: Users,
     profile: "staff",
     active: true,
   },
@@ -211,7 +211,7 @@ const FORMS = [
     id: "learning-walk",
     name: "Learning Walk",
     blurb: "Lighter-touch walk rated against the four areas, with a single overall observation.",
-    icon: Users,
+    icon: Footprints,
     profile: "staff",
     active: true,
   },
@@ -219,7 +219,7 @@ const FORMS = [
     id: "device-walk",
     name: "Device & Phone Walk",
     blurb: "Is the phone-box policy landing - and what is the impact on teaching and learning?",
-    icon: Lock,
+    icon: Smartphone,
     profile: "staff",
     active: true,
   },
