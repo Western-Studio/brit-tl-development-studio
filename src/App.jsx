@@ -1029,9 +1029,9 @@ function BritTile({ s, onOpen }) {
       minHeight: 130, height: "100%", cursor: "pointer", boxSizing: "border-box",
     }}>
       <div aria-hidden style={{
-        position: "absolute", top: -24, left: -4, lineHeight: 0.78,
+        position: "absolute", top: 2, left: 4, lineHeight: 0.9,
         fontFamily: "'Anton',sans-serif", fontWeight: 400,
-        fontSize: "clamp(150px, 19vw, 250px)",
+        fontSize: "clamp(140px, 17vw, 220px)",
         color: "#fff", opacity: 0.16, pointerEvents: "none", userSelect: "none",
       }}>{s.letter}</div>
       <RotateCw size={15} color="#fff" style={{ position: "absolute", top: 16, right: 18, opacity: 0.7 }} />
