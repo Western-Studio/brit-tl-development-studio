@@ -1021,23 +1021,21 @@ function OutlinePill({ children, colour = "#fff" }) {
 }
 
 function BritTile({ s, onOpen }) {
-  const outline = ["R", "T"].includes(s.letter);
   return (
     <div onClick={onOpen} style={{
+      position: "relative", overflow: "hidden",
       background: s.accent, borderRadius: 20, padding: "18px 20px", color: "#fff",
-      display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14,
+      display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: 14,
       minHeight: 130, height: "100%", cursor: "pointer", boxSizing: "border-box",
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{
-          fontFamily: "'Anton',sans-serif", fontWeight: 400, lineHeight: 1,
-          fontSize: "clamp(40px, 5vw, 62px)",
-          color: outline ? "transparent" : "#fff",
-          WebkitTextStroke: outline ? "2px #fff" : "0",
-        }}>{s.letter}</div>
-        <RotateCw size={15} color="#fff" style={{ opacity: 0.7, marginTop: 4, flexShrink: 0 }} />
-      </div>
-      <div>
+      <div aria-hidden style={{
+        position: "absolute", top: -24, left: -4, lineHeight: 0.78,
+        fontFamily: "'Anton',sans-serif", fontWeight: 400,
+        fontSize: "clamp(150px, 19vw, 250px)",
+        color: "#fff", opacity: 0.16, pointerEvents: "none", userSelect: "none",
+      }}>{s.letter}</div>
+      <RotateCw size={15} color="#fff" style={{ position: "absolute", top: 16, right: 18, opacity: 0.7 }} />
+      <div style={{ position: "relative" }}>
         <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
         <div style={{ fontSize: 11.5, opacity: 0.9, marginTop: 2, lineHeight: 1.35 }}>{s.focus}</div>
       </div>
