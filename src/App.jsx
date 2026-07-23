@@ -17,7 +17,7 @@ import "@fontsource/archivo/900.css";
 import "@fontsource/anton/400.css";
 import tlLogo from "./tl-logo.png";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc, onSnapshot, writeBatch, query, where } from "firebase/firestore";
 import { auth, db, googleProvider, SCHOOL_DOMAIN } from "./firebase.js";
 
 /* ------------------------------------------------------------------ *
@@ -646,14 +646,25 @@ async function saveSubmissions(list) {
 const DRAFTS_KEY = "brit-tl-studio-drafts-v1";
 const ME_KEY = "brit-tl-studio-me";
 
-function loadDrafts() {
-  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY)) || []; } catch (e) { return []; }
+// Drafts live in Firestore, stamped with the owner's email so they follow a
+// person across their own devices (and stay out of everyone else's view). App
+// keeps this cache fresh from a per-owner subscription.
+let _draftsCache = [];
+let _draftOwner = null;
+function setDraftsContext(email, list) {
+  if (email !== undefined) _draftOwner = email;
+  if (list) _draftsCache = list;
 }
-function saveDrafts(list) {
-  try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(list)); } catch (e) { /* ignore */ }
+function loadDrafts() { return _draftsCache; }
+function saveDraft(draft) {
+  const rec = { ...draft, owner: _draftOwner };
+  _draftsCache = [rec, ..._draftsCache.filter((d) => d.id !== rec.id)];
+  setDoc(doc(db, "drafts", rec.id), JSON.parse(JSON.stringify(rec))).catch(() => {});
 }
 function removeDraft(id) {
-  if (id) saveDrafts(loadDrafts().filter((d) => d.id !== id));
+  if (!id) return;
+  _draftsCache = _draftsCache.filter((d) => d.id !== id);
+  deleteDoc(doc(db, "drafts", id)).catch(() => {});
 }
 // Stored copies of the seed posts refresh their artwork and any seed posts
 // added since first visit get appended - but deleted seeds stay deleted
@@ -1793,9 +1804,9 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
 
   const saveDraft = () => {
     const id = draftId || "d" + Date.now();
-    saveDrafts([{ id, formId: "trustee-walk", editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
+    saveDraft({ id, formId: "trustee-walk", editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
       spine: v, trusteeSee: see, trusteeHear: hear, trusteeFeel: feel, overall,
-      debriefNotes: debrief, requiresFollowUp, followUpNotes: followUp }, ...loadDrafts().filter((x) => x.id !== id)]);
+      debriefNotes: debrief, requiresFollowUp, followUpNotes: followUp });
     setDraftId(id); setDraftSaved(true); setTimeout(() => setDraftSaved(false), 2500);
   };
 
@@ -1992,7 +2003,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       spine, strands, focusStrand, inquiry, lessonFocus, priorContext, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
       deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall, requiresFollowUp, coachingNotes,
     };
-    saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
+    saveDraft(record);
     setDraftId(id);
     setDraftSaved(true);
     setTimeout(() => setDraftSaved(false), 2500);
@@ -3125,11 +3136,10 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
   );
 }
 
-function MyDashboard({ submissions, reflections, onAddReflection, onUpdateReflection, onDeleteReflection, onResumeDraft, onEditSubmission, onDeleteSubmission }) {
+function MyDashboard({ submissions, drafts, reflections, onAddReflection, onUpdateReflection, onDeleteReflection, onResumeDraft, onEditSubmission, onDeleteSubmission }) {
   const [me, setMe] = useState(() => {
     try { return localStorage.getItem(ME_KEY) || "Amara Okafor"; } catch (e) { return "Amara Okafor"; }
   });
-  const [drafts, setDrafts] = useState(loadDrafts());
   const [editingPost, setEditingPost] = useState(null);
   const [editText, setEditText] = useState("");
   const [ideaPick, setIdeaPick] = useState("");
@@ -3176,7 +3186,7 @@ function MyDashboard({ submissions, reflections, onAddReflection, onUpdateReflec
   const aboutMe = submissions.filter((s) => s.reviewee === me).slice().sort(byDate);
   const byMe = submissions.filter((s) => s.reviewer === me).slice().sort(byDate);
   const myPosts = reflections.filter((x) => x.name === me);
-  const discard = (id) => { removeDraft(id); setDrafts(loadDrafts()); };
+  const discard = (id) => { removeDraft(id); };
 
   const openIdeas = openIdeasFor(me, submissions, reflections);
   const pickedIdea = openIdeas.find((r) => r.id === ideaPick) || openIdeas[0];
@@ -3881,6 +3891,7 @@ export default function App() {
   const [botOpen, setBotOpen] = useState(false);
   const [authUser, setAuthUser] = useState(undefined); // undefined=checking, null=signed out
   const [reflections, setReflections] = useState(REFLECTION_SEED);
+  const [drafts, setDrafts] = useState([]);
   const [railCollapsed, setRailCollapsed] = useState(() => {
     try { return localStorage.getItem("brit-tl-studio-rail") === "collapsed"; } catch (e) { return false; }
   });
@@ -3960,6 +3971,18 @@ export default function App() {
       const list = snap.docs.map((d) => d.data()).sort((a, b) => (a.date < b.date ? 1 : -1));
       setReflections(list); setReflectionsCache(list);
     }, () => { setReflections(REFLECTION_SEED); setReflectionsCache(REFLECTION_SEED); });
+    return () => unsub();
+  }, [authUser]);
+
+  // Drafts: private to the signed-in owner, synced across their devices.
+  useEffect(() => {
+    if (!authUser) return;
+    setDraftsContext(authUser.email);
+    const q = query(collection(db, "drafts"), where("owner", "==", authUser.email));
+    const unsub = onSnapshot(q, (snap) => {
+      const list = snap.docs.map((d) => d.data());
+      setDrafts(list); setDraftsContext(undefined, list);
+    }, () => {});
     return () => unsub();
   }, [authUser]);
 
@@ -4127,7 +4150,7 @@ export default function App() {
                   onBack={() => { setSelectedForm(null); setResumeDraft(null); }} onSubmit={addSubmission} />
               : <FormSelector onSelect={setSelectedForm} />
           ) : role === "me" ? (
-            <MyDashboard submissions={submissions}
+            <MyDashboard submissions={submissions} drafts={drafts}
               reflections={reflections} onAddReflection={addReflection}
               onUpdateReflection={updateReflection} onDeleteReflection={deleteReflection}
               onResumeDraft={(d) => { setResumeDraft(d); setSelectedForm(d.formId); setRole("staff"); }}
