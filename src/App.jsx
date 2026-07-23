@@ -858,9 +858,9 @@ const inputStyle = {
 /* ------------------------------------------------------------------ *
  *  REFLECTIONS SHARE BOARD - staff share practice & development posts
  * ------------------------------------------------------------------ */
-function ReflectionsBoard({ submissions, reflections, onAdd }) {
+function ReflectionsBoard({ submissions, reflections, onAdd, me }) {
   const posts = reflections;
-  const [who, setWho] = useState("");
+  const who = me;
   const [text, setText] = useState("");
   const [photo, setPhoto] = useState("");
   const [linkIdea, setLinkIdea] = useState(true);
@@ -945,13 +945,8 @@ function ReflectionsBoard({ submissions, reflections, onAdd }) {
           }}><X size={16} /></button>
         </div>
         <div style={{ display: "grid", gap: 18 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 18 }}>
-            <Field label="Who's sharing?">
-              <select style={inputStyle} value={who} onChange={(e) => { setWho(e.target.value); setIdeaId(""); setOutcome(""); setLinkIdea(true); }}>
-                <option value="">Select…</option>
-                {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
-              </select>
-            </Field>
+          <div style={{ fontSize: 13, color: BRAND.grey }}>
+            Sharing as <strong style={{ color: BRAND.ink }}>{who}</strong>
           </div>
 
           {who && openIdeas.length > 0 && (
@@ -1163,7 +1158,7 @@ function BritTilesGrid() {
   );
 }
 
-function FormSelector({ onSelect }) {
+function FormSelector({ onSelect, user }) {
   return (
     <div>
       {/* statement panel + BRIT framework tiles */}
@@ -1238,17 +1233,19 @@ function FormSelector({ onSelect }) {
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 28px" }}>Choose a form</h2>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 22 }}>
         {FORMS.map((f, i) => {
-          const disabled = !f.active;
+          const permitted = canOpenForm(user, f.id);
+          const allowed = f.active && permitted;
+          const disabled = !allowed;
           const accent = FORM_ACCENT[f.id] || BRAND.magenta;
           return (
             <div
               key={f.id}
-              onClick={() => f.active && onSelect(f.id)}
+              onClick={() => allowed && onSelect(f.id)}
               style={{
                 background: "#fff", borderRadius: 20, padding: 26,
                 border: `1.5px solid ${disabled ? BRAND.line : BRAND.ink}`,
                 boxShadow: disabled ? "none" : `6px 6px 0 ${accent}`,
-                cursor: f.active ? "pointer" : "default",
+                cursor: allowed ? "pointer" : "not-allowed",
                 opacity: disabled ? 0.7 : 1,
                 display: "flex", flexDirection: "column", minHeight: 170,
               }}
@@ -1257,16 +1254,20 @@ function FormSelector({ onSelect }) {
                 <span style={{ width: 42, height: 42, borderRadius: 12, background: disabled ? BRAND.line : accent, display: "grid", placeItems: "center", color: "#fff" }}>
                   <f.icon size={22} />
                 </span>
-                {f.active ? <ArrowUpRight size={19} color={BRAND.ink} /> : <Lock size={15} color="#C0392B" />}
+                {allowed ? <ArrowUpRight size={19} color={BRAND.ink} /> : <Lock size={15} color="#C0392B" />}
               </div>
               <div style={{ flex: 1, minHeight: 26 }} />
               <div style={{ fontSize: 19, fontWeight: 800, letterSpacing: "-.01em", color: BRAND.ink }}>{f.name}</div>
               <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 6, lineHeight: 1.5 }}>{f.blurb}</div>
-              {f.profile === "pupil" && (
+              {!f.active ? (
                 <div style={{ marginTop: 12, fontSize: 11, fontWeight: 600, color: "#C0392B", display: "flex", alignItems: "center", gap: 6 }}>
                   <Clock size={13} /> Under development
                 </div>
-              )}
+              ) : !permitted ? (
+                <div style={{ marginTop: 12, fontSize: 11, fontWeight: 600, color: BRAND.grey, display: "flex", alignItems: "center", gap: 6 }}>
+                  <Lock size={13} /> Not available with your role
+                </div>
+              ) : null}
             </div>
           );
         })}
@@ -1312,11 +1313,8 @@ function SpineFields({ v, set, dept, classCtx, walk }) {
             {DEPARTMENTS.map((f) => <option key={f}>{f}</option>)}
           </select>
         </Field>
-        <Field label="Completed by (Head of Department)">
-          <select style={inputStyle} value={v.reviewer} onChange={(e) => set("reviewer", e.target.value)}>
-            <option value="">Select…</option>
-            {HEADS.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
-          </select>
+        <Field label="Completed by">
+          <div style={{ ...inputStyle, background: "#F5F1F4", display: "flex", alignItems: "center", color: BRAND.ink }}>{v.reviewer || "—"}</div>
         </Field>
       </div>
     );
@@ -1356,10 +1354,7 @@ function SpineFields({ v, set, dept, classCtx, walk }) {
           </select>
         </Field>
         <Field label="Reviewer">
-          <select style={inputStyle} value={v.reviewer} onChange={(e) => set("reviewer", e.target.value)}>
-            <option value="">Select…</option>
-            {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
-          </select>
+          <div style={{ ...inputStyle, background: "#F5F1F4", display: "flex", alignItems: "center", color: BRAND.ink }}>{v.reviewer || "—"}</div>
         </Field>
         {walk && (
           <Field label="Class">
@@ -1866,12 +1861,12 @@ function TrusteeFrameworkGuide() {
   );
 }
 
-function TrusteeWalkForm({ onBack, onSubmit, draft }) {
+function TrusteeWalkForm({ onBack, onSubmit, draft, me }) {
   const meta = FORMS.find((f) => f.id === "trustee-walk");
   const [draftId, setDraftId] = useState(draft?.id || null);
   const [draftSaved, setDraftSaved] = useState(false);
   const [v, setV] = useState(draft?.spine || {
-    date: "", term: "", academicYear: "2026/27", faculty: "", className: "", trusteeName: "", completedBy: "",
+    date: "", term: "", academicYear: "2026/27", faculty: "", className: "", trusteeName: "", completedBy: me || "",
   });
   const [see, setSee] = useState(draft?.trusteeSee || "");
   const [hear, setHear] = useState(draft?.trusteeHear || "");
@@ -1943,10 +1938,7 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
               onChange={(e) => set("trusteeName", e.target.value)} />
           </Field>
           <Field label="Completed by (staff member)">
-            <select style={inputStyle} value={v.completedBy} onChange={(e) => set("completedBy", e.target.value)}>
-              <option value="">Select…</option>
-              {STAFF.map((st) => <option key={st.name} value={st.name}>{st.name}</option>)}
-            </select>
+            <div style={{ ...inputStyle, background: "#F5F1F4", display: "flex", alignItems: "center", color: BRAND.ink }}>{v.completedBy || "—"}</div>
           </Field>
           <Field label="Date">
             <input type="date" style={inputStyle} value={v.date} onChange={(e) => set("date", e.target.value)} />
@@ -2043,7 +2035,7 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
   );
 }
 
-function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
+function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [], me }) {
   const walkArea = FORMS.find((f) => f.id === formId)?.walkArea;
   const isWalk = !!walkArea;
   const isDept = formId === "dept-review";
@@ -2052,7 +2044,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const [draftId, setDraftId] = useState(draft?.id || null);
   const [draftSaved, setDraftSaved] = useState(false);
   const [spine, setSpine] = useState(draft?.spine || {
-    date: "", term: "", academicYear: "2026/27", faculty: "", reviewee: "", reviewer: "",
+    date: "", term: "", academicYear: "2026/27", faculty: "", reviewee: "", reviewer: me || "",
     yearGroup: "", className: "", lessonTitle: "", aen: "",
   });
   const [strands, setStrands] = useState(draft?.strands ||
@@ -3220,10 +3212,7 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
   );
 }
 
-function MyDashboard({ submissions, drafts, reflections, onAddReflection, onUpdateReflection, onDeleteReflection, onResumeDraft, onEditSubmission, onDeleteSubmission }) {
-  const [me, setMe] = useState(() => {
-    try { return localStorage.getItem(ME_KEY) || "Amara Okafor"; } catch (e) { return "Amara Okafor"; }
-  });
+function MyDashboard({ submissions, drafts, reflections, me, onAddReflection, onUpdateReflection, onDeleteReflection, onResumeDraft, onEditSubmission, onDeleteSubmission }) {
   const [editingPost, setEditingPost] = useState(null);
   const [editText, setEditText] = useState("");
   const [ideaPick, setIdeaPick] = useState("");
@@ -3260,10 +3249,6 @@ function MyDashboard({ submissions, drafts, reflections, onAddReflection, onUpda
     reader.readAsDataURL(f);
   };
   const person = staffByName(me);
-  const pickMe = (n) => {
-    setMe(n);
-    try { localStorage.setItem(ME_KEY, n); } catch (e) { /* ignore */ }
-  };
 
   const byDate = (a, b) => (a.date < b.date ? 1 : -1);
   const myDrafts = drafts.filter((d) => !d.spine?.reviewer || d.spine.reviewer === me);
@@ -3298,19 +3283,11 @@ function MyDashboard({ submissions, drafts, reflections, onAddReflection, onUpda
             {person ? `${person.role} · ${person.level} · ${person.department}` : "Your forms, drafts and posts in one place."}
           </p>
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BRAND.grey }}>
-          This is you
-          <select style={{ ...inputStyle, width: "auto" }} value={me} onChange={(e) => pickMe(e.target.value)}>
-            {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
-          </select>
-        </label>
+        <div style={{ fontSize: 13, color: BRAND.grey, textAlign: "right" }}>
+          Signed in as<br /><strong style={{ color: BRAND.ink, fontSize: 14 }}>{me}</strong>
+        </div>
       </div>
-      <div style={{
-        fontSize: 12, color: BRAND.grey, background: "#fff", border: `1px dashed ${BRAND.line}`,
-        borderRadius: 10, padding: "8px 14px", marginBottom: 26,
-      }}>
-        Demo view - with staff login, this page would simply know who you are.
-      </div>
+      <div style={{ marginBottom: 26 }} />
 
       {/* open idea reflection */}
       {openIdeas.length > 0 && (
@@ -3835,23 +3812,28 @@ function useNarrow(query = "(max-width: 700px)") {
   return narrow;
 }
 
-function NavTile({ num, label, colour, active, onClick, narrow, compact }) {
+function NavTile({ num, label, colour, active, onClick, narrow, compact, locked }) {
   const base = active
     ? { background: BRAND.pink, color: BRAND.ink, border: `1.5px solid ${BRAND.ink}` }
-    : { background: colour, color: "#fff", border: `1.5px solid ${colour}` };
+    : locked
+      ? { background: "#ECE6EA", color: BRAND.grey, border: `1.5px solid ${BRAND.line}` }
+      : { background: colour, color: "#fff", border: `1.5px solid ${colour}` };
+  const handle = locked ? undefined : onClick;
+  const cursor = locked ? "not-allowed" : "pointer";
+  const title = locked ? "You don't have access to this" : label;
   if (compact) {
     return (
-      <button onClick={onClick} title={label} style={{
-        ...base, borderRadius: 12, cursor: "pointer", fontFamily: "inherit",
+      <button onClick={handle} title={title} style={{
+        ...base, borderRadius: 12, cursor, fontFamily: "inherit",
         width: 48, height: 48, display: "grid", placeItems: "center", padding: 0, flexShrink: 0,
       }}>
-        <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span>
+        {locked ? <Lock size={15} /> : <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span>}
       </button>
     );
   }
   return (
-    <button onClick={onClick} style={{
-      ...base, borderRadius: 16, cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+    <button onClick={handle} title={title} style={{
+      ...base, borderRadius: 16, cursor, fontFamily: "inherit", textAlign: "left",
       padding: narrow ? "12px 16px" : "16px 16px 18px",
       display: "flex", flexDirection: narrow ? "row" : "column",
       alignItems: narrow ? "center" : "stretch", gap: narrow ? 8 : 0,
@@ -3859,7 +3841,7 @@ function NavTile({ num, label, colour, active, onClick, narrow, compact }) {
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
         <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span>
-        {!narrow && (active ? <ArrowRight size={16} /> : <ArrowUpRight size={16} />)}
+        {!narrow && (locked ? <Lock size={15} /> : active ? <ArrowRight size={16} /> : <ArrowUpRight size={16} />)}
       </div>
       <span style={{ fontWeight: 750, fontSize: narrow ? 13 : 14.5, marginTop: narrow ? 0 : 40, lineHeight: 1.25 }}>{label}</span>
     </button>
@@ -3967,6 +3949,20 @@ function AuthScreen({ state, email, font }) {
   );
 }
 
+function LockedPage() {
+  return (
+    <Card style={{ padding: 40, textAlign: "center", maxWidth: 520, margin: "40px auto" }}>
+      <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#ECE6EA", display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
+        <Lock size={26} color={BRAND.grey} />
+      </div>
+      <h3 style={{ margin: "0 0 8px", color: BRAND.ink }}>No access</h3>
+      <p style={{ color: BRAND.grey, fontSize: 14, margin: 0, lineHeight: 1.55 }}>
+        You don't have permission to view this. If you think you should, ask an SLT or T&amp;L colleague to update your access.
+      </p>
+    </Card>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState("staff");
   const [submissions, setSubmissions] = useState([]);
@@ -3979,6 +3975,7 @@ export default function App() {
   const [drafts, setDrafts] = useState([]);
   const [directory, setDirectory] = useState([]);
   const [dirLoaded, setDirLoaded] = useState(false);
+  const [previewRole, setPreviewRole] = useState(null); // admin-only "view as" for testing
   const [railCollapsed, setRailCollapsed] = useState(() => {
     try { return localStorage.getItem("brit-tl-studio-rail") === "collapsed"; } catch (e) { return false; }
   });
@@ -4122,6 +4119,13 @@ export default function App() {
     };
   }, [authUser, directory]);
 
+  // Admins can preview the app as another role without changing their record.
+  const effectiveUser = useMemo(() => (
+    previewRole && currentStaff
+      ? { ...currentStaff, role: previewRole, isTL: false, extraForms: [] }
+      : currentStaff
+  ), [previewRole, currentStaff]);
+
   // Drafts: private to the signed-in owner, synced across their devices.
   useEffect(() => {
     if (!authUser) return;
@@ -4262,6 +4266,7 @@ export default function App() {
           )}
           {nav.map((n) => (
             <NavTile key={n.key} {...n} narrow={narrow} compact={compact} active={role === n.key}
+              locked={!canOpenTab(effectiveUser, n.key)}
               onClick={() => { setRole(n.key); setSelectedForm(null); setResumeDraft(null); }} />
           ))}
           <NavTile num="06" label="Ask the T&L Assistant any question" colour={BRAND.magenta} narrow={narrow} compact={compact}
@@ -4274,6 +4279,16 @@ export default function App() {
                   BRIT framework · prototype
                 </span>
               </div>
+              {isFullAccess(currentStaff) && (
+                <label style={{ fontSize: 10, fontWeight: 600, color: BRAND.grey, letterSpacing: ".04em", display: "block" }}>
+                  VIEW AS
+                  <select value={previewRole || ""} onChange={(e) => { setPreviewRole(e.target.value || null); setRole("staff"); setSelectedForm(null); }}
+                    style={{ ...inputStyle, marginTop: 4, padding: "5px 8px", fontSize: 11.5 }}>
+                    <option value="">Myself (SLT / T&amp;L)</option>
+                    {ROLE_ORDER.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+                  </select>
+                </label>
+              )}
               {authUser && (
                 <button onClick={() => signOut(auth)} title={authUser.email} style={{
                   background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left",
@@ -4288,23 +4303,27 @@ export default function App() {
         <main style={{ flex: 1, minWidth: 0 }}>
           {loading ? (
             <p style={{ color: BRAND.grey }}>Loading…</p>
+          ) : !canOpenTab(effectiveUser, role) ? (
+            <LockedPage />
           ) : role === "staff" ? (
-            selectedForm === "trustee-walk"
-              ? <TrusteeWalkForm key={resumeDraft ? resumeDraft.id : "trustee-walk"} draft={resumeDraft}
+            (selectedForm && !canOpenForm(effectiveUser, selectedForm))
+              ? <LockedPage />
+              : selectedForm === "trustee-walk"
+              ? <TrusteeWalkForm key={resumeDraft ? resumeDraft.id : "trustee-walk"} draft={resumeDraft} me={currentStaff?.name}
                   onBack={() => { setSelectedForm(null); setResumeDraft(null); }} onSubmit={addSubmission} />
               : selectedForm
-              ? <ReviewForm key={resumeDraft ? resumeDraft.id : selectedForm} formId={selectedForm} draft={resumeDraft}
+              ? <ReviewForm key={resumeDraft ? resumeDraft.id : selectedForm} formId={selectedForm} draft={resumeDraft} me={currentStaff?.name}
                   submissions={submissions}
                   onBack={() => { setSelectedForm(null); setResumeDraft(null); }} onSubmit={addSubmission} />
-              : <FormSelector onSelect={setSelectedForm} />
+              : <FormSelector onSelect={setSelectedForm} user={effectiveUser} />
           ) : role === "me" ? (
-            <MyDashboard submissions={submissions} drafts={drafts}
+            <MyDashboard submissions={submissions} drafts={drafts} me={currentStaff?.name}
               reflections={reflections} onAddReflection={addReflection}
               onUpdateReflection={updateReflection} onDeleteReflection={deleteReflection}
               onResumeDraft={(d) => { setResumeDraft(d); setSelectedForm(d.formId); setRole("staff"); }}
               onEditSubmission={editSubmission} onDeleteSubmission={deleteSubmission} />
           ) : role === "board" ? (
-            <ReflectionsBoard submissions={submissions} reflections={reflections} onAdd={addReflection} />
+            <ReflectionsBoard submissions={submissions} reflections={reflections} onAdd={addReflection} me={currentStaff?.name} />
           ) : role === "manager" ? (
             <ManagerDashboard submissions={submissions} />
           ) : (
