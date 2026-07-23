@@ -3956,13 +3956,10 @@ export default function App() {
           {!compact && (
           <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
             <svg width={narrow ? 100 : 136} viewBox="0 0 142 202" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
-              <g transform="rotate(-6 71 62)">
-                <rect x="5" y="12" width="132" height="100" rx="9" fill={BRAND.magenta} />
-                <text x="71" y="58" textAnchor="middle" textLength="112" lengthAdjust="spacingAndGlyphs"
-                  style={{ fontFamily: "'Anton',sans-serif", fontSize: 46, fill: "#2FD01C" }}>BRIT</text>
-                <text x="71" y="103" textAnchor="middle" textLength="112" lengthAdjust="spacingAndGlyphs"
-                  style={{ fontFamily: "'Anton',sans-serif", fontSize: 46, fill: "#2FD01C" }}>T&amp;L</text>
-              </g>
+              <text x="0" y="54" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Anton',sans-serif", fontSize: 74, fill: BRAND.magenta }}>BRIT</text>
+              <text x="0" y="127" textLength="142" lengthAdjust="spacingAndGlyphs"
+                style={{ fontFamily: "'Anton',sans-serif", fontSize: 84, fill: "none", stroke: BRAND.ink, strokeWidth: 2 }}>T&amp;L</text>
               <text x="0" y="157" textLength="142" lengthAdjust="spacingAndGlyphs"
                 style={{ fontFamily: "'Anton',sans-serif", fontSize: 24, fill: BRAND.ink }}>DEVELOPMENT</text>
               <text x="0" y="198" textLength="142" lengthAdjust="spacingAndGlyphs"
