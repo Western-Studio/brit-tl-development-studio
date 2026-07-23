@@ -3791,6 +3791,7 @@ function NavTile({ num, label, colour, active, onClick, narrow, compact }) {
 const TICKER_ITEMS = [
   "Belonging", "Room", "Intent", "Travel",
   "What can you see?", "What can you hear?", "How does it feel?",
+  "__logo__",
 ];
 
 function Ticker() {
@@ -3798,7 +3799,9 @@ function Ticker() {
     <div aria-hidden={dup} style={{ display: "flex", alignItems: "center", gap: 28, paddingRight: 28, flexShrink: 0 }}>
       {TICKER_ITEMS.map((t, i) => (
         <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 28, whiteSpace: "nowrap" }}>
-          <span>{t}</span>
+          {t === "__logo__"
+            ? <img src={tlLogo} alt="BRIT T&L" style={{ height: 30, width: "auto", display: "block", objectFit: "contain" }} />
+            : <span>{t}</span>}
           <span style={{ fontSize: 9, opacity: 0.8 }}>{i % 2 ? "✦" : "◆"}</span>
         </span>
       ))}
