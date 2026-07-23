@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
@@ -201,6 +201,67 @@ const STAFF = [
   { name: "Rachel Okon", role: "Teacher", level: "UPS", department: "Science", manager: "Nicola Grant" },
 ];
 const staffByName = (name) => STAFF.find((s) => s.name === name);
+
+/* ------------------------------------------------------------------ *
+ *  ROLES + PERMISSIONS
+ *  A user record: { email, name, role, isTL, department, manager, extraForms }
+ *  role ∈ teacher | assistant-director | director | senco | slt
+ *  isTL and role==="slt" grant full access. senco === director access.
+ * ------------------------------------------------------------------ */
+const ROLE_LABELS = {
+  teacher: "Teacher",
+  "assistant-director": "Assistant Director",
+  director: "Director (HoD)",
+  senco: "SENCO",
+  slt: "SLT",
+};
+const ROLE_ORDER = ["teacher", "assistant-director", "director", "senco", "slt"];
+
+const isFullAccess = (u) => !!u && (u.role === "slt" || !!u.isTL);
+const isDirectorLevel = (u) => !!u && (u.role === "director" || u.role === "senco");
+const isManagerLevel = (u) => !!u && (isFullAccess(u) || isDirectorLevel(u) || u.role === "assistant-director");
+
+// Nav tabs a user may open.
+function canOpenTab(u, tab) {
+  if (!u) return false;
+  if (isFullAccess(u)) return true;
+  switch (tab) {
+    case "manager": return isManagerLevel(u);
+    case "slt": return false;   // SLT / T&L only (caught by isFullAccess above)
+    case "admin": return false; // SLT / T&L only
+    default: return true;       // All Review Forms, My Dashboard, Share board
+  }
+}
+
+// Forms a user may open on the All Review Forms page.
+function canOpenForm(u, formId) {
+  if (!u) return false;
+  if (isFullAccess(u)) return true;
+  if (formId === "peer-review") return true;                 // everyone
+  if (formId === "dept-review") return isDirectorLevel(u);   // directors / SENCO
+  if ((u.extraForms || []).includes(formId)) return true;    // individually invited
+  return false;                                              // walks / device / trustee: SLT / T&L
+}
+
+// The demo staff seed the directory on first run, converted to the record
+// schema with synthetic school emails and roles inferred from their titles.
+// No SLT/T&L is seeded, so the first real person to sign in becomes the
+// founding admin.
+const staffEmail = (name) => slugify(name) + "@" + SCHOOL_DOMAIN;
+function inferRole(s) {
+  const lvl = (s.level || "").toLowerCase();
+  const r = (s.role || "").toLowerCase();
+  if (lvl.includes("leadership") || r.includes("head of") || r.includes("director")) return "director";
+  if (r.includes("lead")) return "assistant-director";
+  return "teacher";
+}
+function seedStaffFromDemo() {
+  return STAFF.map((s) => ({
+    email: staffEmail(s.name), name: s.name, role: inferRole(s), isTL: false,
+    department: s.department || "", manager: s.manager ? staffEmail(s.manager) : null,
+    extraForms: [], level: s.level || "",
+  }));
+}
 
 const FORMS = [
   {
@@ -3916,6 +3977,8 @@ export default function App() {
   const [authUser, setAuthUser] = useState(undefined); // undefined=checking, null=signed out
   const [reflections, setReflections] = useState(REFLECTION_SEED);
   const [drafts, setDrafts] = useState([]);
+  const [directory, setDirectory] = useState([]);
+  const [dirLoaded, setDirLoaded] = useState(false);
   const [railCollapsed, setRailCollapsed] = useState(() => {
     try { return localStorage.getItem("brit-tl-studio-rail") === "collapsed"; } catch (e) { return false; }
   });
@@ -3953,6 +4016,17 @@ export default function App() {
   }, []);
 
   useEffect(() => onAuthStateChanged(auth, (u) => setAuthUser(u || null)), []);
+
+  // Auto sign-out after 10 minutes with no activity.
+  useEffect(() => {
+    if (!authUser) return;
+    let timer;
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => signOut(auth), 10 * 60 * 1000); };
+    const events = ["mousedown", "keydown", "scroll", "touchstart", "mousemove"];
+    events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+    reset();
+    return () => { clearTimeout(timer); events.forEach((e) => window.removeEventListener(e, reset)); };
+  }, [authUser]);
 
   // Submissions live in Firestore and sync in realtime across everyone signed
   // in. First run seeds the demo data so dashboards aren't empty.
@@ -3997,6 +4071,56 @@ export default function App() {
     }, () => { setReflections(REFLECTION_SEED); setReflectionsCache(REFLECTION_SEED); });
     return () => unsub();
   }, [authUser]);
+
+  // Staff directory: roles, departments, line-management and per-person form
+  // grants. Seeds from the demo staff on first run.
+  useEffect(() => {
+    if (!authUser) return;
+    const col = collection(db, "staff");
+    let seeded = false;
+    const unsub = onSnapshot(col, async (snap) => {
+      if (snap.empty && !seeded) {
+        seeded = true;
+        try {
+          const batch = writeBatch(db);
+          seedStaffFromDemo().forEach((r) => batch.set(doc(col, r.email), r));
+          await batch.commit();
+        } catch (e) { setDirLoaded(true); }
+        return;
+      }
+      setDirectory(snap.docs.map((d) => d.data()));
+      setDirLoaded(true);
+    }, () => setDirLoaded(true));
+    return () => unsub();
+  }, [authUser]);
+
+  // Auto-provision the signed-in user: founding SLT/T&L admin if no admin
+  // exists yet, otherwise a plain teacher they/an admin can adjust later.
+  useEffect(() => {
+    if (!authUser || !dirLoaded) return;
+    const email = authUser.email?.toLowerCase();
+    if (!email || directory.some((s) => s.email?.toLowerCase() === email)) return;
+    const anyAdmin = directory.some((s) => s.role === "slt" || s.isTL);
+    const rec = {
+      email, name: authUser.displayName || email,
+      role: anyAdmin ? "teacher" : "slt", isTL: !anyAdmin,
+      department: "", manager: null, extraForms: [], level: "",
+    };
+    setDoc(doc(db, "staff", email), rec).catch(() => {});
+  }, [authUser, dirLoaded, directory]);
+
+  const currentStaff = useMemo(() => {
+    if (!authUser) return null;
+    const email = authUser.email?.toLowerCase();
+    const found = directory.find((s) => s.email?.toLowerCase() === email);
+    if (found) return found;
+    const anyAdmin = directory.some((s) => s.role === "slt" || s.isTL);
+    return {
+      email, name: authUser.displayName || email,
+      role: anyAdmin ? "teacher" : "slt", isTL: !anyAdmin,
+      department: "", manager: null, extraForms: [], level: "",
+    };
+  }, [authUser, directory]);
 
   // Drafts: private to the signed-in owner, synced across their devices.
   useEffect(() => {
