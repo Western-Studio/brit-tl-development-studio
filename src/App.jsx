@@ -3365,6 +3365,21 @@ export default function App() {
   });
   const narrow = useNarrow();
   const compact = !narrow && railCollapsed;
+  // Stick the rail so its bottom stays visible even when it is taller
+  // than the viewport: top pins at 26px on tall screens, or shifts up
+  // just enough that the last tile clears the bottom edge.
+  const railRef = useRef(null);
+  const [railTop, setRailTop] = useState(26);
+  useEffect(() => {
+    const measure = () => {
+      const el = railRef.current;
+      if (el) setRailTop(Math.min(26, window.innerHeight - el.offsetHeight - 26));
+    };
+    measure();
+    const t = setTimeout(measure, 350);
+    window.addEventListener("resize", measure);
+    return () => { clearTimeout(t); window.removeEventListener("resize", measure); };
+  }, [narrow, compact]);
 
   useEffect(() => {
     const style = document.createElement("style");
@@ -3443,11 +3458,9 @@ export default function App() {
         alignItems: "flex-start",
       }}>
         {/* rail */}
-        <aside className="brit-rail" style={{
+        <aside ref={railRef} className="brit-rail" style={{
           width: narrow ? "100%" : compact ? 64 : 184, flexShrink: 0,
-          position: narrow ? "static" : "sticky", top: 26,
-          maxHeight: narrow ? "none" : "calc(100vh - 52px)",
-          overflowY: narrow ? "visible" : "auto",
+          position: narrow ? "static" : "sticky", top: narrow ? undefined : railTop,
           padding: narrow ? 0 : compact ? "4px 6px" : "4px 6px 4px 4px",
           display: "flex", flexDirection: narrow ? "row" : "column",
           flexWrap: narrow ? "wrap" : "nowrap",
