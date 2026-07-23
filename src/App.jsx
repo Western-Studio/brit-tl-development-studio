@@ -3789,7 +3789,7 @@ function NavTile({ num, label, colour, active, onClick, narrow, compact }) {
 }
 
 const TICKER_ITEMS = [
-  "Belonging", "Room", "Intent", "Travel",
+  "Belonging", "Room", "Intent", "Travel", "__logo__",
   "What can you see?", "What can you hear?", "How does it feel?",
   "__logo__",
 ];
