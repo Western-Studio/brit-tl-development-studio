@@ -3951,9 +3951,9 @@ export default function App() {
             </button>
           )}
           {!compact && (
-          <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
-            <img src={tlLogo} alt="BRIT T&L" style={{ display: "block", width: narrow ? 96 : 132, height: "auto" }} />
-            <svg width={narrow ? 100 : 136} viewBox="0 0 142 66" role="img" aria-label="Development Studio" style={{ display: "block", overflow: "visible", marginTop: 5 }}>
+          <div style={{ padding: narrow ? "0 4px" : "0 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
+            <img src={tlLogo} alt="BRIT T&L" style={{ display: "block", width: narrow ? 116 : 162, height: "auto" }} />
+            <svg width={narrow ? 100 : 136} viewBox="0 0 142 66" role="img" aria-label="Development Studio" style={{ display: "block", overflow: "visible", marginTop: 18 }}>
               <text x="0" y="24" textLength="142" lengthAdjust="spacingAndGlyphs"
                 style={{ fontFamily: "'Anton',sans-serif", fontSize: 24, fill: BRAND.ink }}>DEVELOPMENT</text>
               <text x="0" y="61" textLength="142" lengthAdjust="spacingAndGlyphs"
