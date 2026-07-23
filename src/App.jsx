@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone
+  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone, Clock
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -313,6 +313,7 @@ function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comm
     id, formType, submittedAt: date,
     date, term, academicYear: "2026/27", faculty, reviewee, reviewer, strands,
     focus: extra.focus || "",
+    requiresFollowUp: extra.requiresFollowUp || false,
     inquiry: extra.inquiry || "",
     lessonFocus: extra.lessonFocus || "",
     priorContext: extra.priorContext || "",
@@ -416,7 +417,7 @@ const SEED = [
   mk("s8", "walk-belonging", "2026-10-08", "Term 2", "Production Arts", "Elena Petrova", "Kerry Western",
     ["Developing", "Developing", "Embedded", "Developing"],
     ["", "", "", "", "Belonging-focus walk: students arrived to an unset space and a quiet welcome - environment and greeting both need attention. Intent clear; travel hard to read on a walk."],
-    { focus: "Belonging", className: "13C Production Arts" }),
+    { focus: "Belonging", className: "13C Production Arts", requiresFollowUp: true }),
   mk("s9", "peer-review", "2026-11-12", "Term 2", "Music Technology", "Jordan Mackey", "Yusuf Rahman",
     ["Transformational", "Embedded", "Transformational", "Embedded"],
     ["Genuinely inclusive pair programming - rotations planned so quieter students took the driving seat, and every voice mattered in the stand-up.",
@@ -1287,6 +1288,7 @@ function printRecord(rec) {
   ${rec.impact ? `<div class="box"><strong>Impact on teaching and learning:</strong> ${esc(rec.impact)}</div>` : ""}
   ${rec.classTools ? `<div class="box"><strong>Class Tools:</strong> ${rec.classTools.used ? `in use - ${esc(rec.classTools.rating)}${rec.classTools.note ? ` (${esc(rec.classTools.note)})` : ""}` : "not in use this lesson"}</div>` : ""}
   ${rec.overall ? `<div class="box"><strong>Overall observation:</strong> ${esc(rec.overall)}</div>` : ""}
+  ${rec.requiresFollowUp ? `<div class="box" style="border-color:#E7C9C9"><strong>Requires follow-up.</strong> Feed back to the staff member within a week.</div>` : ""}
   ${rec.celebrate ? `<div class="box"><strong>Shout-out:</strong> ${esc(rec.celebrate)}</div>` : ""}
   ${rec.evenBetterIf ? `<div class="box"><strong>Even better if:</strong> ${esc(rec.evenBetterIf)}</div>` : ""}
   ${rec.nextStep ? `<div class="box"><strong>${rec.formType === "dept-review" ? "Priority for next term" : "One idea worth trying"}:</strong> ${esc(rec.nextStep)}</div>` : ""}
@@ -1671,6 +1673,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const [ctRating, setCtRating] = useState(draft?.classTools?.rating || "");
   const [ctNote, setCtNote] = useState(draft?.classTools?.note || "");
   const [overall, setOverall] = useState(draft?.overall || "");
+  const [requiresFollowUp, setRequiresFollowUp] = useState(draft?.requiresFollowUp || false);
   const [done, setDone] = useState(null);
 
   const saveDraft = () => {
@@ -1678,7 +1681,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     const record = {
       id, formId, editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
       spine, strands, focusStrand, inquiry, lessonFocus, priorContext, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
-      deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall,
+      deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall, requiresFollowUp,
     };
     saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
     setDraftId(id);
@@ -1732,6 +1735,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       impact: isDevice ? impact.trim() : "",
       classTools: isDevice ? { used: ctUsed, rating: ctUsed ? ctRating : "", note: ctUsed ? ctNote.trim() : "" } : undefined,
       overall: isWalk || isDevice ? overall : "",
+      requiresFollowUp: (isWalk || isDevice) ? requiresFollowUp : false,
     };
     onSubmit(record);
     removeDraft(draftId);
@@ -1766,7 +1770,19 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       <button onClick={onBack} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", color: BRAND.magenta, cursor: "pointer", fontSize: 14, fontWeight: 600, marginBottom: 22, padding: 0 }}>
         <ArrowLeft size={16} /> All forms
       </button>
-      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 26px" }}>{meta.name}</h2>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 18px" }}>{meta.name}</h2>
+
+      {(isWalk || isDevice || isDept) && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10, marginBottom: 26,
+          background: "#FDFBF6", border: "1.5px solid #EFE3C8", borderRadius: 12, padding: "12px 16px",
+        }}>
+          <Clock size={16} color="#B8860B" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: BRAND.ink, lineHeight: 1.5 }}>
+            Remember to feed back to the {isDept ? "staff you observed" : "member of staff"} within a week.
+          </span>
+        </div>
+      )}
 
       <FormGroup label="To discuss before the review" active={!isWalk && !isDept && !isDevice}>
       <Card style={{ padding: 28, marginBottom: 26 }}>
@@ -2014,6 +2030,10 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
             <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} value={overall}
               placeholder="One reflection across the walk" onChange={(e) => setOverall(e.target.value)} />
           </Field>
+          <label style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 14, cursor: "pointer", fontSize: 13.5, fontWeight: 650, color: BRAND.ink }}>
+            <input type="checkbox" checked={requiresFollowUp} onChange={(e) => setRequiresFollowUp(e.target.checked)} />
+            Requires follow-up
+          </label>
         </Card>
       )}
 
@@ -2442,6 +2462,7 @@ function SLTDashboard({ submissions }) {
                   </div>
                 ))}
                 {s.overall && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><em>{s.overall}</em></div>}
+                {s.requiresFollowUp && <div style={{ fontSize: 12.5, fontWeight: 700, color: "#C0392B", marginTop: 4, display: "flex", alignItems: "center", gap: 5 }}><Clock size={13} /> Requires follow-up</div>}
                 {s.className && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Class:</strong> {[s.yearGroup, s.className, s.lessonTitle].filter(Boolean).join(" · ")}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
                 {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
                 {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Prior context:</strong> {s.priorContext}</div>}
@@ -2601,6 +2622,7 @@ function ReviewFullView({ rec, onClose }) {
         })}
 
         {rec.overall && <div style={{ fontSize: 13.5, color: BRAND.grey, fontStyle: "italic", margin: "4px 0 10px" }}>{rec.overall}</div>}
+        {rec.requiresFollowUp && <div style={{ fontSize: 13, fontWeight: 700, color: "#C0392B", display: "flex", alignItems: "center", gap: 6, margin: "4px 0 10px" }}><Clock size={14} /> Requires follow-up</div>}
         <WalkLogSummary entries={rec.walkEntries} />
 
         <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
@@ -2666,6 +2688,7 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
           );
         })}
         {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
+        {s.requiresFollowUp && <div style={{ fontSize: 12.5, fontWeight: 700, color: "#C0392B", display: "flex", alignItems: "center", gap: 5 }}><Clock size={13} /> Requires follow-up</div>}
         {s.className && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Class:</strong> {[s.yearGroup, s.className, s.lessonTitle].filter(Boolean).join(" · ")}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
         {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
         {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Prior context:</strong> {s.priorContext}</div>}
@@ -3111,6 +3134,7 @@ function ManagerDashboard({ submissions }) {
                             );
                           })}
                           {s.overall && <div style={{ fontSize: 13, color: BRAND.grey }}><em>{s.overall}</em></div>}
+                          {s.requiresFollowUp && <div style={{ fontSize: 12.5, fontWeight: 700, color: "#C0392B", display: "flex", alignItems: "center", gap: 5 }}><Clock size={13} /> Requires follow-up</div>}
                           {s.className && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Class:</strong> {[s.yearGroup, s.className, s.lessonTitle].filter(Boolean).join(" · ")}{s.aen ? ` · ${s.aen} AEN learner${s.aen === "1" ? "" : "s"}` : ""}</div>}
         {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
         {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Prior context:</strong> {s.priorContext}</div>}
@@ -3159,7 +3183,7 @@ The BRIT EDIE Language Guide is the school's inclusive-language reference - adap
 
 Framework vocabulary, for coaching conversations: agency with guardrails (structure with real choice inside it - crew, not passengers); authentic audience (work that is performed, published, pitched or used beyond the room - at the top end, feedback sounds like "this works" or "this breaks" rather than a mark); craftsmanship (redrafting is normal, critique makes the work better); healthy struggle (being stuck is treated as part of learning); the three Cs (competence - work that holds up; chemistry - working well with others, leading and following; character - how you respond when the work is difficult); and access-first rooms (access tools like text-to-speech and dictation are a normal part of the room and let ability surface). Use this vocabulary when helping a reviewer picture what the top end of an area looks like. An example of coaching a focus into an agency-flavoured inquiry: "I want to investigate how offering three routes through the task affects how many students start without prompting."
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks come as four separate forms, one per area - a Belonging Walk, Room Walk, Intent Walk and Travel Walk. Each takes a deeper look at its own area (the full "in the room you might notice" look-for pills plus a descriptor and comment for that area) while keeping a lighter touch on the other three (just a descriptor each). A walk records the class being visited and closes with one overall observation. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks come as four separate forms, one per area - a Belonging Walk, Room Walk, Intent Walk and Travel Walk. Each takes a deeper look at its own area (the full "in the room you might notice" look-for pills plus a descriptor and comment for that area) while keeping a lighter touch on the other three (just a descriptor each). A walk records the class being visited and closes with one overall observation and a "requires follow-up" tick box. Learning Walks, the Device & Phone Walk and Departmental Reviews all carry a reminder to feed back to the staff observed within a week. A review flagged "requires follow-up" shows in red on the SLT, line-manager and My Dashboard views so it is not forgotten. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
