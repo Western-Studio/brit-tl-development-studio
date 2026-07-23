@@ -3949,6 +3949,113 @@ function AuthScreen({ state, email, font }) {
   );
 }
 
+// Forms that can be granted to an individual on top of their role.
+const GRANTABLE_FORMS = ["walk-belonging", "walk-room", "walk-intent", "walk-travel", "device-walk", "trustee-walk"];
+
+function AdminStaff({ directory, onSave, onDelete, myEmail }) {
+  const blank = { email: "", name: "", role: "teacher", isTL: false, department: "", manager: "", extraForms: [], level: "" };
+  const [form, setForm] = useState(blank);
+  const [editing, setEditing] = useState(false);
+  const set = (k, val) => setForm((f) => ({ ...f, [k]: val }));
+  const startEdit = (s) => { setForm({ ...blank, ...s, manager: s.manager || "", extraForms: s.extraForms || [] }); setEditing(true); window.scrollTo(0, 0); };
+  const reset = () => { setForm(blank); setEditing(false); };
+  const canSave = form.name.trim() && form.email.trim().includes("@");
+  const save = () => {
+    if (!canSave) return;
+    onSave({ ...form, email: form.email.trim().toLowerCase(), name: form.name.trim(), manager: form.manager || null });
+    reset();
+  };
+  const toggleGrant = (id) => set("extraForms", (form.extraForms || []).includes(id) ? form.extraForms.filter((x) => x !== id) : [...(form.extraForms || []), id]);
+  const sorted = [...directory].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const nameOf = (email) => directory.find((s) => s.email === email)?.name || "—";
+  const formName = (id) => FORMS.find((f) => f.id === id)?.name || id;
+
+  return (
+    <div>
+      <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 8px" }}>Manage staff</h2>
+      <p style={{ color: BRAND.grey, margin: "0 0 22px", fontSize: 14, lineHeight: 1.55, maxWidth: 640 }}>
+        Set each person's role, department, line manager and access. SLT and T&amp;L see everything; Directors (HoDs) and SENCOs see their team and department reviews; Assistant Directors see their own line-managees; Teachers get peer review and the share board. Tick a walk to invite someone to complete it regardless of role.
+      </p>
+
+      <Card style={{ padding: 24, marginBottom: 26 }}>
+        <h3 style={{ margin: "0 0 16px", fontSize: 16, color: BRAND.ink }}>{editing ? "Edit person" : "Add a person"}</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px,1fr))", gap: 16 }}>
+          <Field label="Full name">
+            <input style={inputStyle} value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Amara Okafor" />
+          </Field>
+          <Field label="School email">
+            <input style={{ ...inputStyle, ...(editing ? { background: "#F5F1F4", color: BRAND.grey } : {}) }} value={form.email}
+              onChange={(e) => set("email", e.target.value)} disabled={editing} placeholder={"name@" + SCHOOL_DOMAIN} />
+          </Field>
+          <Field label="Role">
+            <select style={inputStyle} value={form.role} onChange={(e) => set("role", e.target.value)}>
+              {ROLE_ORDER.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
+            </select>
+          </Field>
+          <Field label="Department">
+            <select style={inputStyle} value={form.department} onChange={(e) => set("department", e.target.value)}>
+              <option value="">Select…</option>
+              {DEPARTMENTS.map((d) => <option key={d}>{d}</option>)}
+            </select>
+          </Field>
+          <Field label="Line manager">
+            <select style={inputStyle} value={form.manager} onChange={(e) => set("manager", e.target.value)}>
+              <option value="">None</option>
+              {sorted.filter((s) => s.email !== form.email).map((s) => <option key={s.email} value={s.email}>{s.name}</option>)}
+            </select>
+          </Field>
+        </div>
+        <div style={{ marginTop: 18, display: "flex", flexWrap: "wrap", gap: 24, alignItems: "center" }}>
+          <Toggle on={!!form.isTL} onChange={(val) => set("isTL", val)} label="T&L team (full access)" />
+        </div>
+        <div style={{ marginTop: 18 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: BRAND.grey, letterSpacing: ".04em", marginBottom: 8 }}>INVITE TO WALKS (beyond their role)</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {GRANTABLE_FORMS.map((id) => {
+              const on = (form.extraForms || []).includes(id);
+              return (
+                <button key={id} onClick={() => toggleGrant(id)} style={{
+                  padding: "7px 12px", borderRadius: 999, fontSize: 12.5, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                  border: `1.5px solid ${on ? BRAND.magenta : BRAND.line}`, background: on ? BRAND.magenta : "#fff", color: on ? "#fff" : BRAND.ink,
+                }}>{formName(id)}</button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ marginTop: 22, display: "flex", gap: 10 }}>
+          <button onClick={save} disabled={!canSave} style={{
+            padding: "10px 22px", borderRadius: 999, border: "none", background: canSave ? BRAND.magenta : BRAND.line,
+            color: "#fff", fontWeight: 700, cursor: canSave ? "pointer" : "default", fontSize: 14, fontFamily: "inherit",
+          }}>{editing ? "Save changes" : "Add person"}</button>
+          {editing && <button onClick={reset} style={smallActionBtn(false)}>Cancel</button>}
+        </div>
+      </Card>
+
+      <Card style={{ padding: 8 }}>
+        {sorted.map((s) => (
+          <div key={s.email} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: `1px solid ${BRAND.line}`, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 200px", minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: BRAND.ink }}>{s.name} {s.email === myEmail && <span style={{ fontSize: 11, color: BRAND.magenta }}>· you</span>}</div>
+              <div style={{ fontSize: 12, color: BRAND.grey, wordBreak: "break-all" }}>{s.email}</div>
+            </div>
+            <div style={{ flex: "1 1 260px", fontSize: 12.5, color: BRAND.grey }}>
+              <strong style={{ color: BRAND.ink }}>{ROLE_LABELS[s.role] || s.role}{s.isTL ? " · T&L" : ""}</strong>
+              {s.department ? ` · ${s.department}` : ""}{s.manager ? ` · reports to ${nameOf(s.manager)}` : ""}
+              {(s.extraForms || []).length > 0 && <span style={{ color: BRAND.magenta }}> · +{s.extraForms.length} walk{s.extraForms.length === 1 ? "" : "s"}</span>}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={() => startEdit(s)} style={smallActionBtn(false)}>Edit</button>
+              <button onClick={() => { if (s.email !== myEmail && window.confirm(`Remove ${s.name}?`)) onDelete(s.email); }}
+                style={{ ...smallActionBtn(true), opacity: s.email === myEmail ? 0.4 : 1, cursor: s.email === myEmail ? "not-allowed" : "pointer" }}>Delete</button>
+            </div>
+          </div>
+        ))}
+        {sorted.length === 0 && <p style={{ color: BRAND.grey, fontSize: 13.5, padding: 16, margin: 0 }}>No staff yet.</p>}
+      </Card>
+    </div>
+  );
+}
+
 function LockedPage() {
   return (
     <Card style={{ padding: 40, textAlign: "center", maxWidth: 520, margin: "40px auto" }}>
@@ -4169,6 +4276,14 @@ export default function App() {
     deleteDoc(doc(db, "reflections", id)).catch(() => {});
   };
 
+  const saveStaff = (rec) => {
+    const email = (rec.email || "").toLowerCase();
+    if (email) setDoc(doc(db, "staff", email), { ...rec, email }).catch(() => {});
+  };
+  const deleteStaff = (email) => {
+    if (email) deleteDoc(doc(db, "staff", email.toLowerCase())).catch(() => {});
+  };
+
   // Reopen a submitted record in its form, pre-filled; submitting replaces it.
   const editSubmission = (rec) => {
     setResumeDraft({
@@ -4201,6 +4316,7 @@ export default function App() {
     { key: "board", num: "03", label: "Share board", colour: "#C2651A" },
     { key: "slt", num: "04", label: "SLT / T&L", colour: "#8447B0" },
     { key: "manager", num: "05", label: "Line Manager", colour: BRAND.ink },
+    ...(isFullAccess(effectiveUser) ? [{ key: "admin", num: "06", label: "Manage staff", colour: "#5A4763" }] : []),
   ];
 
   // Sign-in gate: only verified school Google accounts may enter.
@@ -4326,6 +4442,8 @@ export default function App() {
             <ReflectionsBoard submissions={submissions} reflections={reflections} onAdd={addReflection} me={currentStaff?.name} />
           ) : role === "manager" ? (
             <ManagerDashboard submissions={submissions} />
+          ) : role === "admin" ? (
+            <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} myEmail={currentStaff?.email} />
           ) : (
             <SLTDashboard submissions={submissions} />
           )}
