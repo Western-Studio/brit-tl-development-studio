@@ -208,12 +208,40 @@ const FORMS = [
     active: true,
   },
   {
-    id: "learning-walk",
-    name: "Learning Walk",
-    blurb: "Lighter-touch walk rated against the four areas, with a single overall observation.",
+    id: "walk-belonging",
+    name: "Belonging Walk",
+    blurb: "Learning walk with a deeper look at Belonging, lighter across the other three areas.",
     icon: Footprints,
     profile: "staff",
     active: true,
+    walkArea: "Belonging",
+  },
+  {
+    id: "walk-room",
+    name: "Room Walk",
+    blurb: "Learning walk with a deeper look at Room, lighter across the other three areas.",
+    icon: Footprints,
+    profile: "staff",
+    active: true,
+    walkArea: "Room",
+  },
+  {
+    id: "walk-intent",
+    name: "Intent Walk",
+    blurb: "Learning walk with a deeper look at Intent, lighter across the other three areas.",
+    icon: Footprints,
+    profile: "staff",
+    active: true,
+    walkArea: "Intent",
+  },
+  {
+    id: "walk-travel",
+    name: "Travel Walk",
+    blurb: "Learning walk with a deeper look at Travel, lighter across the other three areas.",
+    icon: Footprints,
+    profile: "staff",
+    active: true,
+    walkArea: "Travel",
   },
   {
     id: "device-walk",
@@ -241,9 +269,9 @@ const FORMS = [
   },
 ];
 
-// v4: adds the Device & Phone Walk seeds and walk spotlight foci. The key
-// bump makes browsers holding an old seed reseed (demo data resets).
-const STORAGE_KEY = "brit-tl-studio-submissions-v4";
+// v5: per-area Learning Walk forms. The key bump makes browsers holding
+// an old seed reseed (demo data resets).
+const STORAGE_KEY = "brit-tl-studio-submissions-v5";
 
 // The device & phone policy, as checked on a Device & Phone Walk.
 const POLICY_CHECKS = [
@@ -298,7 +326,7 @@ function mk(id, formType, date, term, faculty, reviewee, reviewer, ratings, comm
     links: extra.links || [],
     walkEntries: extra.walkEntries || [],
     supportNeeded: extra.supportNeeded || "",
-    overall: formType === "learning-walk" ? (comments[4] || "") : "",
+    overall: formType.startsWith("walk-") ? (comments[4] || "") : "",
   };
 }
 
@@ -381,11 +409,11 @@ const SEED = [
       celebrate: "The critique culture - generous, rigorous, and completely student-led by the end.",
       nextStep: "Name the learning (not just the task) at the top of the session, so the why is as visible as the what.",
     }),
-  mk("s7", "learning-walk", "2026-09-25", "Term 1", "Musical Theatre", "Grace Adeyemi", "Kerry Western",
+  mk("s7", "walk-room", "2026-09-25", "Term 1", "Musical Theatre", "Grace Adeyemi", "Kerry Western",
     ["Embedded", "Embedded", "Transformational", "Embedded"],
     ["", "", "", "", "Mobile-phones check-in walk across three rooms: policy landing well. Intent strong everywhere; belonging solid; travel visible in the vocal work."],
     { focus: "Room", className: "Across three rooms" }),
-  mk("s8", "learning-walk", "2026-10-08", "Term 2", "Production Arts", "Elena Petrova", "Kerry Western",
+  mk("s8", "walk-belonging", "2026-10-08", "Term 2", "Production Arts", "Elena Petrova", "Kerry Western",
     ["Developing", "Developing", "Embedded", "Developing"],
     ["", "", "", "", "Belonging-focus walk: students arrived to an unset space and a quiet welcome - environment and greeting both need attention. Intent clear; travel hard to read on a walk."],
     { focus: "Belonging", className: "13C Production Arts" }),
@@ -430,7 +458,7 @@ const SEED = [
         { id: "we3", teacher: "Grace Adeyemi", className: "10C Drama", yearGroup: "Year 10", ratings: { Belonging: "Embedded", Room: "Developing", Intent: "Embedded", Travel: "Embedded" }, note: "Room reset ate into the start" },
       ],
     }),
-  mk("s11", "learning-walk", "2026-11-20", "Term 2", "Music", "Marcus Bell", "Kerry Western",
+  mk("s11", "walk-room", "2026-11-20", "Term 2", "Music", "Marcus Bell", "Kerry Western",
     ["Embedded", "Transformational", "Transformational", "Embedded"],
     ["", "", "", "", "Rooms-focus walk: both studios set before learning started, kit ready, sightlines clean. Intent excellent; travel evident in the composition task."],
     { focus: "Room", className: "Both music studios" }),
@@ -926,7 +954,7 @@ function ReflectionsBoard({ submissions }) {
   );
 }
 
-const FORM_ACCENT = { "peer-review": "#AD227E", "learning-walk": "#8447B0", "device-walk": "#C2651A", "dept-review": "#46B749", "aen-review": "#C0392B" };
+const FORM_ACCENT = { "peer-review": "#AD227E", "walk-belonging": "#AD227E", "walk-room": "#8447B0", "walk-intent": "#C2651A", "walk-travel": "#46B749", "device-walk": "#C2651A", "dept-review": "#46B749", "aen-review": "#C0392B" };
 
 function OutlinePill({ children, colour = "#fff" }) {
   return (
@@ -1613,7 +1641,8 @@ function CoachingQuestionsCard() {
 }
 
 function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
-  const isWalk = formId === "learning-walk";
+  const walkArea = FORMS.find((f) => f.id === formId)?.walkArea;
+  const isWalk = !!walkArea;
   const isDept = formId === "dept-review";
   const isDevice = formId === "device-walk";
   const meta = FORMS.find((f) => f.id === formId);
@@ -1626,7 +1655,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const [strands, setStrands] = useState(draft?.strands ||
     STRANDS.reduce((a, s) => ({ ...a, [s.key]: { rating: "", comment: "", noticed: [] } }), {})
   );
-  const [focusStrand, setFocusStrand] = useState(draft?.focusStrand || "");
+  const [focusStrand, setFocusStrand] = useState(draft?.focusStrand || walkArea || "");
   const [inquiry, setInquiry] = useState(draft?.inquiry || "");
   const [lessonFocus, setLessonFocus] = useState(draft?.lessonFocus || "");
   const [priorContext, setPriorContext] = useState(draft?.priorContext || "");
@@ -1797,7 +1826,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         </Card>
       )}
 
-      {!isDevice && (
+      {!isDevice && !isWalk && (
         <Card style={{ padding: 28, marginBottom: 26 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <Sparkles size={16} color={BRAND.magenta} />
@@ -1948,7 +1977,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         </>
       )}
 
-      {!isDevice && STRANDS.map((s) => isWalk ? (
+      {!isDevice && STRANDS.map((s) => (isWalk && s.key !== walkArea) ? (
         <Card key={s.key} style={{ padding: 28, marginBottom: 22, background: s.pastel }}>
           <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 6 }}>
             <StrandBadge s={s} size={34} />
@@ -2064,7 +2093,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
             {isDevice
               ? "Complete the details, a reading for each policy expectation, and the impact on teaching and learning."
               : isWalk
-              ? "Complete all details, pick the walk's focus, and a descriptor for each area."
+              ? "Complete all details and choose a descriptor for each area."
               : isDept
                 ? "Complete the details, pick this term's focus, choose a descriptor for each area, and add the proudest practice and a priority."
                 : "Complete the details and class context, set the lesson focus, pick a spotlight, agree your inquiry question, choose a descriptor for each area, and add a shout-out and an idea worth trying."}
@@ -3130,7 +3159,7 @@ The BRIT EDIE Language Guide is the school's inclusive-language reference - adap
 
 Framework vocabulary, for coaching conversations: agency with guardrails (structure with real choice inside it - crew, not passengers); authentic audience (work that is performed, published, pitched or used beyond the room - at the top end, feedback sounds like "this works" or "this breaks" rather than a mark); craftsmanship (redrafting is normal, critique makes the work better); healthy struggle (being stuck is treated as part of learning); the three Cs (competence - work that holds up; chemistry - working well with others, leading and following; character - how you respond when the work is difficult); and access-first rooms (access tools like text-to-speech and dictation are a normal part of the room and let ability surface). Use this vocabulary when helping a reviewer picture what the top end of an area looks like. An example of coaching a focus into an agency-flavoured inquiry: "I want to investigate how offering three routes through the task affects how many students start without prompting."
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks are lighter: the class being visited, a spotlight focus (the area the walk is looking for), descriptors per area, plus one overall observation. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks come as four separate forms, one per area - a Belonging Walk, Room Walk, Intent Walk and Travel Walk. Each takes a deeper look at its own area (the full "in the room you might notice" look-for pills plus a descriptor and comment for that area) while keeping a lighter touch on the other three (just a descriptor each). A walk records the class being visited and closes with one overall observation. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
