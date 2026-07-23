@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone, Clock, RotateCw, Smile
+  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Clock, RotateCw
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -255,7 +255,7 @@ const FORMS = [
     id: "device-walk",
     name: "Device & Phone Walk",
     blurb: "Is the phone-box policy landing - and what is the impact on teaching and learning?",
-    icon: Smartphone,
+    icon: Footprints,
     profile: "staff",
     active: true,
   },
@@ -263,7 +263,7 @@ const FORMS = [
     id: "trustee-walk",
     name: "Trustee Learning Walk",
     blurb: "A relaxed, plain-language look around for trustees and visitors.",
-    icon: Smile,
+    icon: Footprints,
     profile: "staff",
     active: true,
   },
