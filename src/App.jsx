@@ -3685,7 +3685,7 @@ function HelpBot({ open, setOpen, raised }) {
     }}>
       <div style={{ background: BRAND.magenta, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9, color: "#fff" }}>
-          <img src={tlLogo} alt="" style={{ width: 32, height: 32, objectFit: "contain" }} /> <span style={{ fontWeight: 700, fontSize: 15 }}>T&amp;L Assistant</span>
+          <img src={tlLogo} alt="" style={{ width: 32, height: 32, objectFit: "contain" }} /> <span style={{ fontWeight: 700, fontSize: 15 }}>Assistant</span>
         </div>
         <button onClick={() => setOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}>
           <X size={20} color="#fff" />
