@@ -3940,28 +3940,38 @@ export default function App() {
           flexWrap: narrow ? "wrap" : "nowrap",
           gap: 12, alignItems: narrow ? "center" : compact ? "center" : "stretch",
         }}>
-          {!narrow && (
-            <button onClick={toggleRail} title={compact ? "Expand menu" : "Collapse menu"} style={{
+          {!narrow && compact && (
+            <button onClick={toggleRail} title="Expand menu" style={{
               width: 30, height: 30, borderRadius: 999, border: `1.5px solid ${BRAND.line}`,
               background: "#fff", color: BRAND.ink, cursor: "pointer", flexShrink: 0,
-              display: "grid", placeItems: "center", padding: 0,
-              alignSelf: compact ? "center" : "flex-end",
+              display: "grid", placeItems: "center", padding: 0, alignSelf: "center",
             }}>
-              {compact ? <ChevronRight size={15} /> : <ChevronLeft size={15} />}
+              <ChevronRight size={15} />
             </button>
           )}
           {!compact && (
-          <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
-            <svg width={narrow ? 100 : 136} viewBox="0 0 142 202" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
-              <text x="0" y="54" textLength="142" lengthAdjust="spacingAndGlyphs"
-                style={{ fontFamily: "'Anton',sans-serif", fontSize: 74, fill: BRAND.magenta }}>BRIT</text>
-              <text x="0" y="127" textLength="142" lengthAdjust="spacingAndGlyphs"
-                style={{ fontFamily: "'Anton',sans-serif", fontSize: 84, fill: "none", stroke: BRAND.ink, strokeWidth: 2 }}>T&amp;L</text>
-              <text x="0" y="157" textLength="142" lengthAdjust="spacingAndGlyphs"
-                style={{ fontFamily: "'Anton',sans-serif", fontSize: 24, fill: BRAND.ink }}>DEVELOPMENT</text>
-              <text x="0" y="198" textLength="142" lengthAdjust="spacingAndGlyphs"
-                style={{ fontFamily: "'Anton',sans-serif", fontSize: 38, fill: "none", stroke: BRAND.magenta, strokeWidth: 1.7 }}>STUDIO<tspan style={{ fill: BRAND.magenta, stroke: "none" }}>.</tspan></text>
-            </svg>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+            <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
+              <svg width={narrow ? 100 : 136} viewBox="0 0 142 202" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
+                <text x="0" y="54" textLength="142" lengthAdjust="spacingAndGlyphs"
+                  style={{ fontFamily: "'Anton',sans-serif", fontSize: 74, fill: BRAND.magenta }}>BRIT</text>
+                <text x="0" y="127" textLength="142" lengthAdjust="spacingAndGlyphs"
+                  style={{ fontFamily: "'Anton',sans-serif", fontSize: 84, fill: "none", stroke: BRAND.ink, strokeWidth: 2 }}>T&amp;L</text>
+                <text x="0" y="157" textLength="142" lengthAdjust="spacingAndGlyphs"
+                  style={{ fontFamily: "'Anton',sans-serif", fontSize: 24, fill: BRAND.ink }}>DEVELOPMENT</text>
+                <text x="0" y="198" textLength="142" lengthAdjust="spacingAndGlyphs"
+                  style={{ fontFamily: "'Anton',sans-serif", fontSize: 38, fill: "none", stroke: BRAND.magenta, strokeWidth: 1.7 }}>STUDIO<tspan style={{ fill: BRAND.magenta, stroke: "none" }}>.</tspan></text>
+              </svg>
+            </div>
+            {!narrow && (
+              <button onClick={toggleRail} title="Collapse menu" style={{
+                width: 30, height: 30, borderRadius: 999, border: `1.5px solid ${BRAND.line}`,
+                background: "#fff", color: BRAND.ink, cursor: "pointer", flexShrink: 0,
+                display: "grid", placeItems: "center", padding: 0, marginTop: 6,
+              }}>
+                <ChevronLeft size={15} />
+              </button>
+            )}
           </div>
           )}
           {nav.map((n) => (
