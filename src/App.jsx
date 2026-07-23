@@ -1899,12 +1899,17 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
       </Card>
 
       <Card style={{ padding: 28, marginBottom: 22 }}>
-        <label style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", fontSize: 13.5, fontWeight: 650, color: BRAND.ink }}>
-          <input type="checkbox" checked={requiresFollowUp} onChange={(e) => setRequiresFollowUp(e.target.checked)} />
-          Requires follow-up
-        </label>
+        <button onClick={() => setRequiresFollowUp((f) => !f)} style={{
+          display: "inline-flex", alignItems: "center", gap: 8, padding: "9px 18px", borderRadius: 999,
+          cursor: "pointer", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700,
+          border: `2px solid ${BRAND.magenta}`,
+          background: requiresFollowUp ? BRAND.magenta : "#fff",
+          color: requiresFollowUp ? "#fff" : BRAND.magenta,
+        }}>
+          {requiresFollowUp && <CheckCircle size={15} />}Requires follow-up
+        </button>
         {requiresFollowUp && (
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 16 }}>
             <Field label="Follow-up - what needs to happen, and who by?">
               <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={followUp}
                 placeholder="The action, and who will pick it up…"
@@ -2063,14 +2068,14 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       </button>
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 18px" }}>{meta.name}</h2>
 
-      {(isWalk || isDevice || isDept) && (
+      {isDept && (
         <div style={{
           display: "flex", alignItems: "center", gap: 10, marginBottom: 26,
           background: "#FDFBF6", border: "1.5px solid #EFE3C8", borderRadius: 12, padding: "12px 16px",
         }}>
           <Clock size={16} color="#B8860B" style={{ flexShrink: 0 }} />
           <span style={{ fontSize: 13, color: BRAND.ink, lineHeight: 1.5 }}>
-            Remember to feed back to the {isDept ? "staff you observed" : "member of staff"} within a week.
+            Remember to feed back to the staff you observed within a week.
           </span>
         </div>
       )}
@@ -2320,10 +2325,21 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
             <textarea style={{ ...inputStyle, minHeight: 90, resize: "vertical" }} value={overall}
               placeholder="One reflection across the walk" onChange={(e) => setOverall(e.target.value)} />
           </Field>
-          <label style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 14, cursor: "pointer", fontSize: 13.5, fontWeight: 650, color: BRAND.ink }}>
-            <input type="checkbox" checked={requiresFollowUp} onChange={(e) => setRequiresFollowUp(e.target.checked)} />
-            Requires follow-up
-          </label>
+          <div style={{ marginTop: 16 }}>
+            <button onClick={() => setRequiresFollowUp((f) => !f)} style={{
+              display: "inline-flex", alignItems: "center", gap: 8, padding: "9px 18px", borderRadius: 999,
+              cursor: "pointer", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700,
+              border: `2px solid ${BRAND.magenta}`,
+              background: requiresFollowUp ? BRAND.magenta : "#fff",
+              color: requiresFollowUp ? "#fff" : BRAND.magenta,
+            }}>
+              {requiresFollowUp && <CheckCircle size={15} />}Requires follow-up
+            </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 13, color: BRAND.grey }}>
+              <Clock size={15} color="#B8860B" style={{ flexShrink: 0 }} />
+              Remember to feed back to the member of staff within a week.
+            </div>
+          </div>
         </Card>
       )}
 
