@@ -16,6 +16,8 @@ import "@fontsource/archivo/800.css";
 import "@fontsource/archivo/900.css";
 import "@fontsource/anton/400.css";
 import tlLogo from "./tl-logo.png";
+import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import { auth, googleProvider, SCHOOL_DOMAIN } from "./firebase.js";
 
 /* ------------------------------------------------------------------ *
  *  BRAND + FRAMEWORK CONSTANTS
@@ -3820,6 +3822,73 @@ function Ticker() {
   );
 }
 
+function AuthScreen({ state, email, font }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const signIn = async () => {
+    setBusy(true); setErr("");
+    try { await signInWithPopup(auth, googleProvider); }
+    catch (e) {
+      if (e?.code !== "auth/popup-closed-by-user" && e?.code !== "auth/cancelled-popup-request") {
+        setErr("Sign-in didn't complete. Please try again.");
+      }
+    } finally { setBusy(false); }
+  };
+  return (
+    <div style={{
+      minHeight: "100vh", background: BRAND.pink, fontFamily: font, color: BRAND.ink,
+      display: "grid", placeItems: "center", padding: 24,
+    }}>
+      <div style={{
+        width: "100%", maxWidth: 440, background: "#fff", borderRadius: 24,
+        border: `1px solid ${BRAND.line}`, boxShadow: "0 18px 50px rgba(42,30,39,.14)",
+        padding: "40px 38px 34px", textAlign: "center",
+      }}>
+        <img src={tlLogo} alt="BRIT T&L" style={{ width: 96, height: 96, objectFit: "contain", margin: "0 auto 20px", display: "block" }} />
+        <div style={{ fontFamily: "'Anton',sans-serif", fontSize: 30, lineHeight: 1, letterSpacing: ".01em", marginBottom: 6 }}>
+          DEVELOPMENT STUDIO<span style={{ color: BRAND.magenta }}>.</span>
+        </div>
+        {state === "loading" ? (
+          <p style={{ color: BRAND.grey, fontSize: 14, margin: "18px 0 4px" }}>Checking your sign-in…</p>
+        ) : state === "wrong-domain" ? (
+          <>
+            <p style={{ color: BRAND.ink, fontSize: 14.5, lineHeight: 1.55, margin: "16px 0 8px" }}>
+              You're signed in as <strong>{email}</strong>, which isn't a BRIT School account.
+            </p>
+            <p style={{ color: BRAND.grey, fontSize: 13.5, lineHeight: 1.55, margin: "0 0 22px" }}>
+              Please sign in with your <strong>@{SCHOOL_DOMAIN}</strong> Google account.
+            </p>
+            <button onClick={() => signOut(auth)} style={{
+              width: "100%", padding: "13px 18px", borderRadius: 12, border: "none",
+              background: BRAND.magenta, color: "#fff", fontSize: 15, fontWeight: 700,
+              cursor: "pointer", fontFamily: "inherit",
+            }}>Sign out and try again</button>
+          </>
+        ) : (
+          <>
+            <p style={{ color: BRAND.grey, fontSize: 14, lineHeight: 1.55, margin: "16px 0 24px" }}>
+              Sign in with your BRIT School Google account to continue.
+            </p>
+            <button onClick={signIn} disabled={busy} style={{
+              width: "100%", padding: "13px 18px", borderRadius: 12, border: `1.5px solid ${BRAND.line}`,
+              background: "#fff", color: BRAND.ink, fontSize: 15, fontWeight: 700,
+              cursor: busy ? "default" : "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 10, opacity: busy ? 0.7 : 1,
+            }}>
+              <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-2.8-.4-4H24v7.6h12.7c-.3 2.1-1.6 5.2-4.7 7.3l7.3 5.7c4.3-4 6.8-9.9 6.8-16.6z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.5-.8-3-.8-4.6s.3-3.1.8-4.6l-7.9-6.2C1 16.5 0 20.1 0 24s1 7.5 2.6 10.8l7.9-6.2z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.3-5.7c-2 1.4-4.6 2.3-8.6 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.2C6.5 42.6 14.6 48 24 48z"/></svg>
+              {busy ? "Opening Google…" : "Sign in with Google"}
+            </button>
+            {err && <p style={{ color: "#B00020", fontSize: 12.5, margin: "12px 0 0" }}>{err}</p>}
+          </>
+        )}
+        <p style={{ color: BRAND.grey, fontSize: 11, margin: "22px 0 0", lineHeight: 1.5 }}>
+          BRIT framework · prototype · access is limited to BRIT School staff
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [role, setRole] = useState("staff");
   const [submissions, setSubmissions] = useState([]);
@@ -3827,6 +3896,7 @@ export default function App() {
   const [selectedForm, setSelectedForm] = useState(null);
   const [resumeDraft, setResumeDraft] = useState(null);
   const [botOpen, setBotOpen] = useState(false);
+  const [authUser, setAuthUser] = useState(undefined); // undefined=checking, null=signed out
   const [railCollapsed, setRailCollapsed] = useState(() => {
     try { return localStorage.getItem("brit-tl-studio-rail") === "collapsed"; } catch (e) { return false; }
   });
@@ -3866,6 +3936,8 @@ export default function App() {
   useEffect(() => {
     loadSubmissions().then((list) => { setSubmissions(list); setLoading(false); });
   }, []);
+
+  useEffect(() => onAuthStateChanged(auth, (u) => setAuthUser(u || null)), []);
 
   // Every page and form opens from the top.
   useEffect(() => {
@@ -3922,6 +3994,13 @@ export default function App() {
     { key: "slt", num: "04", label: "SLT / T&L", colour: "#8447B0" },
     { key: "manager", num: "05", label: "Line Manager", colour: BRAND.ink },
   ];
+
+  // Sign-in gate: only verified school Google accounts may enter.
+  if (authUser === undefined) return <AuthScreen state="loading" font={font} />;
+  const domainOk = !!authUser?.email && authUser.email.toLowerCase().endsWith("@" + SCHOOL_DOMAIN);
+  if (!authUser || !domainOk) {
+    return <AuthScreen state={authUser ? "wrong-domain" : "signed-out"} email={authUser?.email} font={font} />;
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: BRAND.pink, fontFamily: font, color: BRAND.ink }}>
@@ -3984,11 +4063,19 @@ export default function App() {
           <NavTile num="06" label="Ask the T&L Assistant any question" colour={BRAND.magenta} narrow={narrow} compact={compact}
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && !compact && (
-            <div style={{ marginTop: "auto", paddingTop: 14, display: "flex", alignItems: "center", gap: 9 }}>
-              <img src={tlLogo} alt="BRIT T&L" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em" }}>
-                BRIT framework · prototype
-              </span>
+            <div style={{ marginTop: "auto", paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+                <img src={tlLogo} alt="BRIT T&L" style={{ width: 36, height: 36, objectFit: "contain", flexShrink: 0 }} />
+                <span style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em" }}>
+                  BRIT framework · prototype
+                </span>
+              </div>
+              {authUser && (
+                <button onClick={() => signOut(auth)} title={authUser.email} style={{
+                  background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left",
+                  fontSize: 10.5, fontWeight: 600, color: BRAND.magenta, letterSpacing: ".04em", fontFamily: "inherit",
+                }}>Sign out{authUser.displayName ? ` · ${authUser.displayName.split(" ")[0]}` : ""}</button>
+              )}
             </div>
           )}
         </aside>
