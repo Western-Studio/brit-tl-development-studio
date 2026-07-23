@@ -3,7 +3,7 @@ import {
   Home, ClipboardList, Users, BarChart3, MessageCircle, Send, X,
   ArrowLeft, ArrowRight, ArrowUpRight, Plus, ShieldAlert, CheckCircle,
   ChevronDown, Sparkles, Search, Bot, Lock, GraduationCap, ClipboardCheck,
-  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone, Clock, RotateCw, Eye
+  Camera, Lightbulb, ChevronLeft, ChevronRight, Sprout, TreeDeciduous, Trees, Footprints, Smartphone, Clock, RotateCw, Smile
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend
@@ -262,8 +262,8 @@ const FORMS = [
   {
     id: "trustee-walk",
     name: "Trustee Learning Walk",
-    blurb: "A relaxed, plain-language look around for trustees and visitors - no jargon, no grading.",
-    icon: Eye,
+    blurb: "A relaxed, plain-language look around for trustees and visitors.",
+    icon: Smile,
     profile: "staff",
     active: true,
   },
@@ -1774,7 +1774,7 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
       </button>
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 8px" }}>{meta.name}</h2>
       <p style={{ color: BRAND.grey, margin: "0 0 26px", fontSize: 14, lineHeight: 1.5, maxWidth: 680 }}>
-        A relaxed look around, in plain language - no jargon and no grading. Just tell us what you saw, heard and felt. Thank you for giving your time.
+        A relaxed look around, in plain language. Just tell us what you saw, heard and felt. Thank you for giving your time.
       </p>
 
       <Card style={{ padding: 28, marginBottom: 26 }}>
