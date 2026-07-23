@@ -656,7 +656,7 @@ function setDraftsContext(email, list) {
   if (list) _draftsCache = list;
 }
 function loadDrafts() { return _draftsCache; }
-function saveDraft(draft) {
+function putDraft(draft) {
   const rec = { ...draft, owner: _draftOwner };
   _draftsCache = [rec, ..._draftsCache.filter((d) => d.id !== rec.id)];
   setDoc(doc(db, "drafts", rec.id), JSON.parse(JSON.stringify(rec))).catch(() => {});
@@ -712,6 +712,14 @@ function makeId(prefix, parts = []) {
   const rand = Math.random().toString(36).slice(2, 6);
   return [slugify(prefix), body, rand].filter(Boolean).join("-");
 }
+
+// Small grey reference tag showing a record's document id.
+const RefLine = ({ id, style }) => id ? (
+  <div style={{
+    fontSize: 10.5, color: BRAND.grey, letterSpacing: ".01em",
+    fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", wordBreak: "break-all", ...style,
+  }}>Ref: {id}</div>
+) : null;
 
 /* ------------------------------------------------------------------ *
  *  SMALL UI PRIMITIVES
@@ -1012,6 +1020,7 @@ function ReflectionsBoard({ submissions, reflections, onAdd }) {
                   <strong style={{ color: BRAND.magenta }}>{post.name}</strong>
                   {author && <> · {author.department}</>} · {post.date}
                 </div>
+                <RefLine id={post.id} style={{ marginTop: 8 }} />
               </div>
             </div>
           );
@@ -1815,7 +1824,7 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
 
   const saveDraft = () => {
     const id = draftId || makeId("draft", ["trustee-walk", v.trusteeName || v.faculty]);
-    saveDraft({ id, formId: "trustee-walk", editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
+    putDraft({ id, formId: "trustee-walk", editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
       spine: v, trusteeSee: see, trusteeHear: hear, trusteeFeel: feel, overall,
       debriefNotes: debrief, requiresFollowUp, followUpNotes: followUp });
     setDraftId(id); setDraftSaved(true); setTimeout(() => setDraftSaved(false), 2500);
@@ -1845,7 +1854,8 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
           <CheckCircle size={30} color={BRAND.green} />
         </div>
         <h3 style={{ margin: "0 0 10px", color: BRAND.ink }}>{draft?.editOf ? "Walk updated" : "Walk saved"}</h3>
-        <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 24px" }}>The trustee learning walk has been saved.</p>
+        <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 12px" }}>The trustee learning walk has been saved.</p>
+        <RefLine id={done.id} style={{ textAlign: "center", margin: "0 0 22px" }} />
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={onBack} style={{ padding: "10px 20px", borderRadius: 999, border: "none", background: BRAND.magenta, color: "#fff", fontWeight: 600, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>Back to forms</button>
           <PdfButton rec={done} />
@@ -2014,7 +2024,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       spine, strands, focusStrand, inquiry, lessonFocus, priorContext, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
       deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall, requiresFollowUp, coachingNotes,
     };
-    saveDraft(record);
+    putDraft(record);
     setDraftId(id);
     setDraftSaved(true);
     setTimeout(() => setDraftSaved(false), 2500);
@@ -2086,6 +2096,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
             ? `The ${meta.name.toLowerCase()} record has been updated everywhere it appears.`
             : `It has been added to the ${meta.name.toLowerCase()} record and is visible on the SLT dashboard.`}
         </p>
+        <RefLine id={done.id} style={{ textAlign: "center", margin: "-12px 0 22px" }} />
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={onBack} style={{
             padding: "10px 20px", borderRadius: 999, border: "none", background: BRAND.magenta,
@@ -3141,6 +3152,7 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
               style={smallActionBtn(true)}>Delete</button>
           )}
         </div>
+        <RefLine id={s.id} style={{ marginTop: 2 }} />
       </div>
       {full && <ReviewFullView rec={s} onClose={() => setFull(false)} />}
     </details>
@@ -3412,6 +3424,7 @@ function MyDashboard({ submissions, drafts, reflections, onAddReflection, onUpda
                         <button onClick={() => { setEditingPost(post.id); setEditText(post.text); }} style={smallActionBtn(false)}>Edit</button>
                         <button onClick={() => deletePost(post.id)} style={smallActionBtn(true)}>Delete</button>
                       </div>
+                      <RefLine id={post.id} style={{ marginTop: 8 }} />
                     </>
                   )}
                 </div>
