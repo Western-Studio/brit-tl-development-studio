@@ -967,51 +967,64 @@ function OutlinePill({ children, colour = "#fff" }) {
   );
 }
 
-function BritTile({ s }) {
-  const [flipped, setFlipped] = useState(false);
+function BritTile({ s, onOpen }) {
   const outline = ["R", "T"].includes(s.letter);
-  // Faces share one grid cell, so the card grows to fit the taller (back) face
-  // - no fixed height, so long text never overflows the tile.
-  const faceBase = {
-    gridArea: "1 / 1 / 2 / 2", borderRadius: 20, padding: "18px 20px", overflow: "hidden",
-    WebkitBackfaceVisibility: "hidden", backfaceVisibility: "hidden",
-    display: "flex", flexDirection: "column", boxSizing: "border-box",
-  };
   return (
-    <div onClick={() => setFlipped((f) => !f)} style={{ perspective: 1000, cursor: "pointer" }}>
-      <div style={{
-        display: "grid", minHeight: 140,
-        transformStyle: "preserve-3d", transition: "transform .5s",
-        transform: flipped ? "rotateY(180deg)" : "none",
-      }}>
-        {/* front */}
-        <div style={{ ...faceBase, background: s.accent, color: "#fff", justifyContent: "space-between", gap: 14 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div style={{
-              fontFamily: "'Anton',sans-serif", fontWeight: 400, lineHeight: 1,
-              fontSize: "clamp(40px, 5vw, 62px)",
-              color: outline ? "transparent" : "#fff",
-              WebkitTextStroke: outline ? "2px #fff" : "0",
-            }}>{s.letter}</div>
-            <RotateCw size={15} color="#fff" style={{ opacity: 0.7, marginTop: 4, flexShrink: 0 }} />
-          </div>
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
-            <div style={{ fontSize: 11.5, opacity: 0.9, marginTop: 2, lineHeight: 1.35 }}>{s.focus}</div>
-          </div>
-        </div>
-        {/* back */}
-        <div style={{ ...faceBase, background: s.pastel, transform: "rotateY(180deg)", justifyContent: "flex-start" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontWeight: 800, fontSize: 14, color: s.accent }}>{s.key}</span>
-            <RotateCw size={14} color={s.accent} style={{ opacity: 0.7, flexShrink: 0 }} />
-          </div>
-          <div style={{ fontSize: 12.5, color: BRAND.ink, lineHeight: 1.5 }}>{s.desc}</div>
-          <div style={{ marginTop: 10, fontSize: 11, fontWeight: 700, color: s.accent, lineHeight: 1.45 }}>
-            At its best: {s.levels.Transformational}
-          </div>
-        </div>
+    <div onClick={onOpen} style={{
+      background: s.accent, borderRadius: 20, padding: "18px 20px", color: "#fff",
+      display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14,
+      minHeight: 130, height: "100%", cursor: "pointer", boxSizing: "border-box",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{
+          fontFamily: "'Anton',sans-serif", fontWeight: 400, lineHeight: 1,
+          fontSize: "clamp(40px, 5vw, 62px)",
+          color: outline ? "transparent" : "#fff",
+          WebkitTextStroke: outline ? "2px #fff" : "0",
+        }}>{s.letter}</div>
+        <RotateCw size={15} color="#fff" style={{ opacity: 0.7, marginTop: 4, flexShrink: 0 }} />
       </div>
+      <div>
+        <div style={{ fontWeight: 800, fontSize: 15 }}>{s.key}</div>
+        <div style={{ fontSize: 11.5, opacity: 0.9, marginTop: 2, lineHeight: 1.35 }}>{s.focus}</div>
+      </div>
+    </div>
+  );
+}
+
+function BritTilesGrid() {
+  const [open, setOpen] = useState(null);
+  const exp = open && STRANDS.find((x) => x.key === open);
+  return (
+    <div style={{ position: "relative", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12, minHeight: 300 }}>
+      {STRANDS.map((s) => <BritTile key={s.key} s={s} onOpen={() => setOpen(s.key)} />)}
+      {exp && (
+        <div onClick={() => setOpen(null)} style={{
+          position: "absolute", inset: 0, zIndex: 5, cursor: "pointer",
+          background: exp.pastel, borderRadius: 20, border: `2px solid ${exp.accent}`,
+          padding: "22px 24px", overflowY: "auto", boxSizing: "border-box",
+          display: "flex", flexDirection: "column", gap: 12,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <StrandBadge s={exp} size={40} />
+              <div>
+                <div style={{ fontWeight: 900, fontSize: 19, letterSpacing: "-.01em", color: BRAND.ink }}>{exp.key}</div>
+                <div style={{ fontSize: 12.5, color: BRAND.grey }}>{exp.focus}</div>
+              </div>
+            </div>
+            <button onClick={(e) => { e.stopPropagation(); setOpen(null); }} style={{
+              width: 30, height: 30, borderRadius: "50%", border: "none", background: "#fff",
+              color: exp.accent, cursor: "pointer", display: "grid", placeItems: "center", padding: 0, flexShrink: 0,
+            }}><X size={16} /></button>
+          </div>
+          <div style={{ fontSize: 14, color: BRAND.ink, lineHeight: 1.55 }}>{exp.desc}</div>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: ".06em", color: exp.accent, marginBottom: 6 }}>AT ITS BEST</div>
+            <div style={{ fontSize: 13.5, color: BRAND.ink, lineHeight: 1.55 }}>{exp.levels.Transformational}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1036,9 +1049,7 @@ function FormSelector({ onSelect }) {
             through conversation between colleagues, and it unfolds, lesson by lesson.
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 12 }}>
-          {STRANDS.map((s) => <BritTile key={s.key} s={s} />)}
-        </div>
+        <BritTilesGrid />
       </div>
 
       {/* what developmental success looks like */}
