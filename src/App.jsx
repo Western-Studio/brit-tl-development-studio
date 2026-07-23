@@ -1134,16 +1134,18 @@ function SpineFields({ v, set, dept, classCtx, walk }) {
         <Field label="Academic year">
           <input style={inputStyle} value={v.academicYear} onChange={(e) => set("academicYear", e.target.value)} />
         </Field>
-        <Field label="Staff member reviewed">
-          <select style={inputStyle} value={v.reviewee} onChange={(e) => pickReviewee(e.target.value)}>
-            <option value="">Select…</option>
-            {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
-          </select>
-        </Field>
         <Field label="Department">
           <select style={inputStyle} value={v.faculty} onChange={(e) => set("faculty", e.target.value)}>
             <option value="">Select…</option>
             {DEPARTMENTS.map((f) => <option key={f}>{f}</option>)}
+          </select>
+        </Field>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 18, marginTop: 18 }}>
+        <Field label="Staff member reviewed">
+          <select style={inputStyle} value={v.reviewee} onChange={(e) => pickReviewee(e.target.value)}>
+            <option value="">Select…</option>
+            {STAFF.map((s) => <option key={s.name} value={s.name}>{s.name}</option>)}
           </select>
         </Field>
         <Field label="Reviewer">
