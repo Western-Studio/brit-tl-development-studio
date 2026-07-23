@@ -3954,7 +3954,9 @@ export default function App() {
           )}
           {!compact && (
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
-            <div style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto" }}>
+            <button onClick={() => { setRole("staff"); setSelectedForm(null); setResumeDraft(null); }}
+              title="Back to All Review Forms" aria-label="Back to All Review Forms"
+              style={{ padding: narrow ? "0 4px" : "6px 2px 14px", flexBasis: narrow ? "100%" : "auto", background: "none", border: "none", cursor: "pointer", display: "block", textAlign: "left" }}>
               <svg width={narrow ? 100 : 136} viewBox="0 0 142 202" role="img" aria-label="BRIT T&L Development Studio" style={{ display: "block", overflow: "visible" }}>
                 <text x="0" y="54" textLength="142" lengthAdjust="spacingAndGlyphs"
                   style={{ fontFamily: "'Anton',sans-serif", fontSize: 74, fill: BRAND.magenta }}>BRIT</text>
@@ -3965,7 +3967,7 @@ export default function App() {
                 <text x="0" y="198" textLength="142" lengthAdjust="spacingAndGlyphs"
                   style={{ fontFamily: "'Anton',sans-serif", fontSize: 38, fill: "none", stroke: BRAND.magenta, strokeWidth: 1.7 }}>STUDIO<tspan style={{ fill: BRAND.magenta, stroke: "none" }}>.</tspan></text>
               </svg>
-            </div>
+            </button>
             {!narrow && (
               <button onClick={toggleRail} title="Collapse menu" style={{
                 width: 30, height: 30, borderRadius: 999, border: `1.5px solid ${BRAND.line}`,
