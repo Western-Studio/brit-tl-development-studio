@@ -15,6 +15,7 @@ import "@fontsource/archivo/700.css";
 import "@fontsource/archivo/800.css";
 import "@fontsource/archivo/900.css";
 import "@fontsource/anton/400.css";
+import tlLogo from "./tl-logo.png";
 
 /* ------------------------------------------------------------------ *
  *  BRAND + FRAMEWORK CONSTANTS
@@ -3214,11 +3215,14 @@ function MyDashboard({ submissions, onResumeDraft, onEditSubmission, onDeleteSub
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
-        <div>
-          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 8px" }}>My dashboard</h2>
-          <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>
-            {person ? `${person.role} · ${person.level} · ${person.department}` : "Your forms, drafts and posts in one place."}
-          </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <img src={tlLogo} alt="BRIT T&L" style={{ width: 62, height: 62, borderRadius: 12, objectFit: "cover", flexShrink: 0 }} />
+          <div>
+            <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 8px" }}>My dashboard</h2>
+            <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>
+              {person ? `${person.role} · ${person.level} · ${person.department}` : "Your forms, drafts and posts in one place."}
+            </p>
+          </div>
         </div>
         <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BRAND.grey }}>
           This is you
@@ -3683,8 +3687,8 @@ function HelpBot({ open, setOpen, raised }) {
       border: `1px solid ${BRAND.line}`, overflow: "hidden",
     }}>
       <div style={{ background: BRAND.magenta, padding: "14px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#fff" }}>
-          <Bot size={20} /> <span style={{ fontWeight: 700, fontSize: 15 }}>T&amp;L Assistant</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, color: "#fff" }}>
+          <img src={tlLogo} alt="" style={{ width: 30, height: 30, borderRadius: 8, objectFit: "cover", boxShadow: "0 0 0 2px rgba(255,255,255,.75)" }} /> <span style={{ fontWeight: 700, fontSize: 15 }}>T&amp;L Assistant</span>
         </div>
         <button onClick={() => setOpen(false)} style={{ background: "none", border: "none", cursor: "pointer" }}>
           <X size={20} color="#fff" />
@@ -3973,8 +3977,11 @@ export default function App() {
           <NavTile num="06" label="Ask the T&L Assistant any question" colour={BRAND.magenta} narrow={narrow} compact={compact}
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && !compact && (
-            <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
-              BRIT framework · prototype
+            <div style={{ marginTop: "auto", paddingTop: 14, display: "flex", alignItems: "center", gap: 9 }}>
+              <img src={tlLogo} alt="BRIT T&L" style={{ width: 34, height: 34, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em" }}>
+                BRIT framework · prototype
+              </span>
             </div>
           )}
         </aside>
