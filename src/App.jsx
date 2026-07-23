@@ -3485,12 +3485,34 @@ function MyDashboard({ submissions, drafts, reflections, me, onAddReflection, on
 /* ------------------------------------------------------------------ *
  *  LINE MANAGER DASHBOARD
  * ------------------------------------------------------------------ */
-function ManagerDashboard({ submissions }) {
-  const managers = STAFF.filter((s) => STAFF.some((x) => x.manager === s.name));
-  const [who, setWho] = useState("Daniel Price");
-  const reports = STAFF.filter((s) => s.manager === who);
+function ManagerDashboard({ submissions, viewer, directory }) {
+  const full = isFullAccess(viewer);
+  const directReports = (email) => directory.filter((s) => s.manager && s.manager === email);
+  const allReports = (rootEmail) => {
+    const out = []; const seen = new Set(); let frontier = [rootEmail];
+    while (frontier.length) {
+      const next = [];
+      directory.forEach((s) => {
+        if (s.manager && frontier.includes(s.manager) && !seen.has(s.email)) { seen.add(s.email); out.push(s); next.push(s.email); }
+      });
+      frontier = next;
+    }
+    return out;
+  };
+  const managers = directory
+    .filter((m) => directory.some((s) => s.manager === m.email))
+    .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const [whoEmail, setWhoEmail] = useState("");
+  const targetEmail = full ? (whoEmail || managers[0]?.email || viewer?.email) : viewer?.email;
+  const targetName = directory.find((s) => s.email === targetEmail)?.name || viewer?.name;
+  // Directors/SENCOs (and SLT/T&L viewing a manager) see the whole team tree;
+  // Assistant Directors see only their own direct line-managees.
+  const reports = full
+    ? allReports(targetEmail)
+    : isDirectorLevel(viewer)
+      ? allReports(viewer?.email)
+      : directReports(viewer?.email);
 
-  // team profile: every review of a direct report, counted per area
   const teamSubs = submissions.filter((x) => reports.some((r) => r.name === x.reviewee));
   const teamCounts = {};
   STRANDS.forEach((s) => { teamCounts[s.key] = { Developing: 0, Embedded: 0, Transformational: 0 }; });
@@ -3506,24 +3528,21 @@ function ManagerDashboard({ submissions }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
         <div>
-          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>My team</h2>
+          <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 10px" }}>{full ? "Teams" : "My team"}</h2>
           <p style={{ color: BRAND.grey, margin: 0, fontSize: 14 }}>
-            Reviews and walks for the colleagues you line-manage.
+            {full ? "Choose a line manager to view their team." : "Reviews and walks for the colleagues you line-manage."}
           </p>
         </div>
-        <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BRAND.grey }}>
-          Viewing as
-          <select style={{ ...inputStyle, width: "auto" }} value={who} onChange={(e) => setWho(e.target.value)}>
-            {managers.map((m) => <option key={m.name} value={m.name}>{m.name}</option>)}
-          </select>
-        </label>
+        {full && managers.length > 0 && (
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: BRAND.grey }}>
+            Team of
+            <select style={{ ...inputStyle, width: "auto" }} value={targetEmail} onChange={(e) => setWhoEmail(e.target.value)}>
+              {managers.map((m) => <option key={m.email} value={m.email}>{m.name}</option>)}
+            </select>
+          </label>
+        )}
       </div>
-      <div style={{
-        fontSize: 12, color: BRAND.grey, background: "#fff", border: `1px dashed ${BRAND.line}`,
-        borderRadius: 10, padding: "8px 14px", marginBottom: 26,
-      }}>
-        Demo view - in production this page sits behind staff login, and names, levels and line management sync from BromCom.
-      </div>
+      <div style={{ marginBottom: 26 }} />
 
       {teamSubs.length > 0 && (
         <Card style={{ padding: 28, marginBottom: 26 }}>
@@ -3547,7 +3566,7 @@ function ManagerDashboard({ submissions }) {
       )}
 
       {reports.length === 0 ? (
-        <p style={{ color: BRAND.grey, fontSize: 14 }}>No direct reports found for {who}.</p>
+        <p style={{ color: BRAND.grey, fontSize: 14 }}>No reports found{full ? ` for ${targetName}` : ""}.</p>
       ) : (
         <div style={{ display: "grid", gap: 20 }}>
           {reports.map((r) => {
@@ -3565,7 +3584,7 @@ function ManagerDashboard({ submissions }) {
                   }}>{r.name.split(" ").map((w) => w[0]).join("")}</div>
                   <div style={{ flex: 1, minWidth: 160 }}>
                     <div style={{ fontWeight: 800, fontSize: 16, color: BRAND.ink }}>{r.name}</div>
-                    <div style={{ fontSize: 12.5, color: BRAND.grey }}>{r.role} · {r.level} · {r.department}</div>
+                    <div style={{ fontSize: 12.5, color: BRAND.grey }}>{ROLE_LABELS[r.role] || r.role}{r.level ? ` · ${r.level}` : ""}{r.department ? ` · ${r.department}` : ""}</div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     {latest && STRANDS.map((a) => {
@@ -4594,7 +4613,7 @@ export default function App() {
           ) : role === "board" ? (
             <ReflectionsBoard submissions={submissions} reflections={reflections} onAdd={addReflection} me={currentStaff?.name} />
           ) : role === "manager" ? (
-            <ManagerDashboard submissions={submissions} />
+            <ManagerDashboard submissions={submissions} viewer={effectiveUser} directory={directory} />
           ) : role === "admin" ? (
             <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} onClearDemo={clearDemoStaff} myEmail={currentStaff?.email} />
           ) : (
