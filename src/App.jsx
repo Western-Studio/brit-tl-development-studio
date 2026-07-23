@@ -1314,6 +1314,7 @@ function printRecord(rec) {
   ${rec.lessonFocus ? `<div class="box"><strong>Lesson focus:</strong> ${esc(rec.lessonFocus)}</div>` : ""}
   ${rec.priorContext ? `<div class="box"><strong>Prior context and considerations:</strong> ${esc(rec.priorContext)}</div>` : ""}
   ${rec.inquiry ? `<div class="box"><strong>Inquiry question:</strong> ${esc(rec.inquiry)}</div>` : ""}
+  ${rec.coachingNotes ? `<div class="box"><strong>Post-lesson conversation:</strong> ${esc(rec.coachingNotes)}</div>` : ""}
   ${areas}
   ${rec.deviceChecks ? `<div class="box"><strong>Device &amp; phone policy:</strong><br>${POLICY_CHECKS.filter((c) => rec.deviceChecks[c.key]).map((c) => `${esc(c.label)}: <strong>${esc(rec.deviceChecks[c.key])}</strong>`).join("<br>")}</div>` : ""}
   ${rec.impact ? `<div class="box"><strong>Impact on teaching and learning:</strong> ${esc(rec.impact)}</div>` : ""}
@@ -1705,6 +1706,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const [ctNote, setCtNote] = useState(draft?.classTools?.note || "");
   const [overall, setOverall] = useState(draft?.overall || "");
   const [requiresFollowUp, setRequiresFollowUp] = useState(draft?.requiresFollowUp || false);
+  const [coachingNotes, setCoachingNotes] = useState(draft?.coachingNotes || "");
   const [done, setDone] = useState(null);
 
   const saveDraft = () => {
@@ -1712,7 +1714,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
     const record = {
       id, formId, editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
       spine, strands, focusStrand, inquiry, lessonFocus, priorContext, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
-      deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall, requiresFollowUp,
+      deviceChecks, impact, classTools: { used: ctUsed, rating: ctRating, note: ctNote }, overall, requiresFollowUp, coachingNotes,
     };
     saveDrafts([record, ...loadDrafts().filter((x) => x.id !== id)]);
     setDraftId(id);
@@ -1767,6 +1769,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       classTools: isDevice ? { used: ctUsed, rating: ctUsed ? ctRating : "", note: ctUsed ? ctNote.trim() : "" } : undefined,
       overall: isWalk || isDevice ? overall : "",
       requiresFollowUp: (isWalk || isDevice) ? requiresFollowUp : false,
+      coachingNotes: (!isWalk && !isDept && !isDevice) ? coachingNotes.trim() : "",
     };
     onSubmit(record);
     removeDraft(draftId);
@@ -1913,7 +1916,6 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
                 “I want to work on behaviour” becomes “I want to investigate how clearer transition routines
                 affect how quickly Year 10 start independent tasks.” Will it genuinely stretch the practice?
               </p>
-              <CoachingQuestionsCard />
             </div>
           )}
         </Card>
@@ -2112,6 +2114,23 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
 
       {!isWalk && !isDept && !isDevice && (
         <FormGroup label="After the review" active={true}>
+          <Card style={{ padding: 28, marginBottom: 22 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <MessageCircle size={16} color={BRAND.magenta} />
+              <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Post-lesson conversation</h3>
+            </div>
+            <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 12px", lineHeight: 1.5 }}>
+              Sit down together after the lesson. Be a mirror, not a critic - keep it on the learning. Log what you discussed and agreed.
+            </p>
+            <CoachingQuestionsCard />
+            <div style={{ marginTop: 18 }}>
+              <Field label="Notes from the conversation (optional)">
+                <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} value={coachingNotes}
+                  placeholder="Key points, reflections and anything agreed together…"
+                  onChange={(e) => setCoachingNotes(e.target.value)} />
+              </Field>
+            </div>
+          </Card>
           <Card style={{ padding: 28, marginBottom: 22 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <Lightbulb size={16} color="#C2651A" />
@@ -2498,6 +2517,7 @@ function SLTDashboard({ submissions }) {
                 {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
                 {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Prior context:</strong> {s.priorContext}</div>}
                 {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
+                {s.coachingNotes && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Post-lesson conversation:</strong> {s.coachingNotes}</div>}
                 {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, marginTop: 4, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                 {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
                 {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 4 }}><strong>{s.formType === "dept-review" ? "Priority for next term" : "Worth trying"}:</strong> {s.nextStep}</div>}
@@ -2657,6 +2677,7 @@ function ReviewFullView({ rec, onClose }) {
         <WalkLogSummary entries={rec.walkEntries} />
 
         <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+          {rec.coachingNotes && <div style={{ fontSize: 13.5, color: BRAND.ink, lineHeight: 1.5 }}><strong style={{ color: BRAND.grey }}>Post-lesson conversation:</strong> {rec.coachingNotes}</div>}
           {rec.celebrate && <div style={{ fontSize: 13.5, color: BRAND.ink, padding: "10px 14px", background: "#FDFBF6", borderRadius: 10 }}><strong>{rec.formType === "dept-review" ? "Proudest practice" : "Shout-out"}:</strong> {rec.celebrate}</div>}
           {rec.evenBetterIf && row("Even better if", rec.evenBetterIf)}
           {rec.nextStep && row(rec.formType === "dept-review" ? "Priority for next term" : "One idea worth trying", rec.nextStep)}
@@ -2724,6 +2745,7 @@ function SubmissionDetail({ s, onEdit, onDelete }) {
         {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
         {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Prior context:</strong> {s.priorContext}</div>}
         {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
+        {s.coachingNotes && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Post-lesson conversation:</strong> {s.coachingNotes}</div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
         {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
         {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>{s.formType === "dept-review" ? "Priority for next term" : "Worth trying"}:</strong> {s.nextStep}</div>}
@@ -3170,6 +3192,7 @@ function ManagerDashboard({ submissions }) {
         {s.lessonFocus && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Lesson focus:</strong> {s.lessonFocus}</div>}
         {s.priorContext && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Prior context:</strong> {s.priorContext}</div>}
         {s.inquiry && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Inquiry:</strong> <em>{s.inquiry}</em></div>}
+        {s.coachingNotes && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Post-lesson conversation:</strong> {s.coachingNotes}</div>}
         {s.celebrate && <div style={{ fontSize: 13, color: BRAND.ink, padding: "8px 12px", background: "#FDFBF6", borderRadius: 8 }}><strong>Shout-out:</strong> {s.celebrate}</div>}
                           {s.evenBetterIf && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Even better if:</strong> {s.evenBetterIf}</div>}
                           {s.nextStep && <div style={{ fontSize: 13, color: BRAND.grey }}><strong>Worth trying:</strong> {s.nextStep}</div>}
@@ -3216,9 +3239,9 @@ Framework vocabulary, for coaching conversations: agency with guardrails (struct
 
 The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks come as four separate forms, one per area - a Belonging Walk, Room Walk, Intent Walk and Travel Walk. Each takes a deeper look at its own area (the full "in the room you might notice" look-for pills plus a descriptor and comment for that area) while keeping a lighter touch on the other three (just a descriptor each). A walk records the class being visited and closes with one overall observation and a "requires follow-up" tick box. Learning Walks, the Device & Phone Walk and Departmental Reviews all carry a reminder to feed back to the staff observed within a week. A review flagged "requires follow-up" shows in red on the SLT, line-manager and My Dashboard views so it is not forgotten. There is also a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices other than Chromebooks. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
-The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
+The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in the "After the review" section (the coaching conversation happens after the lesson, not before it) in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
-The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. My Dashboard shows the owner's open idea in a "Your idea worth trying" card where they can post the reflection directly - or, when they select their name on the share board, the idea is pulled through automatically - they post a short update on how it went (with a photo if they have one), evaluate it (Becoming habit / Tried it - refining / Adapted it), optionally add what they took from the review itself, and tick it off. The peer review form closes with an "After the review" section explaining this loop. The next reviewer of that colleague sees last time's idea at the top of the form and asks how it went - trying the idea matters more than ticking the box. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement: area profiles shifting from Developing toward Embedded and Transformational over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Review Forms page has a "What developmental success looks like" panel explaining exactly this.
+The follow-through loop: every peer review ends with one idea worth trying, and that idea stays open until its owner closes it. My Dashboard shows the owner's open idea in a "Your idea worth trying" card where they can post the reflection directly - or, when they select their name on the share board, the idea is pulled through automatically - they post a short update on how it went (with a photo if they have one), evaluate it (Becoming habit / Tried it - refining / Adapted it), optionally add what they took from the review itself, and tick it off. The peer review form closes with an "After the review" section: a post-lesson coaching conversation (the coaching questions plus a field to log what was discussed and agreed), and the try-the-idea loop. The next reviewer of that colleague sees last time's idea at the top of the form and asks how it went - trying the idea matters more than ticking the box. Ticked-off ideas and their reflections feed the SLT dashboard's follow-through view. Developmental success in this framework means movement: area profiles shifting from Developing toward Embedded and Transformational over time, every teacher engaged in the cycle, and ideas from reviews actually getting tried - the All Review Forms page has a "What developmental success looks like" panel explaining exactly this.
 
 If staff ask how the data is used or who can see it, answer factually and briefly, without editorialising in either direction: reviews and descriptors are visible on the SLT dashboard (which any staff member can open), line managers see their team's reviews, and the data aggregates by area, department, team and year group. Do not claim the system keeps no data or that nothing is tracked, and equally do not lecture anyone about quality assurance - just describe what the Studio does and let people draw their own conclusions.
 
