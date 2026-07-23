@@ -712,6 +712,37 @@ const Pill = ({ active, colour, children, onClick }) => (
   </button>
 );
 
+const Toggle = ({ on, onChange, label }) => (
+  <button onClick={() => onChange(!on)} style={{
+    display: "inline-flex", alignItems: "center", gap: 12, background: "none", border: "none",
+    padding: 0, cursor: "pointer", fontFamily: "inherit",
+  }}>
+    <span style={{
+      position: "relative", width: 48, height: 27, borderRadius: 999, flexShrink: 0,
+      background: on ? BRAND.magenta : "#D9CED4", transition: "background .2s",
+    }}>
+      <span style={{
+        position: "absolute", top: 3, left: on ? 24 : 3, width: 21, height: 21, borderRadius: "50%",
+        background: "#fff", transition: "left .2s", boxShadow: "0 1px 3px rgba(0,0,0,.28)",
+      }} />
+    </span>
+    <span style={{ fontSize: 14, fontWeight: 700, color: on ? BRAND.magenta : BRAND.ink }}>{label}</span>
+  </button>
+);
+
+// A prominent, hard-to-miss reminder banner.
+const FeedbackReminder = ({ who = "the member of staff" }) => (
+  <div style={{
+    display: "flex", alignItems: "center", gap: 11, marginTop: 16,
+    background: "#FBE2B7", border: "2px solid #E0A400", borderRadius: 12, padding: "13px 16px",
+  }}>
+    <Clock size={20} color="#9A6A00" style={{ flexShrink: 0 }} />
+    <span style={{ fontSize: 14, fontWeight: 800, color: "#7A5300", lineHeight: 1.45 }}>
+      Remember: feed back to {who} within a week.
+    </span>
+  </div>
+);
+
 const Field = ({ label, children }) => (
   <label style={{ display: "block" }}>
     <span style={{ fontSize: 12, fontWeight: 600, color: BRAND.grey, letterSpacing: ".02em" }}>
@@ -1899,15 +1930,8 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
       </Card>
 
       <Card style={{ padding: 28, marginBottom: 22 }}>
-        <button onClick={() => setRequiresFollowUp((f) => !f)} style={{
-          display: "inline-flex", alignItems: "center", gap: 8, padding: "9px 18px", borderRadius: 999,
-          cursor: "pointer", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700,
-          border: `2px solid ${BRAND.magenta}`,
-          background: requiresFollowUp ? BRAND.magenta : "#fff",
-          color: requiresFollowUp ? "#fff" : BRAND.magenta,
-        }}>
-          {requiresFollowUp && <CheckCircle size={15} />}Requires follow-up
-        </button>
+        <Toggle on={requiresFollowUp} onChange={setRequiresFollowUp} label="Requires follow-up" />
+        <FeedbackReminder who="the member of staff whose class you visited" />
         {requiresFollowUp && (
           <div style={{ marginTop: 16 }}>
             <Field label="Follow-up - what needs to happen, and who by?">
@@ -2069,14 +2093,8 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 18px" }}>{meta.name}</h2>
 
       {isDept && (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 10, marginBottom: 26,
-          background: "#FDFBF6", border: "1.5px solid #EFE3C8", borderRadius: 12, padding: "12px 16px",
-        }}>
-          <Clock size={16} color="#B8860B" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: 13, color: BRAND.ink, lineHeight: 1.5 }}>
-            Remember to feed back to the staff you observed within a week.
-          </span>
+        <div style={{ marginBottom: 26 }}>
+          <FeedbackReminder who="the staff you observed" />
         </div>
       )}
 
@@ -2326,19 +2344,8 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
               placeholder="One reflection across the walk" onChange={(e) => setOverall(e.target.value)} />
           </Field>
           <div style={{ marginTop: 16 }}>
-            <button onClick={() => setRequiresFollowUp((f) => !f)} style={{
-              display: "inline-flex", alignItems: "center", gap: 8, padding: "9px 18px", borderRadius: 999,
-              cursor: "pointer", fontFamily: "inherit", fontSize: 13.5, fontWeight: 700,
-              border: `2px solid ${BRAND.magenta}`,
-              background: requiresFollowUp ? BRAND.magenta : "#fff",
-              color: requiresFollowUp ? "#fff" : BRAND.magenta,
-            }}>
-              {requiresFollowUp && <CheckCircle size={15} />}Requires follow-up
-            </button>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12, fontSize: 13, color: BRAND.grey }}>
-              <Clock size={15} color="#B8860B" style={{ flexShrink: 0 }} />
-              Remember to feed back to the member of staff within a week.
-            </div>
+            <Toggle on={requiresFollowUp} onChange={setRequiresFollowUp} label="Requires follow-up" />
+            <FeedbackReminder />
           </div>
         </Card>
       )}
