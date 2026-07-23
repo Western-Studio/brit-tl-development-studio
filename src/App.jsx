@@ -1636,11 +1636,17 @@ function DeptWalkLog({ entries, setEntries, faculty }) {
 
 // Groups form sections under a phase label; passes children straight
 // through on forms that don't use phases.
-function FormGroup({ label, active, children }) {
+function FormGroup({ label, active, children, colour = BRAND.magenta }) {
   if (!active) return children;
   return (
-    <section style={{ border: `1.5px solid ${BRAND.line}`, borderRadius: 26, padding: "22px 22px 4px", marginBottom: 30 }}>
-      <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "-.01em", color: BRAND.ink, margin: "0 4px 18px" }}>{label}</div>
+    <section style={{
+      border: `1.5px solid ${colour}44`, borderLeft: `5px solid ${colour}`,
+      borderRadius: 26, padding: "22px 22px 4px", marginBottom: 30,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 9, margin: "0 4px 18px" }}>
+        <span style={{ width: 11, height: 11, borderRadius: 3, background: colour, flexShrink: 0 }} />
+        <span style={{ fontSize: 14, fontWeight: 800, letterSpacing: "-.01em", color: colour }}>{label}</span>
+      </div>
       {children}
     </section>
   );
@@ -1832,7 +1838,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
         </div>
       )}
 
-      <FormGroup label="To discuss before the review" active={!isWalk && !isDept && !isDevice}>
+      <FormGroup label="To discuss before the review" colour="#8447B0" active={!isWalk && !isDept && !isDevice}>
       <Card style={{ padding: 28, marginBottom: 26 }}>
         <SpineFields v={spine} set={setSpineField} dept={isDept} classCtx={!isWalk && !isDept && !isDevice} walk={isWalk || isDevice} />
       </Card>
@@ -1961,7 +1967,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       )}
       </FormGroup>
 
-      <FormGroup label="To record during the review" active={!isWalk && !isDept && !isDevice}>
+      <FormGroup label="To record during the review" colour={BRAND.magenta} active={!isWalk && !isDept && !isDevice}>
       {isDevice && (
         <>
           <Card style={{ padding: 28, marginBottom: 26 }}>
@@ -2127,7 +2133,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
       </FormGroup>
 
       {!isWalk && !isDept && !isDevice && (
-        <FormGroup label="After the review" active={true}>
+        <FormGroup label="After the review" colour={BRAND.green} active={true}>
           <Card style={{ padding: 28, marginBottom: 22 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <MessageCircle size={16} color={BRAND.magenta} />
