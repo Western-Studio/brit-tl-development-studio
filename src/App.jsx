@@ -702,6 +702,17 @@ function openIdeasFor(name, submissions, posts) {
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
+// Readable, unique document ids, e.g. "peer-review-2026-09-18-daniel-price-4f2a".
+function slugify(s) {
+  return String(s || "").toLowerCase().normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32);
+}
+function makeId(prefix, parts = []) {
+  const body = parts.map(slugify).filter(Boolean).join("-");
+  const rand = Math.random().toString(36).slice(2, 6);
+  return [slugify(prefix), body, rand].filter(Boolean).join("-");
+}
+
 /* ------------------------------------------------------------------ *
  *  SMALL UI PRIMITIVES
  * ------------------------------------------------------------------ */
@@ -815,7 +826,7 @@ function ReflectionsBoard({ submissions, reflections, onAdd }) {
   const share = () => {
     if (!canShare) return;
     const post = {
-      id: "n" + Date.now(), name: who, date: new Date().toISOString().slice(0, 10), text: text.trim(), photo,
+      id: makeId("post", [who]), name: who, date: new Date().toISOString().slice(0, 10), text: text.trim(), photo,
       ...(idea ? { action: { recId: idea.id, idea: idea.nextStep, outcome, took: reviewTake.trim() } } : {}),
     };
     onAdd(post);
@@ -1803,7 +1814,7 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
   const set = (k, val) => setV((s) => ({ ...s, [k]: val }));
 
   const saveDraft = () => {
-    const id = draftId || "d" + Date.now();
+    const id = draftId || makeId("draft", ["trustee-walk", v.trusteeName || v.faculty]);
     saveDraft({ id, formId: "trustee-walk", editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
       spine: v, trusteeSee: see, trusteeHear: hear, trusteeFeel: feel, overall,
       debriefNotes: debrief, requiresFollowUp, followUpNotes: followUp });
@@ -1815,7 +1826,7 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
 
   const submit = () => {
     const record = {
-      id: draft?.editOf || "r" + Date.now(), formType: "trustee-walk",
+      id: draft?.editOf || makeId("trustee-walk", [v.date, v.trusteeName || v.faculty]), formType: "trustee-walk",
       submittedAt: new Date().toISOString().slice(0, 10),
       date: v.date, term: v.term, academicYear: v.academicYear, faculty: v.faculty, className: v.className.trim(),
       reviewer: v.completedBy.trim(), trusteeName: v.trusteeName.trim(),
@@ -1997,7 +2008,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
   const [done, setDone] = useState(null);
 
   const saveDraft = () => {
-    const id = draftId || "d" + Date.now();
+    const id = draftId || makeId("draft", [formId, spine.date, spine.reviewee || spine.faculty]);
     const record = {
       id, formId, editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
       spine, strands, focusStrand, inquiry, lessonFocus, priorContext, celebrate, evenBetterIf, nextStep, supportNeeded, links, walkEntries,
@@ -2035,7 +2046,7 @@ function ReviewForm({ formId, onBack, onSubmit, draft, submissions = [] }) {
 
   const submit = () => {
     const record = {
-      id: draft?.editOf || "r" + Date.now(),
+      id: draft?.editOf || makeId(formId, [spine.date, isDept ? spine.faculty : spine.reviewee]),
       formType: formId,
       submittedAt: new Date().toISOString().slice(0, 10),
       ...spine,
@@ -3194,7 +3205,7 @@ function MyDashboard({ submissions, drafts, reflections, onAddReflection, onUpda
   const postIdea = () => {
     if (!canPostIdea) return;
     const post = {
-      id: "n" + Date.now(), name: me, date: new Date().toISOString().slice(0, 10),
+      id: makeId("post", [me]), name: me, date: new Date().toISOString().slice(0, 10),
       text: ideaText.trim(), photo: ideaPhoto,
       action: { recId: pickedIdea.id, idea: pickedIdea.nextStep, outcome: ideaOutcome, took: ideaTook.trim() },
     };
