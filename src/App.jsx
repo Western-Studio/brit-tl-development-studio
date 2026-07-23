@@ -493,12 +493,15 @@ const SEED = [
   },
   {
     id: "tw1", formType: "trustee-walk", submittedAt: "2026-11-19", date: "2026-11-19", term: "Term 2",
-    academicYear: "2026/27", faculty: "Musical Theatre", className: "12A", reviewer: "Angela Barnes (Trustee)",
+    academicYear: "2026/27", faculty: "Musical Theatre", className: "12A",
+    reviewer: "Grace Adeyemi", trusteeName: "Angela Barnes (Trustee)",
     reviewee: "Musical Theatre · 12A",
     trusteeSee: "Students clearly proud of their work - the walls were full of it, and everyone was busy and focused. It felt like a real rehearsal room, not a classroom.",
     trusteeHear: "Lots of on-task talk. Students explaining ideas to each other, not just to the teacher. A couple were disagreeing about a staging choice - politely, and with reasons.",
     trusteeFeel: "Warm and purposeful. You could feel the students knew what they were doing and why. It reminded me of a professional company at work.",
     overall: "Impressive maturity for Year 12. Left wondering how the school captures this confidence for students who are quieter.",
+    debriefNotes: "Angela was struck by how student-led it was. Asked how we support the quieter students to find the same confidence - a good question for the department to sit with.",
+    requiresFollowUp: false, followUpNotes: "",
     links: [], walkEntries: [],
   },
 ];
@@ -1353,6 +1356,8 @@ function printRecord(rec) {
   ${rec.trusteeSee ? `<div class="box"><strong>What could you see:</strong> ${esc(rec.trusteeSee)}</div>` : ""}
   ${rec.trusteeHear ? `<div class="box"><strong>What could you hear:</strong> ${esc(rec.trusteeHear)}</div>` : ""}
   ${rec.trusteeFeel ? `<div class="box"><strong>How did it feel:</strong> ${esc(rec.trusteeFeel)}</div>` : ""}
+  ${rec.debriefNotes ? `<div class="box"><strong>Debrief notes:</strong> ${esc(rec.debriefNotes)}</div>` : ""}
+  ${rec.followUpNotes ? `<div class="box" style="border-color:#E7C9C9"><strong>Follow-up:</strong> ${esc(rec.followUpNotes)}</div>` : ""}
   ${rec.overall ? `<div class="box"><strong>Overall observation:</strong> ${esc(rec.overall)}</div>` : ""}
   ${rec.requiresFollowUp ? `<div class="box" style="border-color:#E7C9C9"><strong>Requires follow-up.</strong> Feed back to the staff member within a week.</div>` : ""}
   ${rec.celebrate ? `<div class="box"><strong>Shout-out:</strong> ${esc(rec.celebrate)}</div>` : ""}
@@ -1715,28 +1720,65 @@ function CoachingQuestionsCard() {
   );
 }
 
+function TrusteeFrameworkGuide() {
+  const [open, setOpen] = useState(false);
+  return (
+    <Card style={{ padding: "20px 28px", marginBottom: 22 }}>
+      <button onClick={() => setOpen((o) => !o)} style={{
+        display: "flex", alignItems: "center", gap: 10, width: "100%",
+        background: BRAND.magenta, color: "#fff", border: "none", borderRadius: 12,
+        padding: "11px 16px", cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+      }}>
+        <Sparkles size={16} color="#fff" />
+        <h3 style={{ margin: 0, fontSize: 14.5, fontWeight: 700, color: "#fff" }}>Use the BRIT framework as a guide</h3>
+        <span style={{ fontSize: 12.5, color: "#fff", opacity: 0.85, fontStyle: "italic" }}>what to look and listen for</span>
+        <ChevronDown size={19} color="#fff" strokeWidth={2.5} style={{
+          marginLeft: "auto", flexShrink: 0, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none",
+        }} />
+      </button>
+      {open && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))", gap: 14, marginTop: 16 }}>
+          {STRANDS.map((s) => (
+            <div key={s.key} style={{ background: s.pastel, borderRadius: 14, padding: "14px 16px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 6 }}>
+                <StrandBadge s={s} size={26} />
+                <span style={{ fontWeight: 800, fontSize: 14, color: BRAND.ink }}>{s.key}</span>
+              </div>
+              <div style={{ fontSize: 12.5, color: BRAND.grey, lineHeight: 1.5 }}>{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function TrusteeWalkForm({ onBack, onSubmit, draft }) {
   const meta = FORMS.find((f) => f.id === "trustee-walk");
   const [draftId, setDraftId] = useState(draft?.id || null);
   const [draftSaved, setDraftSaved] = useState(false);
   const [v, setV] = useState(draft?.spine || {
-    date: "", term: "", academicYear: "2026/27", faculty: "", className: "", trusteeName: "",
+    date: "", term: "", academicYear: "2026/27", faculty: "", className: "", trusteeName: "", completedBy: "",
   });
   const [see, setSee] = useState(draft?.trusteeSee || "");
   const [hear, setHear] = useState(draft?.trusteeHear || "");
   const [feel, setFeel] = useState(draft?.trusteeFeel || "");
   const [overall, setOverall] = useState(draft?.overall || "");
+  const [debrief, setDebrief] = useState(draft?.debriefNotes || "");
+  const [requiresFollowUp, setRequiresFollowUp] = useState(draft?.requiresFollowUp || false);
+  const [followUp, setFollowUp] = useState(draft?.followUpNotes || "");
   const [done, setDone] = useState(null);
   const set = (k, val) => setV((s) => ({ ...s, [k]: val }));
 
   const saveDraft = () => {
     const id = draftId || "d" + Date.now();
     saveDrafts([{ id, formId: "trustee-walk", editOf: draft?.editOf, savedAt: new Date().toISOString().slice(0, 10),
-      spine: v, trusteeSee: see, trusteeHear: hear, trusteeFeel: feel, overall }, ...loadDrafts().filter((x) => x.id !== id)]);
+      spine: v, trusteeSee: see, trusteeHear: hear, trusteeFeel: feel, overall,
+      debriefNotes: debrief, requiresFollowUp, followUpNotes: followUp }, ...loadDrafts().filter((x) => x.id !== id)]);
     setDraftId(id); setDraftSaved(true); setTimeout(() => setDraftSaved(false), 2500);
   };
 
-  const complete = [v.date, v.term, v.academicYear, v.faculty, v.trusteeName].every((x) => (x ?? "").trim())
+  const complete = [v.date, v.term, v.academicYear, v.faculty, v.trusteeName, v.completedBy].every((x) => (x ?? "").trim())
     && (see.trim() || hear.trim() || feel.trim());
 
   const submit = () => {
@@ -1744,8 +1786,10 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
       id: draft?.editOf || "r" + Date.now(), formType: "trustee-walk",
       submittedAt: new Date().toISOString().slice(0, 10),
       date: v.date, term: v.term, academicYear: v.academicYear, faculty: v.faculty, className: v.className.trim(),
-      reviewer: v.trusteeName.trim(), reviewee: v.className.trim() ? `${v.faculty} · ${v.className.trim()}` : v.faculty,
+      reviewer: v.completedBy.trim(), trusteeName: v.trusteeName.trim(),
+      reviewee: v.className.trim() ? `${v.faculty} · ${v.className.trim()}` : v.faculty,
       trusteeSee: see.trim(), trusteeHear: hear.trim(), trusteeFeel: feel.trim(), overall: overall.trim(),
+      debriefNotes: debrief.trim(), requiresFollowUp, followUpNotes: requiresFollowUp ? followUp.trim() : "",
       links: [], walkEntries: [],
     };
     onSubmit(record); removeDraft(draftId); setDone(record);
@@ -1757,8 +1801,8 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
         <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#EAF7EC", display: "grid", placeItems: "center", margin: "0 auto 16px" }}>
           <CheckCircle size={30} color={BRAND.green} />
         </div>
-        <h3 style={{ margin: "0 0 10px", color: BRAND.ink }}>{draft?.editOf ? "Walk updated" : "Thank you for visiting"}</h3>
-        <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 24px" }}>Your trustee learning walk has been saved.</p>
+        <h3 style={{ margin: "0 0 10px", color: BRAND.ink }}>{draft?.editOf ? "Walk updated" : "Walk saved"}</h3>
+        <p style={{ color: BRAND.grey, fontSize: 14, margin: "0 0 24px" }}>The trustee learning walk has been saved.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={onBack} style={{ padding: "10px 20px", borderRadius: 999, border: "none", background: BRAND.magenta, color: "#fff", fontWeight: 600, cursor: "pointer", fontSize: 14, fontFamily: "inherit" }}>Back to forms</button>
           <PdfButton rec={done} />
@@ -1773,15 +1817,22 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
         <ArrowLeft size={16} /> All forms
       </button>
       <h2 style={{ fontSize: 30, fontWeight: 900, letterSpacing: "-.03em", color: BRAND.ink, margin: "0 0 8px" }}>{meta.name}</h2>
-      <p style={{ color: BRAND.grey, margin: "0 0 26px", fontSize: 14, lineHeight: 1.5, maxWidth: 680 }}>
-        A relaxed look around, in plain language. Just tell us what you saw, heard and felt. Thank you for giving your time.
+      <p style={{ color: BRAND.grey, margin: "0 0 26px", fontSize: 14, lineHeight: 1.5, maxWidth: 700 }}>
+        Completed by the staff member accompanying a trustee or visitor. Use the BRIT framework to guide the look-around,
+        capture what they saw, heard and felt in plain language, and add your notes from the debrief afterwards.
       </p>
 
-      <Card style={{ padding: 28, marginBottom: 26 }}>
+      <Card style={{ padding: 28, marginBottom: 22 }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px,1fr))", gap: 18 }}>
-          <Field label="Your name">
-            <input style={inputStyle} value={v.trusteeName} placeholder="The trustee or visitor"
+          <Field label="Trustee / visitor">
+            <input style={inputStyle} value={v.trusteeName} placeholder="Who you accompanied"
               onChange={(e) => set("trusteeName", e.target.value)} />
+          </Field>
+          <Field label="Completed by (staff member)">
+            <select style={inputStyle} value={v.completedBy} onChange={(e) => set("completedBy", e.target.value)}>
+              <option value="">Select…</option>
+              {STAFF.map((st) => <option key={st.name} value={st.name}>{st.name}</option>)}
+            </select>
           </Field>
           <Field label="Date">
             <input type="date" style={inputStyle} value={v.date} onChange={(e) => set("date", e.target.value)} />
@@ -1807,11 +1858,13 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
         </div>
       </Card>
 
+      <TrusteeFrameworkGuide />
+
       <Card style={{ padding: 28, marginBottom: 22 }}>
         <div style={{ display: "grid", gap: 20 }}>
           <Field label="What could you see?">
             <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} value={see}
-              placeholder="The room, the students, the work on show - what caught your eye?"
+              placeholder="The room, the students, the work on show - what caught the eye?"
               onChange={(e) => setSee(e.target.value)} />
           </Field>
           <Field label="What could you hear?">
@@ -1824,15 +1877,41 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
               placeholder="The atmosphere and the energy - what was the feeling in the room?"
               onChange={(e) => setFeel(e.target.value)} />
           </Field>
+          <Field label="Anything that stood out, or a question it raised? (optional)">
+            <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} value={overall}
+              placeholder="A highlight, a surprise, or something worth knowing more about…"
+              onChange={(e) => setOverall(e.target.value)} />
+          </Field>
         </div>
       </Card>
 
       <Card style={{ padding: 28, marginBottom: 22 }}>
-        <Field label="Anything that stood out, or a question it raised? (optional)">
-          <textarea style={{ ...inputStyle, minHeight: 70, resize: "vertical" }} value={overall}
-            placeholder="A highlight, a surprise, or something you'd love to know more about…"
-            onChange={(e) => setOverall(e.target.value)} />
-        </Field>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <MessageCircle size={16} color={BRAND.magenta} />
+          <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Debrief notes</h3>
+        </div>
+        <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 12px", lineHeight: 1.5 }}>
+          After the walk, note anything from your debrief conversation with the trustee - their reflections, questions and impressions.
+        </p>
+        <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={debrief}
+          placeholder="What you talked about afterwards, and anything worth passing on…"
+          onChange={(e) => setDebrief(e.target.value)} />
+      </Card>
+
+      <Card style={{ padding: 28, marginBottom: 22 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 9, cursor: "pointer", fontSize: 13.5, fontWeight: 650, color: BRAND.ink }}>
+          <input type="checkbox" checked={requiresFollowUp} onChange={(e) => setRequiresFollowUp(e.target.checked)} />
+          Requires follow-up
+        </label>
+        {requiresFollowUp && (
+          <div style={{ marginTop: 14 }}>
+            <Field label="Follow-up - what needs to happen, and who by?">
+              <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={followUp}
+                placeholder="The action, and who will pick it up…"
+                onChange={(e) => setFollowUp(e.target.value)} />
+            </Field>
+          </div>
+        )}
       </Card>
 
       <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 8, flexWrap: "wrap" }}>
@@ -1846,7 +1925,7 @@ function TrusteeWalkForm({ onBack, onSubmit, draft }) {
           border: `1.5px solid ${BRAND.ink}`, background: "#fff", color: BRAND.ink, fontWeight: 700, fontSize: 14,
         }}>Save draft</button>
         {draftSaved && <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.green }}>Draft saved - find it on My Dashboard</span>}
-        {!complete && <span style={{ fontSize: 13, color: BRAND.grey }}>Add your name, the details, and at least one of see / hear / feel.</span>}
+        {!complete && <span style={{ fontSize: 13, color: BRAND.grey }}>Add the trustee, who completed it, the details, and at least one of see / hear / feel.</span>}
       </div>
     </div>
   );
@@ -2819,9 +2898,12 @@ function TrusteeSummary({ s }) {
   if (s.formType !== "trustee-walk") return null;
   return (
     <div style={{ fontSize: 13, color: BRAND.grey, display: "grid", gap: 4 }}>
+      {s.trusteeName && <div><strong>Trustee:</strong> {s.trusteeName}</div>}
       {s.trusteeSee && <div><strong>Saw:</strong> {s.trusteeSee}</div>}
       {s.trusteeHear && <div><strong>Heard:</strong> {s.trusteeHear}</div>}
       {s.trusteeFeel && <div><strong>Felt:</strong> {s.trusteeFeel}</div>}
+      {s.debriefNotes && <div><strong>Debrief:</strong> {s.debriefNotes}</div>}
+      {s.followUpNotes && <div style={{ color: "#C0392B" }}><strong>Follow-up:</strong> {s.followUpNotes}</div>}
     </div>
   );
 }
@@ -3491,7 +3573,7 @@ The BRIT EDIE Language Guide is the school's inclusive-language reference - adap
 
 Framework vocabulary, for coaching conversations: agency with guardrails (structure with real choice inside it - crew, not passengers); authentic audience (work that is performed, published, pitched or used beyond the room - at the top end, feedback sounds like "this works" or "this breaks" rather than a mark); craftsmanship (redrafting is normal, critique makes the work better); healthy struggle (being stuck is treated as part of learning); the three Cs (competence - work that holds up; chemistry - working well with others, leading and following; character - how you respond when the work is difficult); and access-first rooms (access tools like text-to-speech and dictation are a normal part of the room and let ability surface). Use this vocabulary when helping a reviewer picture what the top end of an area looks like. An example of coaching a focus into an agency-flavoured inquiry: "I want to investigate how offering three routes through the task affects how many students start without prompting."
 
-The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks come as four separate forms, one per area - a Belonging Walk, Room Walk, Intent Walk and Travel Walk. Each takes a deeper look at its own area (the full "in the room you might notice" look-for pills plus a descriptor and comment for that area) while keeping a lighter touch on the other three (just a descriptor each). A walk records the class being visited and closes with one overall observation and a "requires follow-up" tick box. Learning Walks, the Device & Phone Walk and Departmental Reviews all carry a reminder to feed back to the staff observed within a week. A review flagged "requires follow-up" shows in red on the SLT, line-manager and My Dashboard views so it is not forgotten. There is also a Trustee Learning Walk - a simple, plain-language, jargon-free form for trustees and visitors (many from industry, not teachers). It asks only what they could see, what they could hear, and how it felt, plus anything that stood out. No BRIT descriptors or grading - it captures impressions, not judgements. And there is a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices being used or seen without pedagogical intent. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
+The peer review process: reviews run termly by curriculum area, with pairings built with heads of department around staff availability. Before the lesson, the pair agree ONE narrow focus area - the spotlight. The reviewer records the shared details (date, term, faculty, colleague, reviewer, class context) and the lesson focus (what the students should learn and why, plus prior context and considerations), taps the practice points they noticed, chooses a descriptor for each area, comments in depth on the spotlight area, and closes with a shout-out (something to feel proud of), an optional "even better if" reflection, and one small idea worth trying. At the end of term, staff log a two-minute "Micro-Insight" reflection on the digital reflections share board - the share board has its own page in the Studio's navigation, where staff can share reflections about their practice or development (with a photo) at any time. Learning Walks come as four separate forms, one per area - a Belonging Walk, Room Walk, Intent Walk and Travel Walk. Each takes a deeper look at its own area (the full "in the room you might notice" look-for pills plus a descriptor and comment for that area) while keeping a lighter touch on the other three (just a descriptor each). A walk records the class being visited and closes with one overall observation and a "requires follow-up" tick box. Learning Walks, the Device & Phone Walk and Departmental Reviews all carry a reminder to feed back to the staff observed within a week. A review flagged "requires follow-up" shows in red on the SLT, line-manager and My Dashboard views so it is not forgotten. There is also a Trustee Learning Walk - a simple, plain-language form for trustees and visitors (many from industry, not teachers). It is completed by the staff member accompanying them, not the trustee. It offers the four BRIT areas as a guide to the look-around, then captures what could be seen, heard and felt plus anything that stood out - impressions, not graded judgements. The staff member also records notes from the post-walk debrief with the trustee, and can flag it for follow-up. A trustee walk flagged for follow-up appears in the SLT follow-up highlight like the other walks. And there is a Device & Phone Walk, checking how the new device policy is landing and its impact on teaching and learning. The policy: phones go in the box at the start of the lesson, headphones are off and away unless directed, and no smart devices being used or seen without pedagogical intent. The walk rates each expectation (In place / Mostly - needed a nudge / Not yet), records the impact on teaching and learning in the walker's words, and ticks whether Class Tools was being used in the lesson and how well that's going (Working well / Patchy / Not really working). It is a policy check whose results SLT sees - it reads how the roll-out is landing, not the teacher's capability. Heads of department also complete a termly Departmental Review: the same four areas at department level, closing with the department's proudest practice, a priority for next term, and any support needed from SLT or the T&L team. The Departmental Review includes a department walk log: when a head of department walks their own department, they log each class individually - teacher, class, year group, a quick descriptor per area they saw, and a one-line note. The form aggregates the entries live into a per-area picture with an automatic insight (the department's strength on the walk, and the area with most room to grow), which informs the head of department's overall stock-take. The walk log travels with the record to the SLT dashboard and the PDF export. Forms can be saved as drafts and finished later, and every member of staff has a My Dashboard page showing their drafts in progress, reviews of their practice, reviews they have written, and their share board posts. From My Dashboard, staff can also edit or delete their own work: share board posts can be edited in place or deleted, and reviews they have written can be reopened in the form (pre-filled), corrected and resubmitted - the update replaces the original everywhere it appears - or deleted entirely. Reviews of your practice written by someone else are theirs, not yours - only the reviewer can edit or delete a review.
 
 The coaching model: peer reviews run on a genuine spirit of enquiry - the pair are equals, and the reviewer's job is to ask, not tell. Be a mirror, not a critic: describe what you saw and ask your partner to interpret it. Keep the conversation on the learning, not the person, and build rapport before challenge. Before the lesson, the pair coach a vague focus into a specific inquiry question - "I want to work on behaviour" becomes "I want to investigate how clearer transition routines at the start of the lesson affect how quickly Year 10 start independent tasks" - recorded in the required inquiry field on the form's spotlight card. Always ask: will this focus genuinely stretch the practice? The peer review's shared details also require class context - year group, class name, lesson title and the number of AEN learners in the class - so the pair know where the inquiry will be answered and who needs planning for. The Peer Review form carries a collapsible bank of coaching questions in the "After the review" section (the coaching conversation happens after the lesson, not before it) in five phases: opening on strengths ("Which three things were you pleased with in that lesson?"), students & learning ("Which points were students most engaged in, and why?", "Who struggled most, and what would have supported them?"), teaching decisions ("You chose to… - what did you want to achieve there?", "If we'd filmed that lesson, which parts would look lively and which quiet?"), the what-ifs ("What would have happened if you had…?", "What else could you have done when…?"), and action planning ("What small steps could you make, and what do you need to make that happen?", "What are the three biggest learning points you're taking away?"). The golden rules of feedback: be specific not waffly (say what you noticed and its measurable effect, not "good"), link it to the why (the impact on learners), and future-proof it (where can this apply next?). If a review includes student voice, useful learner questions include: "What do you expect to learn in this lesson?", "Can you explain what you are doing and why?", "How is this helping you learn - what helps you most?", "How well do you think you are doing, and how do you know?", and "Are the comments on your work helpful - how?". When someone asks you for coaching help, act as a coach: offer one or two questions at a time matched to where their conversation is, rather than reciting the whole bank.
 
@@ -3790,9 +3872,11 @@ export default function App() {
         date: rec.date || "", term: rec.term || "", academicYear: rec.academicYear || "",
         faculty: rec.faculty || "", reviewee: rec.formType === "dept-review" ? "" : (rec.reviewee || ""),
         reviewer: rec.reviewer || "", yearGroup: rec.yearGroup || "", className: rec.className || "",
-        lessonTitle: rec.lessonTitle || "", aen: rec.aen || "", trusteeName: rec.reviewer || "",
+        lessonTitle: rec.lessonTitle || "", aen: rec.aen || "",
+        trusteeName: rec.trusteeName || "", completedBy: rec.reviewer || "",
       },
       trusteeSee: rec.trusteeSee || "", trusteeHear: rec.trusteeHear || "", trusteeFeel: rec.trusteeFeel || "",
+      debriefNotes: rec.debriefNotes || "", followUpNotes: rec.followUpNotes || "",
       strands: rec.strands, focusStrand: rec.focus || "", inquiry: rec.inquiry || "",
       lessonFocus: rec.lessonFocus || "", priorContext: rec.priorContext || "",
       celebrate: rec.celebrate || "", evenBetterIf: rec.evenBetterIf || "", nextStep: rec.nextStep || "",
