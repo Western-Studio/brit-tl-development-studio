@@ -208,6 +208,14 @@ const FORMS = [
     active: true,
   },
   {
+    id: "dept-review",
+    name: "Departmental Review",
+    blurb: "Termly department-level review by the head of department, across the four areas.",
+    icon: Home,
+    profile: "staff",
+    active: true,
+  },
+  {
     id: "walk-belonging",
     name: "Belonging Walk",
     blurb: "Learning walk with a deeper look at Belonging, lighter across the other three areas.",
@@ -252,16 +260,8 @@ const FORMS = [
     active: true,
   },
   {
-    id: "dept-review",
-    name: "Departmental Review",
-    blurb: "Termly department-level review by the head of department, across the four areas.",
-    icon: Home,
-    profile: "staff",
-    active: true,
-  },
-  {
     id: "aen-review",
-    name: "AEN Review",
+    name: "AEN Partnership Review",
     blurb: "",
     icon: ShieldAlert,
     profile: "pupil",
@@ -1117,7 +1117,7 @@ function FormSelector({ onSelect }) {
               <div style={{ fontSize: 13, color: BRAND.grey, marginTop: 6, lineHeight: 1.5 }}>{f.blurb}</div>
               {f.profile === "pupil" && (
                 <div style={{ marginTop: 12, fontSize: 11, fontWeight: 600, color: "#C0392B", display: "flex", alignItems: "center", gap: 6 }}>
-                  <Lock size={13} /> Held under separate governance
+                  <Clock size={13} /> Under development
                 </div>
               )}
             </div>
@@ -2273,6 +2273,7 @@ function SLTDashboard({ submissions }) {
     .filter((r) => r.formType === "peer-review" && r.nextStep)
     .map((r) => ({ rec: r, update: boardPosts.find((p) => p.action?.recId === r.id) }));
   const ticked = ideas.filter((i) => i.update);
+  const followUps = filtered.filter((s) => s.requiresFollowUp).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
 
   return (
     <div>
@@ -2300,6 +2301,7 @@ function SLTDashboard({ submissions }) {
           { label: "Transformational ratings", value: totalT, bg: BRAND.green },
           { label: "Departments covered", value: new Set(filtered.map((s) => s.faculty)).size, bg: "#8447B0" },
           { label: "Ideas ticked off", value: `${ticked.length}/${ideas.length}`, bg: "#C2651A" },
+          { label: "Awaiting follow-up", value: followUps.length, bg: "#C0392B" },
         ].map((stat) => (
           <div key={stat.label} style={{ background: stat.bg, borderRadius: 20, padding: "26px 28px", color: "#fff" }}>
             <div style={{ fontSize: 40, fontWeight: 900, letterSpacing: "-.03em", lineHeight: 1 }}>{stat.value}</div>
@@ -2307,6 +2309,27 @@ function SLTDashboard({ submissions }) {
           </div>
         ))}
       </div>
+
+      {followUps.length > 0 && (
+        <Card style={{ padding: 28, marginBottom: 30, border: "2px solid #C0392B", background: "#FCF2F2" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <Clock size={16} color="#C0392B" />
+            <h3 style={{ margin: 0, fontSize: 15, color: "#C0392B" }}>Awaiting follow-up ({followUps.length})</h3>
+          </div>
+          <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
+            These walks were flagged for follow-up - the reviewer should feed back to the staff observed within a week.
+          </p>
+          <div style={{ display: "grid", gap: 8 }}>
+            {followUps.map((s) => (
+              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: "#fff", borderRadius: 10, padding: "10px 14px" }}>
+                <strong style={{ fontSize: 13.5, color: BRAND.ink }}>{s.reviewee}</strong>
+                <span style={{ fontSize: 12.5, color: BRAND.grey }}>{s.faculty} · {FORMS.find((f) => f.id === s.formType)?.name}</span>
+                <span style={{ marginLeft: "auto", fontSize: 12.5, color: BRAND.grey }}>{s.date} · by {s.reviewer}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px,1fr))", gap: 22, marginBottom: 30 }}>
         <Card style={{ padding: 28 }}>
@@ -3555,7 +3578,7 @@ export default function App() {
     { key: "staff", num: "01", label: "All Review Forms", colour: BRAND.magenta },
     { key: "me", num: "02", label: "My Dashboard", colour: "#46B749" },
     { key: "board", num: "03", label: "Share board", colour: "#C2651A" },
-    { key: "slt", num: "04", label: "SLT", colour: "#8447B0" },
+    { key: "slt", num: "04", label: "SLT / T&L", colour: "#8447B0" },
     { key: "manager", num: "05", label: "Line Manager", colour: BRAND.ink },
   ];
 
