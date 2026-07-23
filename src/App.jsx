@@ -3631,7 +3631,7 @@ export default function App() {
             <NavTile key={n.key} {...n} narrow={narrow} compact={compact} active={role === n.key}
               onClick={() => { setRole(n.key); setSelectedForm(null); setResumeDraft(null); }} />
           ))}
-          <NavTile num="06" label="T&L Assistant" colour={BRAND.magenta} narrow={narrow} compact={compact}
+          <NavTile num="06" label="Ask the T&L Assistant any question" colour={BRAND.magenta} narrow={narrow} compact={compact}
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && !compact && (
             <div style={{ fontSize: 10.5, fontWeight: 600, color: BRAND.grey, letterSpacing: ".06em", padding: "6px 2px" }}>
