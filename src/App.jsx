@@ -243,6 +243,13 @@ function canOpenForm(u, formId) {
   return false;                                              // walks / device / trustee: SLT / T&L
 }
 
+// Plain-language description of who a form is available to (for locked cards).
+function formAudience(formId) {
+  if (formId === "peer-review") return "everyone";
+  if (formId === "dept-review") return "Directors, SENCOs and SLT / T&L";
+  return "SLT / T&L, or staff invited to it";
+}
+
 // The demo staff seed the directory on first run, converted to the record
 // schema with synthetic school emails and roles inferred from their titles.
 // No SLT/T&L is seeded, so the first real person to sign in becomes the
@@ -1265,7 +1272,7 @@ function FormSelector({ onSelect, user }) {
                 </div>
               ) : !permitted ? (
                 <div style={{ marginTop: 12, fontSize: 11, fontWeight: 600, color: BRAND.grey, display: "flex", alignItems: "center", gap: 6 }}>
-                  <Lock size={13} /> Not available with your role
+                  <Lock size={13} /> Available to {formAudience(f.id)}
                 </div>
               ) : null}
             </div>
@@ -3812,7 +3819,7 @@ function useNarrow(query = "(max-width: 700px)") {
   return narrow;
 }
 
-function NavTile({ num, label, colour, active, onClick, narrow, compact, locked }) {
+function NavTile({ num, label, colour, active, onClick, narrow, compact, locked, icon: Icon }) {
   const base = active
     ? { background: BRAND.pink, color: BRAND.ink, border: `1.5px solid ${BRAND.ink}` }
     : locked
@@ -3827,7 +3834,7 @@ function NavTile({ num, label, colour, active, onClick, narrow, compact, locked 
         ...base, borderRadius: 12, cursor, fontFamily: "inherit",
         width: 48, height: 48, display: "grid", placeItems: "center", padding: 0, flexShrink: 0,
       }}>
-        {locked ? <Lock size={15} /> : <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span>}
+        {locked ? <Lock size={15} /> : num ? <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span> : Icon ? <Icon size={18} /> : null}
       </button>
     );
   }
@@ -3840,7 +3847,7 @@ function NavTile({ num, label, colour, active, onClick, narrow, compact, locked 
       flex: narrow ? "1 1 auto" : undefined,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-        <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span>
+        {num ? <span style={{ fontWeight: 800, fontSize: 13 }}>{num}</span> : Icon ? <Icon size={17} /> : <span />}
         {!narrow && (locked ? <Lock size={15} /> : active ? <ArrowRight size={16} /> : <ArrowUpRight size={16} />)}
       </div>
       <span style={{ fontWeight: 750, fontSize: narrow ? 13 : 14.5, marginTop: narrow ? 0 : 40, lineHeight: 1.25 }}>{label}</span>
@@ -4005,7 +4012,9 @@ function walksFromCsv(s) {
   return [...out];
 }
 
-function AdminStaff({ directory, onSave, onDelete, onImport, myEmail }) {
+function AdminStaff({ directory, onSave, onDelete, onImport, onClearDemo, myEmail }) {
+  const demoEmails = new Set(STAFF.map((s) => staffEmail(s.name)));
+  const demoCount = directory.filter((s) => demoEmails.has(s.email) && s.email !== myEmail).length;
   const blank = { email: "", name: "", role: "teacher", isTL: false, department: "", manager: "", extraForms: [], level: "" };
   const [form, setForm] = useState(blank);
   const [editing, setEditing] = useState(false);
@@ -4075,7 +4084,7 @@ function AdminStaff({ directory, onSave, onDelete, onImport, myEmail }) {
       <Card style={{ padding: 24, marginBottom: 26, background: "#FBF6FA" }}>
         <h3 style={{ margin: "0 0 8px", fontSize: 16, color: BRAND.ink }}>Import from CSV</h3>
         <p style={{ margin: "0 0 14px", fontSize: 13, color: BRAND.grey, lineHeight: 1.55, maxWidth: 620 }}>
-          Upload a spreadsheet with columns <strong>name, email, role, department, manager, isTL, walks</strong> (only name and email are required). Role can be teacher, assistant director, director, senco or slt. Manager is that person's email. isTL is yes/no. Walks is an optional list like <code>walk-belonging;walk-room</code>. Re-importing updates matching emails.
+          Fill in the <strong>Excel template</strong> below - role, department and isTL have dropdowns so there are no typos - then <strong>save it as CSV</strong> (File → Save As / Download → CSV) and upload it here. Columns are <strong>name, email, role, department, manager, isTL, walks</strong>; only name and email are required. Manager is that person's email, and walks is an optional list like <code>walk-belonging;walk-room</code>. Re-importing updates matching emails.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
           <button onClick={() => fileRef.current?.click()} style={{
@@ -4083,7 +4092,8 @@ function AdminStaff({ directory, onSave, onDelete, onImport, myEmail }) {
             color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "inherit",
           }}>Choose CSV file</button>
           <input ref={fileRef} type="file" accept=".csv,text/csv" onChange={onCsv} style={{ display: "none" }} />
-          <a href={templateHref} download="brit-staff-template.csv" style={{ fontSize: 13, fontWeight: 600, color: BRAND.magenta }}>Download template</a>
+          <a href={import.meta.env.BASE_URL + "brit-staff-template.xlsx"} download style={{ fontSize: 13, fontWeight: 600, color: BRAND.magenta }}>Download Excel template (with dropdowns)</a>
+          <a href={templateHref} download="brit-staff-template.csv" style={{ fontSize: 13, fontWeight: 600, color: BRAND.grey }}>plain CSV</a>
           {importMsg && <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.green }}>{importMsg}</span>}
         </div>
       </Card>
@@ -4142,6 +4152,15 @@ function AdminStaff({ directory, onSave, onDelete, onImport, myEmail }) {
         </div>
       </Card>
 
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
+        <h3 style={{ margin: 0, fontSize: 16, color: BRAND.ink }}>Staff ({sorted.length})</h3>
+        {demoCount > 0 && (
+          <button onClick={() => { if (window.confirm(`Remove the ${demoCount} demo staff (the sample names)? This won't touch anyone you've added.`)) onClearDemo(); }}
+            style={{ ...smallActionBtn(true), display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Clear {demoCount} demo staff
+          </button>
+        )}
+      </div>
       <Card style={{ padding: 8 }}>
         {sorted.map((s) => (
           <div key={s.email} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: `1px solid ${BRAND.line}`, flexWrap: "wrap" }}>
@@ -4401,6 +4420,15 @@ export default function App() {
     records.forEach((r) => { if (r.email) batch.set(doc(db, "staff", r.email.toLowerCase()), { ...r, email: r.email.toLowerCase() }); });
     batch.commit().catch(() => {});
   };
+  const clearDemoStaff = () => {
+    const demo = new Set(STAFF.map((s) => staffEmail(s.name)));
+    const batch = writeBatch(db);
+    let n = 0;
+    directory.forEach((s) => {
+      if (demo.has(s.email) && s.email !== currentStaff?.email) { batch.delete(doc(db, "staff", s.email)); n++; }
+    });
+    if (n) batch.commit().catch(() => {});
+  };
 
   // Reopen a submitted record in its form, pre-filled; submitting replaces it.
   const editSubmission = (rec) => {
@@ -4431,10 +4459,10 @@ export default function App() {
   const nav = [
     { key: "staff", num: "01", label: "All Review Forms", colour: BRAND.magenta },
     { key: "me", num: "02", label: "My Dashboard", colour: "#46B749" },
-    { key: "board", num: "03", label: "Share board", colour: "#C2651A" },
+    { key: "board", num: "03", label: "Share Board", colour: "#C2651A" },
     { key: "slt", num: "04", label: "SLT / T&L", colour: "#8447B0" },
     { key: "manager", num: "05", label: "Line Manager", colour: BRAND.ink },
-    ...(isFullAccess(effectiveUser) ? [{ key: "admin", num: "06", label: "Manage staff", colour: "#5A4763" }] : []),
+    ...(isFullAccess(effectiveUser) ? [{ key: "admin", num: "06", label: "Manage Staff", colour: "#5A4763" }] : []),
   ];
 
   // Sign-in gate: verified school account AND a place in the staff directory.
@@ -4510,7 +4538,7 @@ export default function App() {
               locked={!canOpenTab(effectiveUser, n.key)}
               onClick={() => { setRole(n.key); setSelectedForm(null); setResumeDraft(null); }} />
           ))}
-          <NavTile num="06" label="Ask the T&L Assistant any question" colour={BRAND.magenta} narrow={narrow} compact={compact}
+          <NavTile icon={MessageCircle} label="Ask the Assistant" colour={BRAND.magenta} narrow={narrow} compact={compact}
             active={false} onClick={() => setBotOpen(true)} />
           {!narrow && !compact && (
             <div style={{ marginTop: "auto", paddingTop: 14, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -4568,7 +4596,7 @@ export default function App() {
           ) : role === "manager" ? (
             <ManagerDashboard submissions={submissions} />
           ) : role === "admin" ? (
-            <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} myEmail={currentStaff?.email} />
+            <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} onClearDemo={clearDemoStaff} myEmail={currentStaff?.email} />
           ) : (
             <SLTDashboard submissions={submissions} />
           )}
