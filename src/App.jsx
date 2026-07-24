@@ -911,7 +911,7 @@ function ReflectionsBoard({ submissions, reflections, onAdd, me }) {
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const canShare = who && text.trim() && (!idea || outcome);
+  const canShare = who && text.trim() && photo && (!idea || outcome);
 
   return (
     <div>
@@ -1029,7 +1029,7 @@ function ReflectionsBoard({ submissions, reflections, onAdd, me }) {
               display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", borderRadius: 999,
               border: `1.5px solid ${BRAND.line}`, cursor: "pointer", fontSize: 13, fontWeight: 650, color: BRAND.magenta,
             }}>
-              <Camera size={15} /> {photo ? "Change photo" : "Add a photo"}
+              <Camera size={15} /> {photo ? "Change photo" : "Add a photo (required)"}
               <input ref={fileRef} type="file" accept="image/*" onChange={onPhoto} style={{ display: "none" }} />
             </label>
             {photo && (
@@ -2604,6 +2604,7 @@ function StrandBar({ strand, counts, unit = "review" }) {
 
 function SLTDashboard({ submissions, directory = [] }) {
   const [formFilter, setFormFilter] = useState("all");
+  const [prMode, setPrMode] = useState("reviewer");
   const [facultyFilter, setFacultyFilter] = useState("all");
   const [exStrand, setExStrand] = useState("Intent");
   const [exRating, setExRating] = useState("Transformational");
@@ -2676,12 +2677,19 @@ function SLTDashboard({ submissions, directory = [] }) {
   const ticked = ideas.filter((i) => i.update);
   const followUps = filtered.filter((s) => s.requiresFollowUp).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
 
-  // peer review completion: who has submitted a peer review as reviewer
-  const peerReviewers = new Set(submissions.filter((s) => s.formType === "peer-review").map((s) => s.reviewer));
+  // peer review completion: who has reviewed a colleague / been reviewed
+  const peerSet = new Set(
+    submissions.filter((s) => s.formType === "peer-review")
+      .map((s) => (prMode === "reviewer" ? s.reviewer : s.reviewee))
+  );
   const roster = [...directory].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-  const prDone = roster.filter((s) => peerReviewers.has(s.name));
-  const prPending = roster.filter((s) => !peerReviewers.has(s.name));
+  const prDone = roster.filter((s) => peerSet.has(s.name));
+  const prPending = roster.filter((s) => !peerSet.has(s.name));
   const prPct = roster.length ? Math.round((prDone.length / roster.length) * 100) : 0;
+  const prDeptRows = DEPARTMENTS.map((d) => {
+    const members = roster.filter((s) => s.department === d);
+    return { dept: d, total: members.length, done: members.filter((s) => peerSet.has(s.name)).length };
+  }).filter((r) => r.total > 0);
 
   return (
     <div>
@@ -2720,13 +2728,39 @@ function SLTDashboard({ submissions, directory = [] }) {
 
       {roster.length > 0 && (
         <Card style={{ padding: 28, marginBottom: 30 }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
             <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Peer review completion</h3>
-            <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.ink }}>{prDone.length} of {roster.length} · {prPct}%</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", border: `1.5px solid ${BRAND.line}`, borderRadius: 999, overflow: "hidden" }}>
+                {[["reviewer", "Reviewed a colleague"], ["reviewee", "Been reviewed"]].map(([m, label]) => (
+                  <button key={m} onClick={() => setPrMode(m)} style={{
+                    padding: "6px 14px", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: 12.5, fontWeight: 700,
+                    background: prMode === m ? BRAND.magenta : "#fff", color: prMode === m ? "#fff" : BRAND.grey,
+                  }}>{label}</button>
+                ))}
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.ink }}>{prDone.length} of {roster.length} · {prPct}%</span>
+            </div>
           </div>
           <div style={{ height: 10, borderRadius: 999, background: BRAND.line, overflow: "hidden", marginBottom: 18 }}>
             <div style={{ width: `${prPct}%`, height: "100%", background: BRAND.green }} />
           </div>
+          {prDeptRows.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px,1fr))", gap: "8px 20px", marginBottom: 20 }}>
+              {prDeptRows.map((r) => {
+                const pct = Math.round((r.done / r.total) * 100);
+                return (
+                  <div key={r.dept} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 12.5, color: BRAND.ink, width: 130, flexShrink: 0 }}>{r.dept}</span>
+                    <div style={{ flex: 1, height: 7, borderRadius: 999, background: BRAND.line, overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", background: pct === 100 ? BRAND.green : BRAND.magenta }} />
+                    </div>
+                    <span style={{ fontSize: 11.5, color: BRAND.grey, width: 34, textAlign: "right", flexShrink: 0 }}>{r.done}/{r.total}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px,1fr))", gap: 20 }}>
             <div>
               <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".05em", color: "#2E7D32", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> DONE ({prDone.length})</div>
@@ -3301,7 +3335,7 @@ function MyDashboard({ submissions, drafts, reflections, me, onAddReflection, on
 
   const openIdeas = openIdeasFor(me, submissions, reflections);
   const pickedIdea = openIdeas.find((r) => r.id === ideaPick) || openIdeas[0];
-  const canPostIdea = pickedIdea && ideaText.trim() && ideaOutcome;
+  const canPostIdea = pickedIdea && ideaText.trim() && ideaOutcome && ideaPhoto;
   const postIdea = () => {
     if (!canPostIdea) return;
     const post = {
@@ -3377,7 +3411,7 @@ function MyDashboard({ submissions, drafts, reflections, me, onAddReflection, on
                 border: `1.5px solid ${BRAND.line}`, cursor: "pointer", fontSize: 13, fontWeight: 650,
                 color: BRAND.magenta, background: "#fff",
               }}>
-                <Camera size={15} /> {ideaPhoto ? "Change photo" : "Add a photo"}
+                <Camera size={15} /> {ideaPhoto ? "Change photo" : "Add a photo (required)"}
                 <input ref={ideaFileRef} type="file" accept="image/*" onChange={onIdeaPhoto} style={{ display: "none" }} />
               </label>
               {ideaPhoto && <img src={ideaPhoto} alt="preview" style={{ height: 52, borderRadius: 8 }} />}
