@@ -2602,7 +2602,7 @@ function StrandBar({ strand, counts, unit = "review" }) {
   );
 }
 
-function SLTDashboard({ submissions }) {
+function SLTDashboard({ submissions, directory = [] }) {
   const [formFilter, setFormFilter] = useState("all");
   const [facultyFilter, setFacultyFilter] = useState("all");
   const [exStrand, setExStrand] = useState("Intent");
@@ -2676,6 +2676,13 @@ function SLTDashboard({ submissions }) {
   const ticked = ideas.filter((i) => i.update);
   const followUps = filtered.filter((s) => s.requiresFollowUp).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
 
+  // peer review completion: who has submitted a peer review as reviewer
+  const peerReviewers = new Set(submissions.filter((s) => s.formType === "peer-review").map((s) => s.reviewer));
+  const roster = [...directory].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+  const prDone = roster.filter((s) => peerReviewers.has(s.name));
+  const prPending = roster.filter((s) => !peerReviewers.has(s.name));
+  const prPct = roster.length ? Math.round((prDone.length / roster.length) * 100) : 0;
+
   return (
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12, marginBottom: 26 }}>
@@ -2710,6 +2717,34 @@ function SLTDashboard({ submissions }) {
           </div>
         ))}
       </div>
+
+      {roster.length > 0 && (
+        <Card style={{ padding: 28, marginBottom: 30 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+            <h3 style={{ margin: 0, fontSize: 15, color: BRAND.ink }}>Peer review completion</h3>
+            <span style={{ fontSize: 13, fontWeight: 700, color: BRAND.ink }}>{prDone.length} of {roster.length} · {prPct}%</span>
+          </div>
+          <div style={{ height: 10, borderRadius: 999, background: BRAND.line, overflow: "hidden", marginBottom: 18 }}>
+            <div style={{ width: `${prPct}%`, height: "100%", background: BRAND.green }} />
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px,1fr))", gap: 20 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".05em", color: "#2E7D32", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}><CheckCircle size={14} /> DONE ({prDone.length})</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {prDone.map((s) => <span key={s.email} style={{ fontSize: 12.5, fontWeight: 600, padding: "4px 10px", borderRadius: 999, background: "#EAF6EB", color: "#2E7D32" }}>{s.name}</span>)}
+                {prDone.length === 0 && <span style={{ fontSize: 13, color: BRAND.grey }}>Nobody yet.</span>}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".05em", color: "#C0392B", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}><Clock size={14} /> NOT YET ({prPending.length})</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {prPending.map((s) => <span key={s.email} style={{ fontSize: 12.5, fontWeight: 600, padding: "4px 10px", borderRadius: 999, background: "#FCF2F2", color: "#C0392B" }}>{s.name}</span>)}
+                {prPending.length === 0 && <span style={{ fontSize: 13, color: BRAND.grey }}>Everyone's done - nice.</span>}
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {followUps.length > 0 && (
         <Card style={{ padding: 28, marginBottom: 30, border: "2px solid #C0392B", background: "#FCF2F2" }}>
@@ -4617,7 +4652,7 @@ export default function App() {
           ) : role === "admin" ? (
             <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} onClearDemo={clearDemoStaff} myEmail={currentStaff?.email} />
           ) : (
-            <SLTDashboard submissions={submissions} />
+            <SLTDashboard submissions={submissions} directory={directory} />
           )}
         </main>
       </div>
