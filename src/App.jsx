@@ -4118,12 +4118,13 @@ function walksFromCsv(s) {
   return [...out];
 }
 
-function AdminStaff({ directory, onSave, onDelete, onImport, onClearDemo, onExport, onReset, counts = {}, myEmail }) {
+function AdminStaff({ directory, onSave, onDelete, onImport, onClearDemo, onExportExcel, onExportJson, onReset, counts = {}, myEmail }) {
   const demoEmails = new Set(STAFF.map((s) => staffEmail(s.name)));
   const demoCount = directory.filter((s) => demoEmails.has(s.email) && s.email !== myEmail).length;
-  const handleReset = () => {
-    onExport();
-    const t = window.prompt(`This permanently clears ALL reviews (${counts.submissions || 0}) and share-board posts (${counts.reflections || 0}) so you can start a new academic year. Staff and their roles are kept. An archive has just downloaded to your computer.\n\nType RESET to confirm.`);
+  const handleReset = async () => {
+    await onExportExcel();   // readable archive
+    onExportJson();          // restore file
+    const t = window.prompt(`This permanently clears ALL reviews (${counts.submissions || 0}) and share-board posts (${counts.reflections || 0}) so you can start a new academic year. Staff and their roles are kept. An Excel archive and a restore file have just downloaded to your computer.\n\nType RESET to confirm.`);
     if (t === "RESET") onReset();
   };
   const blank = { email: "", name: "", role: "teacher", isTL: false, department: "", manager: "", extraForms: [], level: "" };
@@ -4297,13 +4298,14 @@ function AdminStaff({ directory, onSave, onDelete, onImport, onClearDemo, onExpo
       <Card style={{ padding: 24, marginTop: 26, border: "1.5px solid #E7C9C9", background: "#FCF5F5" }}>
         <h3 style={{ margin: "0 0 8px", fontSize: 16, color: "#C0392B" }}>End of academic year</h3>
         <p style={{ margin: "0 0 16px", fontSize: 13, color: BRAND.grey, lineHeight: 1.55, maxWidth: 640 }}>
-          Download an archive of this year's data, then clear the reviews and share-board posts to start a fresh year. <strong>Staff and their roles are kept</strong>; only reviews, walks and share-board posts are cleared. There are currently <strong>{counts.submissions || 0} reviews</strong> and <strong>{counts.reflections || 0} posts</strong>.
+          Download this year's data as an <strong>Excel workbook</strong> you can open, filter and keep (one sheet of reviews, one of share-board posts). Then clear the year to start fresh - <strong>staff and their roles are kept</strong>; only reviews, walks and posts are cleared. There are currently <strong>{counts.submissions || 0} reviews</strong> and <strong>{counts.reflections || 0} posts</strong>. The <em>restore file</em> is a technical backup only needed if you ever want to load a year back into the Studio.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-          <button onClick={onExport} style={{
+          <button onClick={onExportExcel} style={{
             padding: "10px 20px", borderRadius: 999, border: `1.5px solid ${BRAND.line}`, background: "#fff",
             color: BRAND.ink, fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "inherit",
-          }}>Download archive (.json)</button>
+          }}>Download archive (Excel)</button>
+          <button onClick={onExportJson} style={{ ...smallActionBtn(false), padding: "9px 16px" }}>Restore file (.json)</button>
           <button onClick={handleReset} style={{
             padding: "10px 20px", borderRadius: 999, border: "none", background: "#C0392B",
             color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "inherit",
@@ -4561,14 +4563,56 @@ export default function App() {
     });
     if (n) batch.commit().catch(() => {});
   };
-  const exportArchive = () => {
-    const stamp = new Date().toISOString().slice(0, 10);
-    const data = { exportedAt: stamp, staff: directory, submissions, reflections };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const download = (blob, name) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `brit-tl-archive-${stamp}.json`; a.click();
+    a.href = url; a.download = name; a.click();
     URL.revokeObjectURL(url);
+  };
+  const exportJson = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const data = { exportedAt: stamp, staff: directory, submissions, reflections };
+    download(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }), `brit-tl-restore-${stamp}.json`);
+  };
+  const exportExcel = async () => {
+    const ExcelJS = (await import("exceljs")).default;
+    const nameOf = (id) => FORMS.find((f) => f.id === id)?.name || id;
+    const wb = new ExcelJS.Workbook();
+    const rev = wb.addWorksheet("Reviews");
+    rev.columns = [
+      { header: "Ref", key: "ref", width: 38 }, { header: "Form", key: "form", width: 20 },
+      { header: "Date", key: "date", width: 12 }, { header: "Term", key: "term", width: 10 },
+      { header: "Academic year", key: "year", width: 14 }, { header: "Department", key: "dept", width: 18 },
+      { header: "Reviewee", key: "reviewee", width: 18 }, { header: "Reviewer", key: "reviewer", width: 18 },
+      { header: "Year group", key: "yg", width: 12 }, { header: "Class", key: "cls", width: 16 },
+      { header: "Belonging", key: "b", width: 14 }, { header: "Room", key: "r", width: 14 },
+      { header: "Intent", key: "i", width: 14 }, { header: "Travel", key: "t", width: 14 },
+      { header: "Spotlight", key: "spot", width: 14 }, { header: "Shout-out", key: "cele", width: 30 },
+      { header: "Even better if", key: "ebi", width: 30 }, { header: "Idea worth trying", key: "idea", width: 30 },
+      { header: "Requires follow-up", key: "fu", width: 16 }, { header: "Follow-up completed", key: "fud", width: 18 },
+      { header: "Overall", key: "overall", width: 34 },
+    ];
+    submissions.forEach((s) => {
+      const g = (k) => s.strands?.[k]?.rating || "";
+      rev.addRow({
+        ref: s.id, form: nameOf(s.formType), date: s.date, term: s.term, year: s.academicYear,
+        dept: s.faculty, reviewee: s.reviewee, reviewer: s.reviewer, yg: s.yearGroup, cls: s.className,
+        b: g("Belonging"), r: g("Room"), i: g("Intent"), t: g("Travel"), spot: s.focus,
+        cele: s.celebrate, ebi: s.evenBetterIf, idea: s.nextStep,
+        fu: s.requiresFollowUp ? "Yes" : "", fud: s.followUpDone ? "Yes" : "", overall: s.overall,
+      });
+    });
+    const board = wb.addWorksheet("Share board");
+    board.columns = [
+      { header: "Ref", key: "ref", width: 34 }, { header: "Name", key: "name", width: 18 },
+      { header: "Date", key: "date", width: 12 }, { header: "Post", key: "text", width: 60 },
+      { header: "Idea outcome", key: "outcome", width: 18 }, { header: "Linked idea", key: "idea", width: 40 },
+    ];
+    reflections.forEach((p) => board.addRow({ ref: p.id, name: p.name, date: p.date, text: p.text, outcome: p.action?.outcome || "", idea: p.action?.idea || "" }));
+    [rev, board].forEach((ws) => { ws.getRow(1).font = { bold: true }; ws.views = [{ state: "frozen", ySplit: 1 }]; });
+    const buf = await wb.xlsx.writeBuffer();
+    const stamp = new Date().toISOString().slice(0, 10);
+    download(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `brit-tl-archive-${stamp}.xlsx`);
   };
   const resetYear = async () => {
     const delAll = async (coll, items) => {
@@ -4751,7 +4795,7 @@ export default function App() {
             <ManagerDashboard submissions={submissions} viewer={effectiveUser} directory={directory} />
           ) : role === "admin" ? (
             <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} onClearDemo={clearDemoStaff}
-              onExport={exportArchive} onReset={resetYear} counts={{ submissions: submissions.length, reflections: reflections.length }} myEmail={currentStaff?.email} />
+              onExportExcel={exportExcel} onExportJson={exportJson} onReset={resetYear} counts={{ submissions: submissions.length, reflections: reflections.length }} myEmail={currentStaff?.email} />
           ) : (
             <SLTDashboard submissions={submissions} directory={directory} onMarkFollowUp={markFollowUp} />
           )}
