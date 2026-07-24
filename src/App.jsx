@@ -2602,7 +2602,7 @@ function StrandBar({ strand, counts, unit = "review" }) {
   );
 }
 
-function SLTDashboard({ submissions, directory = [] }) {
+function SLTDashboard({ submissions, directory = [], onMarkFollowUp }) {
   const [formFilter, setFormFilter] = useState("all");
   const [prMode, setPrMode] = useState("reviewer");
   const [facultyFilter, setFacultyFilter] = useState("all");
@@ -2675,7 +2675,8 @@ function SLTDashboard({ submissions, directory = [] }) {
     .filter((r) => r.formType === "peer-review" && r.nextStep)
     .map((r) => ({ rec: r, update: boardPosts.find((p) => p.action?.recId === r.id) }));
   const ticked = ideas.filter((i) => i.update);
-  const followUps = filtered.filter((s) => s.requiresFollowUp).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+  const followUps = filtered.filter((s) => s.requiresFollowUp && !s.followUpDone).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+  const followUpsDone = filtered.filter((s) => s.requiresFollowUp && s.followUpDone).slice().sort((a, b) => (a.date < b.date ? 1 : -1));
 
   // peer review completion: who has reviewed a colleague / been reviewed
   const peerSet = new Set(
@@ -2780,24 +2781,41 @@ function SLTDashboard({ submissions, directory = [] }) {
         </Card>
       )}
 
-      {followUps.length > 0 && (
-        <Card style={{ padding: 28, marginBottom: 30, border: "2px solid #C0392B", background: "#FCF2F2" }}>
+      {(followUps.length > 0 || followUpsDone.length > 0) && (
+        <Card style={{ padding: 28, marginBottom: 30, border: `2px solid ${followUps.length ? "#C0392B" : BRAND.line}`, background: followUps.length ? "#FCF2F2" : "#fff" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <Clock size={16} color="#C0392B" />
-            <h3 style={{ margin: 0, fontSize: 15, color: "#C0392B" }}>Awaiting follow-up ({followUps.length})</h3>
+            <Clock size={16} color={followUps.length ? "#C0392B" : BRAND.grey} />
+            <h3 style={{ margin: 0, fontSize: 15, color: followUps.length ? "#C0392B" : BRAND.ink }}>Awaiting follow-up ({followUps.length})</h3>
           </div>
           <p style={{ fontSize: 13, color: BRAND.grey, margin: "0 0 14px", lineHeight: 1.5 }}>
-            These walks were flagged for follow-up - the reviewer should feed back to the staff observed within a week.
+            These walks were flagged for follow-up - the reviewer should feed back to the staff observed within a week. Flip the switch once you've fed back.
           </p>
           <div style={{ display: "grid", gap: 8 }}>
             {followUps.map((s) => (
               <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: "#fff", borderRadius: 10, padding: "10px 14px" }}>
                 <strong style={{ fontSize: 13.5, color: BRAND.ink }}>{s.reviewee}</strong>
                 <span style={{ fontSize: 12.5, color: BRAND.grey }}>{s.faculty} · {FORMS.find((f) => f.id === s.formType)?.name}</span>
-                <span style={{ marginLeft: "auto", fontSize: 12.5, color: BRAND.grey }}>{s.date} · by {s.reviewer}</span>
+                <span style={{ fontSize: 12.5, color: BRAND.grey, marginLeft: "auto" }}>{s.date} · by {s.reviewer}</span>
+                <Toggle on={false} onChange={() => onMarkFollowUp && onMarkFollowUp(s.id, true)} label="Completed" />
               </div>
             ))}
           </div>
+          {followUpsDone.length > 0 && (
+            <details style={{ marginTop: 14 }}>
+              <summary style={{ cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#2E7D32" }}>Completed follow-ups ({followUpsDone.length})</summary>
+              <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+                {followUpsDone.map((s) => (
+                  <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", background: "#F4F8F4", borderRadius: 10, padding: "10px 14px" }}>
+                    <CheckCircle size={14} color="#2E7D32" />
+                    <strong style={{ fontSize: 13.5, color: BRAND.ink }}>{s.reviewee}</strong>
+                    <span style={{ fontSize: 12.5, color: BRAND.grey }}>{s.faculty} · {FORMS.find((f) => f.id === s.formType)?.name}</span>
+                    <span style={{ fontSize: 12.5, color: BRAND.grey, marginLeft: "auto" }}>{s.date} · by {s.reviewer}</span>
+                    <Toggle on={true} onChange={() => onMarkFollowUp && onMarkFollowUp(s.id, false)} label="Completed" />
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
         </Card>
       )}
 
@@ -4504,6 +4522,10 @@ export default function App() {
     setSubmissions((prev) => prev.filter((x) => x.id !== id));
     deleteDoc(doc(db, "submissions", id)).catch(() => {});
   };
+  const markFollowUp = (id, done) => {
+    setSubmissions((prev) => prev.map((x) => (x.id === id ? { ...x, followUpDone: done } : x)));
+    setDoc(doc(db, "submissions", id), { followUpDone: done }, { merge: true }).catch(() => {});
+  };
 
   const addReflection = (post) => {
     setReflections((prev) => [post, ...prev]);
@@ -4731,7 +4753,7 @@ export default function App() {
             <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} onClearDemo={clearDemoStaff}
               onExport={exportArchive} onReset={resetYear} counts={{ submissions: submissions.length, reflections: reflections.length }} myEmail={currentStaff?.email} />
           ) : (
-            <SLTDashboard submissions={submissions} directory={directory} />
+            <SLTDashboard submissions={submissions} directory={directory} onMarkFollowUp={markFollowUp} />
           )}
         </main>
       </div>
