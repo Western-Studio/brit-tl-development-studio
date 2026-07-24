@@ -4066,9 +4066,14 @@ function walksFromCsv(s) {
   return [...out];
 }
 
-function AdminStaff({ directory, onSave, onDelete, onImport, onClearDemo, myEmail }) {
+function AdminStaff({ directory, onSave, onDelete, onImport, onClearDemo, onExport, onReset, counts = {}, myEmail }) {
   const demoEmails = new Set(STAFF.map((s) => staffEmail(s.name)));
   const demoCount = directory.filter((s) => demoEmails.has(s.email) && s.email !== myEmail).length;
+  const handleReset = () => {
+    onExport();
+    const t = window.prompt(`This permanently clears ALL reviews (${counts.submissions || 0}) and share-board posts (${counts.reflections || 0}) so you can start a new academic year. Staff and their roles are kept. An archive has just downloaded to your computer.\n\nType RESET to confirm.`);
+    if (t === "RESET") onReset();
+  };
   const blank = { email: "", name: "", role: "teacher", isTL: false, department: "", manager: "", extraForms: [], level: "" };
   const [form, setForm] = useState(blank);
   const [editing, setEditing] = useState(false);
@@ -4235,6 +4240,23 @@ function AdminStaff({ directory, onSave, onDelete, onImport, onClearDemo, myEmai
           </div>
         ))}
         {sorted.length === 0 && <p style={{ color: BRAND.grey, fontSize: 13.5, padding: 16, margin: 0 }}>No staff yet.</p>}
+      </Card>
+
+      <Card style={{ padding: 24, marginTop: 26, border: "1.5px solid #E7C9C9", background: "#FCF5F5" }}>
+        <h3 style={{ margin: "0 0 8px", fontSize: 16, color: "#C0392B" }}>End of academic year</h3>
+        <p style={{ margin: "0 0 16px", fontSize: 13, color: BRAND.grey, lineHeight: 1.55, maxWidth: 640 }}>
+          Download an archive of this year's data, then clear the reviews and share-board posts to start a fresh year. <strong>Staff and their roles are kept</strong>; only reviews, walks and share-board posts are cleared. There are currently <strong>{counts.submissions || 0} reviews</strong> and <strong>{counts.reflections || 0} posts</strong>.
+        </p>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          <button onClick={onExport} style={{
+            padding: "10px 20px", borderRadius: 999, border: `1.5px solid ${BRAND.line}`, background: "#fff",
+            color: BRAND.ink, fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "inherit",
+          }}>Download archive (.json)</button>
+          <button onClick={handleReset} style={{
+            padding: "10px 20px", borderRadius: 999, border: "none", background: "#C0392B",
+            color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: 14, fontFamily: "inherit",
+          }}>Archive &amp; reset for a new year</button>
+        </div>
       </Card>
     </div>
   );
@@ -4483,6 +4505,28 @@ export default function App() {
     });
     if (n) batch.commit().catch(() => {});
   };
+  const exportArchive = () => {
+    const stamp = new Date().toISOString().slice(0, 10);
+    const data = { exportedAt: stamp, staff: directory, submissions, reflections };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `brit-tl-archive-${stamp}.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
+  const resetYear = async () => {
+    const delAll = async (coll, items) => {
+      for (let i = 0; i < items.length; i += 400) {
+        const batch = writeBatch(db);
+        items.slice(i, i + 400).forEach((x) => x.id && batch.delete(doc(db, coll, x.id)));
+        await batch.commit();
+      }
+    };
+    try {
+      await delAll("submissions", submissions);
+      await delAll("reflections", reflections);
+    } catch (e) { /* ignore - partial clears retry on next reset */ }
+  };
 
   // Reopen a submitted record in its form, pre-filled; submitting replaces it.
   const editSubmission = (rec) => {
@@ -4650,7 +4694,8 @@ export default function App() {
           ) : role === "manager" ? (
             <ManagerDashboard submissions={submissions} viewer={effectiveUser} directory={directory} />
           ) : role === "admin" ? (
-            <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} onClearDemo={clearDemoStaff} myEmail={currentStaff?.email} />
+            <AdminStaff directory={directory} onSave={saveStaff} onDelete={deleteStaff} onImport={importStaff} onClearDemo={clearDemoStaff}
+              onExport={exportArchive} onReset={resetYear} counts={{ submissions: submissions.length, reflections: reflections.length }} myEmail={currentStaff?.email} />
           ) : (
             <SLTDashboard submissions={submissions} directory={directory} />
           )}
